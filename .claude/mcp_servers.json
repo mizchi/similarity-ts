@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "local": {
+      "command": "node",
+      "args": [".claude/mcp-server.ts"]
+    }
+  }
+}

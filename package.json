@@ -1,0 +1,26 @@
+{
+  "name": "ts-similarity",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@mizchi/readability": "^0.5.8",
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@types/node": "^22.15.30",
+    "tree-sitter-cli": "^0.25.6",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "zod": "^3.25.56"
+  },
+  "dependencies": {
+    "tree-sitter-typescript": "^0.23.2",
+    "web-tree-sitter": "^0.25.6"
+  }
+}
