@@ -5,7 +5,14 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tsx test/similarity_test.ts && tsx test/fixtures_test.ts",
+    "test:fixtures": "tsx test/fixtures_test.ts",
+    "test:apted": "tsx test/apted_test.ts",
+    "example": "tsx examples/basic_usage.ts",
+    "example:apted": "tsx examples/apted_comparison.ts",
+    "example:multi": "tsx examples/multi_file_similarity.ts",
+    "benchmark": "tsx examples/run_benchmark.ts",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
@@ -14,13 +21,13 @@
     "@mizchi/readability": "^0.5.8",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "@types/node": "^22.15.30",
-    "tree-sitter-cli": "^0.25.6",
+    "oxc-parser": "^0.73.0",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
     "zod": "^3.25.56"
   },
   "dependencies": {
-    "tree-sitter-typescript": "^0.23.2",
-    "web-tree-sitter": "^0.25.6"
+    "@types/glob": "^8.1.0",
+    "glob": "^11.0.3"
   }
 }

@@ -1,98 +1,70 @@
-import { Parser, Language, Tree, Node } from "web-tree-sitter";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
+import { calculateSimilarity, compareStructures, parseTypeScript, calculateSimilarityAPTED } from './oxc_similarity.ts';
+import type { APTEDConfig } from './oxc_similarity.ts';
+import { CodeRepository } from './code_repository.ts';
+import { MinHash, LSH, SimHash, extractTokens, extractFeatures } from './code_index.ts';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+export { 
+  calculateSimilarity, 
+  compareStructures, 
+  parseTypeScript, 
+  calculateSimilarityAPTED,
+  CodeRepository,
+  MinHash,
+  LSH,
+  SimHash,
+  extractTokens,
+  extractFeatures
+};
+export type { APTEDConfig };
 
-await Parser.init();
+/**
+ * Main API for calculating code similarity using oxc-parser
+ */
+export class CodeSimilarity {
+  private config?: Partial<APTEDConfig>;
+  private useAPTED: boolean;
 
-const parser = new Parser();
-const Lang = await Language.load(
-  join(
-    __dirname,
-    "../node_modules/tree-sitter-typescript/tree-sitter-typescript.wasm"
-  )
-);
-parser.setLanguage(Lang);
+  constructor(options?: { useAPTED?: boolean; config?: Partial<APTEDConfig> }) {
+    this.useAPTED = options?.useAPTED ?? false;
+    this.config = options?.config;
+  }
 
-function parseCode(code: string): Tree {
-  return parser.parse(code)!;
-}
-
-function printNode(node: Node, indent: string = ""): void {
-  console.log(`${indent}${node.type} [${node.startIndex}-${node.endIndex}]`);
-
-  for (let i = 0; i < node.childCount; i++) {
-    const child = node.child(i);
-    if (child) {
-      printNode(child, indent + "  ");
+  /**
+   * Calculate similarity between two code snippets
+   * @param code1 First code snippet
+   * @param code2 Second code snippet
+   * @returns Similarity score between 0 and 1
+   */
+  calculateSimilarity(code1: string, code2: string): number {
+    if (this.useAPTED) {
+      return calculateSimilarityAPTED(code1, code2, this.config);
     }
+    return calculateSimilarity(code1, code2);
+  }
+
+  /**
+   * Get detailed similarity report
+   */
+  getDetailedReport(code1: string, code2: string) {
+    const result = compareStructures(code1, code2);
+    
+    return {
+      similarity: this.useAPTED ? calculateSimilarityAPTED(code1, code2, this.config) : result.similarity,
+      structure1: result.structure1,
+      structure2: result.structure2,
+      code1Length: code1.length,
+      code2Length: code2.length,
+      algorithm: this.useAPTED ? 'APTED' : 'Levenshtein',
+    };
+  }
+
+  /**
+   * Parse TypeScript code and return AST
+   */
+  parse(code: string, filename = 'code.ts') {
+    return parseTypeScript(filename, code);
   }
 }
 
-// Test
-async function main() {
-  const code = `
-function hello(name: string): void {
-  console.log("Hello, " + name);
-}
-
-class Example {
-  constructor(private value: number) {}
-  
-  getValue(): number {
-    return this.value;
-  }
-}
-`;
-
-  const tree = parseCode(code);
-  console.log("=== AST ===");
-  console.log(tree.rootNode.toString());
-
-  console.log("\n=== Tree Structure ===");
-  printNode(tree.rootNode);
-
-  console.log("\n=== Extract Functions ===");
-  extractFunctions(tree.rootNode);
-}
-
-function extractFunctions(node: Node, parentName?: string): void {
-  if (
-    node.type === "function_declaration" ||
-    node.type === "function_expression"
-  ) {
-    const nameNode = node.childForFieldName("name");
-    if (nameNode) {
-      console.log(`Function: ${nameNode.text}`);
-    }
-  } else if (node.type === "method_definition") {
-    const nameNode = node.childForFieldName("name");
-    if (nameNode && parentName) {
-      console.log(`Method: ${parentName}.${nameNode.text}`);
-    }
-  } else if (node.type === "class_declaration") {
-    const nameNode = node.childForFieldName("name");
-    const className = nameNode ? nameNode.text : "Anonymous";
-    console.log(`Class: ${className}`);
-
-    // Extract methods from class body
-    for (let i = 0; i < node.childCount; i++) {
-      const child = node.child(i);
-      if (child) {
-        extractFunctions(child, className);
-      }
-    }
-  }
-
-  // Recursively search children
-  for (let i = 0; i < node.childCount; i++) {
-    const child = node.child(i);
-    if (child) {
-      extractFunctions(child, parentName);
-    }
-  }
-}
-
-main();
+// Export default instance for convenience
+export default CodeSimilarity;

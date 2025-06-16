@@ -1,0 +1,1 @@
+// Edge case: Empty file with different comment

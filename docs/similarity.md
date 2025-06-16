@@ -1,8 +1,8 @@
 # Revisiting Code Similarity Evaluation with Abstract Syntax Tree Edit Distance
 
-Yewei Song 
-Cedric Lothritz Daniel Tang Tegawendé F. Bissyandé Jacques Klein University of Luxembourg 
-6 Rue Richard Coudenhove-Kalergi 
+Yewei Song
+Cedric Lothritz Daniel Tang Tegawendé F. Bissyandé Jacques Klein University of Luxembourg
+6 Rue Richard Coudenhove-Kalergi
 Luxembourg
 
 ###### Abstract
@@ -36,18 +36,18 @@ Applying the TSED evaluation method, initially designed for SQL analysis, we hav
 
 We use tree-sitter 2 2 2 https://tree-sitter.github.io/tree-sitter/ as our AST parser which is based on GLR, a powerful parsing algorithm commonly found in the literature Latif et al. ( [2023](https://arxiv.org/html/2404.08817v1#bib.bib6)); Tomita ( [1991](https://arxiv.org/html/2404.08817v1#bib.bib15)); Clem and Thomson ( [2021](https://arxiv.org/html/2404.08817v1#bib.bib4)).
 
-Tree Distance Computation: For calculating tree edit distance as Δ Δ \\Delta roman\_Δ, we utilize the same function as outlined in the TSED paper, which is APTED algorithm Pawlik and Augsten ( [2015](https://arxiv.org/html/2404.08817v1#bib.bib10), [2016](https://arxiv.org/html/2404.08817v1#bib.bib11)).
-Considering G 1 subscript 𝐺 1 G\_{1} italic\_G start\_POSTSUBSCRIPT 1 end\_POSTSUBSCRIPT as predicted code’s AST and G 2 subscript 𝐺 2 G\_{2} italic\_G start\_POSTSUBSCRIPT 2 end\_POSTSUBSCRIPT are AST from ground-truth:
+Tree Distance Computation: For calculating tree edit distance as Δ Δ \\Delta roman_Δ, we utilize the same function as outlined in the TSED paper, which is APTED algorithm Pawlik and Augsten ( [2015](https://arxiv.org/html/2404.08817v1#bib.bib10), [2016](https://arxiv.org/html/2404.08817v1#bib.bib11)).
+Considering G 1 subscript 𝐺 1 G\_{1} italic_G start_POSTSUBSCRIPT 1 end_POSTSUBSCRIPT as predicted code’s AST and G 2 subscript 𝐺 2 G\_{2} italic_G start_POSTSUBSCRIPT 2 end_POSTSUBSCRIPT are AST from ground-truth:
 
 | --- | --- | --- | --- |
-|  | Δ ⁢ ( G 1, G 2) = min o ⁢ p ⁢ s ⁢ ∑ i = 1 n w ⁢ ( o ⁢ p i) Δ subscript 𝐺 1 subscript 𝐺 2 subscript 𝑜 𝑝 𝑠 superscript subscript 𝑖 1 𝑛 𝑤 𝑜 subscript 𝑝 𝑖 \\Delta(G\_{1},G\_{2})=\\min\_{ops}\\sum\_{i=1}^{n}w(op\_{i}) roman\_Δ ( italic\_G start\_POSTSUBSCRIPT 1 end\_POSTSUBSCRIPT , italic\_G start\_POSTSUBSCRIPT 2 end\_POSTSUBSCRIPT ) = roman\_min start\_POSTSUBSCRIPT italic\_o italic\_p italic\_s end\_POSTSUBSCRIPT ∑ start\_POSTSUBSCRIPT italic\_i = 1 end\_POSTSUBSCRIPT start\_POSTSUPERSCRIPT italic\_n end\_POSTSUPERSCRIPT italic\_w ( italic\_o italic\_p start\_POSTSUBSCRIPT italic\_i end\_POSTSUBSCRIPT ) |  | (1) |
+| | Δ ⁢ ( G 1, G 2) = min o ⁢ p ⁢ s ⁢ ∑ i = 1 n w ⁢ ( o ⁢ p i) Δ subscript 𝐺 1 subscript 𝐺 2 subscript 𝑜 𝑝 𝑠 superscript subscript 𝑖 1 𝑛 𝑤 𝑜 subscript 𝑝 𝑖 \\Delta(G\_{1},G\_{2})=\\min\_{ops}\\sum\_{i=1}^{n}w(op\_{i}) roman_Δ ( italic_G start_POSTSUBSCRIPT 1 end_POSTSUBSCRIPT , italic_G start_POSTSUBSCRIPT 2 end_POSTSUBSCRIPT ) = roman_min start_POSTSUBSCRIPT italic_o italic_p italic_s end_POSTSUBSCRIPT ∑ start_POSTSUBSCRIPT italic_i = 1 end_POSTSUBSCRIPT start_POSTSUPERSCRIPT italic_n end_POSTSUPERSCRIPT italic_w ( italic_o italic_p start_POSTSUBSCRIPT italic_i end_POSTSUBSCRIPT ) | | (1) |
 
-Here, o ⁢ p ⁢ s 𝑜 𝑝 𝑠 ops italic\_o italic\_p italic\_s is a sequence of edit operations transforming G 1 subscript 𝐺 1 G\_{1} italic\_G start\_POSTSUBSCRIPT 1 end\_POSTSUBSCRIPT into G 2 subscript 𝐺 2 G\_{2} italic\_G start\_POSTSUBSCRIPT 2 end\_POSTSUBSCRIPT, with w ⁢ ( o ⁢ p i) 𝑤 𝑜 subscript 𝑝 𝑖 w(op\_{i}) italic\_w ( italic\_o italic\_p start\_POSTSUBSCRIPT italic\_i end\_POSTSUBSCRIPT ) as the cost for the i t ⁢ h superscript 𝑖 𝑡 ℎ i^{th} italic\_i start\_POSTSUPERSCRIPT italic\_t italic\_h end\_POSTSUPERSCRIPT operation.
+Here, o ⁢ p ⁢ s 𝑜 𝑝 𝑠 ops italic_o italic_p italic_s is a sequence of edit operations transforming G 1 subscript 𝐺 1 G\_{1} italic_G start_POSTSUBSCRIPT 1 end_POSTSUBSCRIPT into G 2 subscript 𝐺 2 G\_{2} italic_G start_POSTSUBSCRIPT 2 end_POSTSUBSCRIPT, with w ⁢ ( o ⁢ p i) 𝑤 𝑜 subscript 𝑝 𝑖 w(op\_{i}) italic_w ( italic_o italic_p start_POSTSUBSCRIPT italic_i end_POSTSUBSCRIPT ) as the cost for the i t ⁢ h superscript 𝑖 𝑡 ℎ i^{th} italic_i start_POSTSUPERSCRIPT italic_t italic_h end_POSTSUPERSCRIPT operation.
 
 Normalization: Normalization of tree edit distances accounts for the complexity of the code by considering the maximum number of nodes between two trees, and we add a ramp function to avoid some extreme situations:
 
 | --- | --- | --- | --- |
-|  | T ⁢ S ⁢ E ⁢ D = max ⁡ { 1 − δ M ⁢ a ⁢ x ⁢ N ⁢ o ⁢ d ⁢ e ⁢ s ⁢ ( G 1, G 2), 0 } 𝑇 𝑆 𝐸 𝐷 1 𝛿 𝑀 𝑎 𝑥 𝑁 𝑜 𝑑 𝑒 𝑠 subscript 𝐺 1 subscript 𝐺 2 0 TSED=\\max\\{1-\\frac{\\delta}{MaxNodes(G\_{1},G\_{2})},0\\} italic\_T italic\_S italic\_E italic\_D = roman\_max { 1 - divide start\_ARG italic\_δ end\_ARG start\_ARG italic\_M italic\_a italic\_x italic\_N italic\_o italic\_d italic\_e italic\_s ( italic\_G start\_POSTSUBSCRIPT 1 end\_POSTSUBSCRIPT , italic\_G start\_POSTSUBSCRIPT 2 end\_POSTSUBSCRIPT ) end\_ARG , 0 } |  | (2) |
+| | T ⁢ S ⁢ E ⁢ D = max ⁡ { 1 − δ M ⁢ a ⁢ x ⁢ N ⁢ o ⁢ d ⁢ e ⁢ s ⁢ ( G 1, G 2), 0 } 𝑇 𝑆 𝐸 𝐷 1 𝛿 𝑀 𝑎 𝑥 𝑁 𝑜 𝑑 𝑒 𝑠 subscript 𝐺 1 subscript 𝐺 2 0 TSED=\\max\\{1-\\frac{\\delta}{MaxNodes(G\_{1},G\_{2})},0\\} italic_T italic_S italic_E italic_D = roman_max { 1 - divide start_ARG italic_δ end_ARG start_ARG italic_M italic_a italic_x italic_N italic_o italic_d italic_e italic_s ( italic_G start_POSTSUBSCRIPT 1 end_POSTSUBSCRIPT , italic_G start_POSTSUBSCRIPT 2 end_POSTSUBSCRIPT ) end_ARG , 0 } | | (2) |
 
 This provides a metric for structural similarity comparison of programming code, enabling a nuanced analysis beyond mere syntactic comparison.
 
@@ -58,7 +58,7 @@ Between 2020 and 2023, OpenAI introduced the GPT-3/3.5 and GPT-4 models, showcas
 ## 3 Research Questions and Targets
 
 RQ1: Can TSED be used in more programming languages? We investigate the adaptability of AST Edit Distance which is a generalized version of TSED, exploring its effectiveness in languages like Python and Java to assess its applicability for code similarity analysis.
-RQ2: How are TSED and GPT similarity correlated to semantic similarity and execution match? We assess the correlation between these different metrics to understand their respective contributions in evaluating code similarity across multiple programming languages. 
+RQ2: How are TSED and GPT similarity correlated to semantic similarity and execution match? We assess the correlation between these different metrics to understand their respective contributions in evaluating code similarity across multiple programming languages.
 RQ3: What are the limits of these metrics? We assess the stability of GPT-based similarity output and analyze how parameters, particularly operation weights (delete, insert, rename), influence TSED.
 
 ## 4 Experiments
@@ -79,14 +79,14 @@ In this study, our primary objective is to apply the theoretical framework to a 
 
 Although the execution match metric is infrequently employed in programming code-related datasets, its prominence has increased in recent years. Our comparative analysis involved assessing datasets from various papers, considering factors such as dataset sizes, programming languages, and executables. As highlighted in Table [1](https://arxiv.org/html/2404.08817v1#S4.T1), the MBXP dataset encompasses 13 different languages, serving as a function-level benchmark that effectively evaluates programming paragraphs. However, the MBXP dataset includes ground-truth solutions for only 7 languages, with C# omitted due to compilation issues. Additionally, we consider the CoderEval dataset to facilitate a comparison between Python and Java code generation, leveraging its longer test samples, results are in the appendix.
 
-Table 1: Widely-used code generation benchmarks, selected from GitHub | Benchmark | Language | Samples | Executeable |
-| --- | --- | --- | --- |
-| CoNaLA Yin et al. ( [2018](https://arxiv.org/html/2404.08817v1#bib.bib18)) | Python | 500 | No |
-| Concode Iyer et al. ( [2018](https://arxiv.org/html/2404.08817v1#bib.bib5)) | Java | 2000 | No |
-| MBXP Athiwaratkun et al. ( [2022](https://arxiv.org/html/2404.08817v1#bib.bib2)) | Multilingual | 974 | Yes |
-| InterCode Yang et al. ( [2023](https://arxiv.org/html/2404.08817v1#bib.bib17)) | Bash, SQL | 200, 1034 | Yes |
-| CoderEval Yu et al. ( [2024](https://arxiv.org/html/2404.08817v1#bib.bib19)) | Python, Java | 230 | Yes |
-| RepoEval Liao et al. ( [2023](https://arxiv.org/html/2404.08817v1#bib.bib7)) | Python | 383 | No |
+| Table 1: Widely-used code generation benchmarks, selected from GitHub            | Benchmark    | Language  | Samples | Executeable |
+| -------------------------------------------------------------------------------- | ------------ | --------- | ------- | ----------- |
+| CoNaLA Yin et al. ( [2018](https://arxiv.org/html/2404.08817v1#bib.bib18))       | Python       | 500       | No      |
+| Concode Iyer et al. ( [2018](https://arxiv.org/html/2404.08817v1#bib.bib5))      | Java         | 2000      | No      |
+| MBXP Athiwaratkun et al. ( [2022](https://arxiv.org/html/2404.08817v1#bib.bib2)) | Multilingual | 974       | Yes     |
+| InterCode Yang et al. ( [2023](https://arxiv.org/html/2404.08817v1#bib.bib17))   | Bash, SQL    | 200, 1034 | Yes     |
+| CoderEval Yu et al. ( [2024](https://arxiv.org/html/2404.08817v1#bib.bib19))     | Python, Java | 230       | Yes     |
+| RepoEval Liao et al. ( [2023](https://arxiv.org/html/2404.08817v1#bib.bib7))     | Python       | 383       | No      |
 
 In the Bash-Shell scenarios, we reproduce results and conduct a comparative analysis using the InterCode dataset. Notably, we identify the SPIDER dataset within InterCode and establish it as a baseline. SPIDER, previously evaluated in comparison to the TSED paper, is a substantial human-labeled dataset for the text-to-SQL task. This dataset encompasses databases with intricate join solutions across diverse domains Yu et al. ( [2018](https://arxiv.org/html/2404.08817v1#bib.bib20)).
 
@@ -94,37 +94,37 @@ In the Bash-Shell scenarios, we reproduce results and conduct a comparative anal
 
 ### 5.1 Similarity Results
 
-Table 2: Evaluation Metrics comparison for 6 languages on MBXP dataset, prediction generated by GPT-3.5-Turbo model, ground truth from dataset | Languages | TSED | BLEU | Jaccard Sim | GPT-4 | Execution |
-| --- | --- | --- | --- | --- | --- |
-| Java | 0.3746 | 0.2041 | 0.2733 | 0.8143 | 0.6550 |
-| Python | 0.1888 | 0.0843 | 0.2000 | 0.6751 | 0.6842 |
-| JavaScript | 0.2037 | 0.0846 | 0.2037 | 0.6763 | 0.6811 |
-| Typescript | 0.1360 | 0.0637 | 0.1397 | 0.5313 | 0.6642 |
-| Ruby | 0.1727 | 0.0438 | 0.1810 | 0.7067 | 0.6428 |
-| Kotlin | 0.3412 | 0.1847 | 0.3109 | 0.7073 | 0.5569 |
+| Table 2: Evaluation Metrics comparison for 6 languages on MBXP dataset, prediction generated by GPT-3.5-Turbo model, ground truth from dataset | Languages | TSED   | BLEU   | Jaccard Sim | GPT-4  | Execution |
+| ---------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------ | ------ | ----------- | ------ | --------- |
+| Java                                                                                                                                           | 0.3746    | 0.2041 | 0.2733 | 0.8143      | 0.6550 |
+| Python                                                                                                                                         | 0.1888    | 0.0843 | 0.2000 | 0.6751      | 0.6842 |
+| JavaScript                                                                                                                                     | 0.2037    | 0.0846 | 0.2037 | 0.6763      | 0.6811 |
+| Typescript                                                                                                                                     | 0.1360    | 0.0637 | 0.1397 | 0.5313      | 0.6642 |
+| Ruby                                                                                                                                           | 0.1727    | 0.0438 | 0.1810 | 0.7067      | 0.6428 |
+| Kotlin                                                                                                                                         | 0.3412    | 0.1847 | 0.3109 | 0.7073      | 0.5569 |
 
-Table 3: Execution Match F1 score & Accuracy for each thresholding metrics | Languages | TSED | GPT | BLEU | Jaccard |  |  |  |  |  |  |  |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Python | 0.23 | 0.5650 | 0.6057 | 0.83 | 0.6403 | 0.6735 | 0.07 | 0.5719 | 0.6150 | 0.19 | 0.5907 | 0.6253 |
-| Java | 0.10 | 0.5108 | 0.6499 | 0.56 | 0.5693 | 0.6396 | 0.03 | 0.5184 | 0.5755 | 0.16 | 0.5612 | 0.6018 |
-| JavaScript | 0.12 | 0.5494 | 0.6002 | 0.69 | 0.5924 | 0.6205 | 0.02 | 0.4964 | 0.5267 | 0.12 | 0.5245 | 0.5885 |
-| Typescript | 0.07 | 0.5367 | 0.5822 | 0.51 | 0.5521 | 0.5708 | 0.01 | 0.4987 | 0.5553 | 0.08 | 0.5284 | 0.5708 |
-| Ruby | 0.13 | 0.5045 | 0.5306 | 0.54 | 0.6051 | 0.6811 | 0.01 | 0.4375 | 0.4490 | 0.12 | 0.5142 | 0.5612 |
-| Kotlin | 0.28 | 0.6834 | 0.6823 | 0.8 | 0.6681 | 0.6721 | 0.1 | 0.6441 | 0.6457 | 0.22 | 0.6387 | 0.6533 |
+| Table 3: Execution Match F1 score & Accuracy for each thresholding metrics | Languages | TSED   | GPT    | BLEU | Jaccard |        |      |        |        |      |        |        |     |
+| -------------------------------------------------------------------------- | --------- | ------ | ------ | ---- | ------- | ------ | ---- | ------ | ------ | ---- | ------ | ------ | --- |
+| Python                                                                     | 0.23      | 0.5650 | 0.6057 | 0.83 | 0.6403  | 0.6735 | 0.07 | 0.5719 | 0.6150 | 0.19 | 0.5907 | 0.6253 |
+| Java                                                                       | 0.10      | 0.5108 | 0.6499 | 0.56 | 0.5693  | 0.6396 | 0.03 | 0.5184 | 0.5755 | 0.16 | 0.5612 | 0.6018 |
+| JavaScript                                                                 | 0.12      | 0.5494 | 0.6002 | 0.69 | 0.5924  | 0.6205 | 0.02 | 0.4964 | 0.5267 | 0.12 | 0.5245 | 0.5885 |
+| Typescript                                                                 | 0.07      | 0.5367 | 0.5822 | 0.51 | 0.5521  | 0.5708 | 0.01 | 0.4987 | 0.5553 | 0.08 | 0.5284 | 0.5708 |
+| Ruby                                                                       | 0.13      | 0.5045 | 0.5306 | 0.54 | 0.6051  | 0.6811 | 0.01 | 0.4375 | 0.4490 | 0.12 | 0.5142 | 0.5612 |
+| Kotlin                                                                     | 0.28      | 0.6834 | 0.6823 | 0.8  | 0.6681  | 0.6721 | 0.1  | 0.6441 | 0.6457 | 0.22 | 0.6387 | 0.6533 |
 
 As we analyze the results presented in Table [2](https://arxiv.org/html/2404.08817v1#S5.T2), our experiment demonstrates the effective performance of TSED and GPT similarity in evaluating the MBXP dataset across all 6 programming languages. No instances of parsing or scoring generation failures were observed, confirming the robustness of these metrics across languages.
 
 ![Refer to caption]() Figure 2: MBXP dataset, Pearson Correlation Heatmap between evaluation-metrics on GPT-3.5 Moreover, TSED shows a commendable correlation ranging from 0.6 to 0.8 with BLEU score and Jaccard similarity, as illustrated in Figure [2](https://arxiv.org/html/2404.08817v1#S5.F2). Additionally, TSED exhibits a strong correlation with GPT similarity, especially in Java and Python during the CoderEval test, as depicted in Figure [3](https://arxiv.org/html/2404.08817v1#S5.F3), underscoring its sensitivity to code structure.
-We employ thresholding to establish a prediction-to-execution match. If the metric value exceeds the threshold T 𝑇 T italic\_T, we assign the prediction as 1; otherwise, it is set to 0. The optimal threshold values are determined through enumeration to achieve the best match results. Based on their F1/Accuracy match to the Execution match, both TSED and GPT similarity exhibit higher accuracy compared to semantic metrics in Table [3](https://arxiv.org/html/2404.08817v1#S5.T3). Notably, GPT similarity demonstrates a slightly superior F1 score and TSED gives good results on accuracy.
+We employ thresholding to establish a prediction-to-execution match. If the metric value exceeds the threshold T 𝑇 T italic_T, we assign the prediction as 1; otherwise, it is set to 0. The optimal threshold values are determined through enumeration to achieve the best match results. Based on their F1/Accuracy match to the Execution match, both TSED and GPT similarity exhibit higher accuracy compared to semantic metrics in Table [3](https://arxiv.org/html/2404.08817v1#S5.T3). Notably, GPT similarity demonstrates a slightly superior F1 score and TSED gives good results on accuracy.
 
 ![Refer to caption]() Figure 3: CoderEval Pearson Correlation Heatmap between evaluation-metrics/models/languages ### 5.2 Stability of GPT Scoring
 
 To understand how unstable GPT scoring is, we execute the GPT-4 Similarity scoring five times on identical prediction sets, we establish the initial result as a baseline to assess differences through statistical indicators such as Mean Squared Error (MSE) or Mean Absolute Error (MAE) in comparison to the first scoring. Table [4](https://arxiv.org/html/2404.08817v1#S5.T4) demonstrates that GPT scoring exhibits limited stability in the context of code similarity evaluation.
 
-Table 4: Unstable nature of GPT-4 scoring output | Metrics | 1st | 2nd | 3rd | 4th |
-| --- | --- | --- | --- | --- |
-| Mean Squared Error | 0.0581 | 0.0583 | 0.0527 | 0.0628 |
-| Mean Absolute Error | 0.1902 | 0.1940 | 0.1825 | 0.1996 |
+| Table 4: Unstable nature of GPT-4 scoring output | Metrics | 1st    | 2nd    | 3rd    | 4th |
+| ------------------------------------------------ | ------- | ------ | ------ | ------ | --- |
+| Mean Squared Error                               | 0.0581  | 0.0583 | 0.0527 | 0.0628 |
+| Mean Absolute Error                              | 0.1902  | 0.1940 | 0.1825 | 0.1996 |
 
 ### 5.3 Parameter optimization of TSED
 
@@ -145,123 +145,142 @@ Our research adheres to ethical standards, prioritizing integrity and respect fo
 ## References
 
 - Achiam et al. (2023)
-Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ahmad, Ilge Akkaya, Florencia Leoni Aleman, Diogo Almeida, Janko Altenschmidt, Sam Altman, Shyamal Anadkat, et al. 2023.
+  Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ahmad, Ilge Akkaya, Florencia Leoni Aleman, Diogo Almeida, Janko Altenschmidt, Sam Altman, Shyamal Anadkat, et al. 2023.
 
 Gpt-4 technical report.
 
-*arXiv preprint arXiv:2303.08774*.
+_arXiv preprint arXiv:2303.08774_.
+
 - Athiwaratkun et al. (2022)
-Ben Athiwaratkun, Sanjay Krishna Gouda, Zijian Wang, Xiaopeng Li, Yuchen Tian, Ming Tan, Wasi Uddin Ahmad, Shiqi Wang, Qing Sun, Mingyue Shang, et al. 2022.
+  Ben Athiwaratkun, Sanjay Krishna Gouda, Zijian Wang, Xiaopeng Li, Yuchen Tian, Ming Tan, Wasi Uddin Ahmad, Shiqi Wang, Qing Sun, Mingyue Shang, et al. 2022.
 
 Multi-lingual evaluation of code generation models.
 
-*arXiv preprint arXiv:2210.14868*.
+_arXiv preprint arXiv:2210.14868_.
+
 - Brown et al. (2020)
-Tom B. Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared Kaplan, Prafulla Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell, Sandhini Agarwal, Ariel Herbert-Voss, Gretchen Krueger, Tom Henighan, Rewon Child, Aditya Ramesh, Daniel M. Ziegler, Jeffrey Wu, Clemens Winter, Christopher Hesse, Mark Chen, Eric Sigler, Mateusz Litwin, Scott Gray, Benjamin Chess, Jack Clark, Christopher Berner, Sam McCandlish, Alec Radford, Ilya Sutskever, and Dario Amodei. 2020.
+  Tom B. Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared Kaplan, Prafulla Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell, Sandhini Agarwal, Ariel Herbert-Voss, Gretchen Krueger, Tom Henighan, Rewon Child, Aditya Ramesh, Daniel M. Ziegler, Jeffrey Wu, Clemens Winter, Christopher Hesse, Mark Chen, Eric Sigler, Mateusz Litwin, Scott Gray, Benjamin Chess, Jack Clark, Christopher Berner, Sam McCandlish, Alec Radford, Ilya Sutskever, and Dario Amodei. 2020.
 
 [Language models are few-shot learners](http://arxiv.org/abs/2005.14165).
+
 - Clem and Thomson (2021)
-Timothy Clem and Patrick Thomson. 2021.
+  Timothy Clem and Patrick Thomson. 2021.
 
 Static analysis at github: An experience report.
 
-*Queue*, 19(4):42–67.
+_Queue_, 19(4):42–67.
+
 - Iyer et al. (2018)
-Srinivasan Iyer, Ioannis Konstas, Alvin Cheung, and Luke Zettlemoyer. 2018.
+  Srinivasan Iyer, Ioannis Konstas, Alvin Cheung, and Luke Zettlemoyer. 2018.
 
 Mapping language to code in programmatic context.
 
-*arXiv preprint arXiv:1808.09588*.
+_arXiv preprint arXiv:1808.09588_.
+
 - Latif et al. (2023)
-Afshan Latif, Farooque Azam, Muhammad Waseem Anwar, and Amina Zafar. 2023.
+  Afshan Latif, Farooque Azam, Muhammad Waseem Anwar, and Amina Zafar. 2023.
 
 Comparison of leading language parsers–antlr, javacc, sablecc, tree-sitter, yacc, bison.
 
-In *2023 13th International Conference on Software Technology and Engineering (ICSTE)*, pages 7–13. IEEE.
+In _2023 13th International Conference on Software Technology and Engineering (ICSTE)_, pages 7–13. IEEE.
+
 - Liao et al. (2023)
-Dianshu Liao, Shidong Pan, Qing Huang, Xiaoxue Ren, Zhenchang Xing, Huan Jin, and Qinying Li. 2023.
+  Dianshu Liao, Shidong Pan, Qing Huang, Xiaoxue Ren, Zhenchang Xing, Huan Jin, and Qinying Li. 2023.
 
 Context-aware code generation framework for code repositories: Local, global, and third-party library awareness.
 
-*arXiv preprint arXiv:2312.05772*.
+_arXiv preprint arXiv:2312.05772_.
+
 - Liu et al. (2023)
-Xiao Liu, Yanan Zheng, Zhengxiao Du, Ming Ding, Yujie Qian, Zhilin Yang, and Jie Tang. 2023.
+  Xiao Liu, Yanan Zheng, Zhengxiao Du, Ming Ding, Yujie Qian, Zhilin Yang, and Jie Tang. 2023.
 
 Gpt understands, too.
 
-*AI Open*.
+_AI Open_.
+
 - Papineni et al. (2002)
-Kishore Papineni, Salim Roukos, Todd Ward, and Wei-Jing Zhu. 2002.
+  Kishore Papineni, Salim Roukos, Todd Ward, and Wei-Jing Zhu. 2002.
 
 [Bleu: a method for automatic evaluation of machine translation](https://doi.org/10.3115/1073083.1073135).
 
-In *Proceedings of the 40th Annual Meeting on Association for Computational Linguistics*, ACL ’02, page 311–318, USA. Association for Computational Linguistics.
+In _Proceedings of the 40th Annual Meeting on Association for Computational Linguistics_, ACL ’02, page 311–318, USA. Association for Computational Linguistics.
+
 - Pawlik and Augsten (2015)
-Mateusz Pawlik and Nikolaus Augsten. 2015.
+  Mateusz Pawlik and Nikolaus Augsten. 2015.
 
 Efficient computation of the tree edit distance.
 
-*ACM Transactions on Database Systems (TODS)*, 40(1):1–40.
+_ACM Transactions on Database Systems (TODS)_, 40(1):1–40.
+
 - Pawlik and Augsten (2016)
-Mateusz Pawlik and Nikolaus Augsten. 2016.
+  Mateusz Pawlik and Nikolaus Augsten. 2016.
 
 Tree edit distance: Robust and memory-efficient.
 
-*Information Systems*, 56:157–173.
+_Information Systems_, 56:157–173.
+
 - Song et al. (2023)
-Yewei Song, Saad Ezzini, Xunzhu Tang, Cedric Lothritz, Jacques Klein, Tegawendé Bissyandé, Andrey Boytsov, Ulrick Ble, and Anne Goujon. 2023.
+  Yewei Song, Saad Ezzini, Xunzhu Tang, Cedric Lothritz, Jacques Klein, Tegawendé Bissyandé, Andrey Boytsov, Ulrick Ble, and Anne Goujon. 2023.
 
 Enhancing text-to-sql translation for financial system design.
 
-*arXiv preprint arXiv:2312.14725*.
+_arXiv preprint arXiv:2312.14725_.
+
 - Tang et al. (2024)
-Daniel Tang, Zhenghan Chen, Kisub Kim, Yewei Song, Haoye Tian, Saad Ezzini, Yongfeng Huang, and Jacques Klein Tegawende F Bissyande. 2024.
+  Daniel Tang, Zhenghan Chen, Kisub Kim, Yewei Song, Haoye Tian, Saad Ezzini, Yongfeng Huang, and Jacques Klein Tegawende F Bissyande. 2024.
 
 Collaborative agents for software engineering.
 
-*arXiv preprint arXiv:2402.02172*.
+_arXiv preprint arXiv:2402.02172_.
+
 - Tian et al. (2023)
-Haoye Tian, Weiqi Lu, Tsz On Li, Xunzhu Tang, Shing-Chi Cheung, Jacques Klein, and Tegawendé F Bissyandé. 2023.
+  Haoye Tian, Weiqi Lu, Tsz On Li, Xunzhu Tang, Shing-Chi Cheung, Jacques Klein, and Tegawendé F Bissyandé. 2023.
 
 Is chatgpt the ultimate programming assistant–how far is it?
 
-*arXiv preprint arXiv:2304.11938*.
-- Tomita (1991)
-Masaru Tomita. 1991.
+_arXiv preprint arXiv:2304.11938_.
 
-*Generalized LR parsing*.
+- Tomita (1991)
+  Masaru Tomita. 1991.
+
+_Generalized LR parsing_.
 
 Springer Science & Business Media.
+
 - Wang et al. (2023)
-Junjie Wang, Yuchao Huang, Chunyang Chen, Zhe Liu, Song Wang, and Qing Wang. 2023.
+  Junjie Wang, Yuchao Huang, Chunyang Chen, Zhe Liu, Song Wang, and Qing Wang. 2023.
 
 Software testing with large language model: Survey, landscape, and vision.
 
-*arXiv preprint arXiv:2307.07221*.
+_arXiv preprint arXiv:2307.07221_.
+
 - Yang et al. (2023)
-John Yang, Akshara Prabhakar, Karthik Narasimhan, and Shunyu Yao. 2023.
+  John Yang, Akshara Prabhakar, Karthik Narasimhan, and Shunyu Yao. 2023.
 
 Intercode: Standardizing and benchmarking interactive coding with execution feedback.
 
-*arXiv preprint arXiv:2306.14898*.
+_arXiv preprint arXiv:2306.14898_.
+
 - Yin et al. (2018)
-Pengcheng Yin, Bowen Deng, Edgar Chen, Bogdan Vasilescu, and Graham Neubig. 2018.
+  Pengcheng Yin, Bowen Deng, Edgar Chen, Bogdan Vasilescu, and Graham Neubig. 2018.
 
 Learning to mine aligned code and natural language pairs from stack overflow.
 
-In *Proceedings of the 15th international conference on mining software repositories*, pages 476–486.
+In _Proceedings of the 15th international conference on mining software repositories_, pages 476–486.
+
 - Yu et al. (2024)
-Hao Yu, Bo Shen, Dezhi Ran, Jiaxin Zhang, Qi Zhang, Yuchi Ma, Guangtai Liang, Ying Li, Qianxiang Wang, and Tao Xie. 2024.
+  Hao Yu, Bo Shen, Dezhi Ran, Jiaxin Zhang, Qi Zhang, Yuchi Ma, Guangtai Liang, Ying Li, Qianxiang Wang, and Tao Xie. 2024.
 
 Codereval: A benchmark of pragmatic code generation with generative pre-trained models.
 
-In *Proceedings of the 46th IEEE/ACM International Conference on Software Engineering*, pages 1–12.
+In _Proceedings of the 46th IEEE/ACM International Conference on Software Engineering_, pages 1–12.
+
 - Yu et al. (2018)
-Tao Yu, Rui Zhang, Kai Yang, Michihiro Yasunaga, Dongxu Wang, Zifan Li, James Ma, Irene Li, Qingning Yao, Shanelle Roman, et al. 2018.
+  Tao Yu, Rui Zhang, Kai Yang, Michihiro Yasunaga, Dongxu Wang, Zifan Li, James Ma, Irene Li, Qingning Yao, Shanelle Roman, et al. 2018.
 
 Spider: A large-scale human-labeled dataset for complex and cross-domain semantic parsing and text-to-sql task.
 
-*arXiv preprint arXiv:1809.08887*.
+_arXiv preprint arXiv:1809.08887_.
 
 ## Appendix A Additional Experiment Details
 
@@ -279,28 +298,28 @@ In the case of InterCoder, we confirm that TSED calculations extend to Bash scri
 
 Despite the notably low semantic similarity between the MBXP built-in samples and the ground truth, a relatively high execution match is observed. We acknowledge this disparity and plan to address it through optimization in future research endeavors.
 
-Table 5: 4 Evaluation Metrics compared to Ground Truth on CoderEval(Java & Python) / InterCode(Bash) / SPIDER(SQL) | Languages | Model | TSED | BLEU | Jaccard Sim | GPT-4 | Execution |
-| --- | --- | --- | --- | --- | --- | --- |
-| Java | ChatGPT | 0.4971 | 0.3655 | 0.3384 | 0.7392 | 0.3539 |
-|  | CodeGen | 0.3616 | 0.2871 | 0.2506 | 0.6603 | 0.1391 |
-|  | PanGu | 0.5029 | 0.3722 | 0.3849 | 0.6778 | 0.2543 |
-| Python | ChatGPT | 0.2840 | 0.1285 | 0.1763 | 0.5883 | 0.2104 |
-|  | CodeGen | 0.2703 | 0.1778 | 0.1821 | 0.5604 | 0.0948 |
-|  | PanGu | 0.2829 | 0.0868 | 0.1567 | 0.5086 | 0.1183 |
-| Shell | GPT-4 | 0.5853 | 0.2816 | 0.3567 | 0.8511 | 0.4851 |
-| starchat | 0.4065 | 0.1594 | 0.2081 | 0.6740 | 0.2374 |  |
-| vicuna | 0.4755 | 0.1621 | 0.2295 | 0.7164 | 0.2451 |  |
-| SQL | ChatGPT-3.5 | 0.6824 | 0.3304 | 0.3710 | 0.9461 | 0.6482 |
-| nsql-6B | 0.8022 | 0.4493 | 0.4356 | 0.9265 | 0.5483 |  |
-| RESDSQL | 0.7422 | 0.2084 | 0.1868 | 0.9629 | 0.7756 |  |
+| Table 5: 4 Evaluation Metrics compared to Ground Truth on CoderEval(Java & Python) / InterCode(Bash) / SPIDER(SQL) | Languages   | Model  | TSED   | BLEU   | Jaccard Sim | GPT-4  | Execution |
+| ------------------------------------------------------------------------------------------------------------------ | ----------- | ------ | ------ | ------ | ----------- | ------ | --------- |
+| Java                                                                                                               | ChatGPT     | 0.4971 | 0.3655 | 0.3384 | 0.7392      | 0.3539 |
+|                                                                                                                    | CodeGen     | 0.3616 | 0.2871 | 0.2506 | 0.6603      | 0.1391 |
+|                                                                                                                    | PanGu       | 0.5029 | 0.3722 | 0.3849 | 0.6778      | 0.2543 |
+| Python                                                                                                             | ChatGPT     | 0.2840 | 0.1285 | 0.1763 | 0.5883      | 0.2104 |
+|                                                                                                                    | CodeGen     | 0.2703 | 0.1778 | 0.1821 | 0.5604      | 0.0948 |
+|                                                                                                                    | PanGu       | 0.2829 | 0.0868 | 0.1567 | 0.5086      | 0.1183 |
+| Shell                                                                                                              | GPT-4       | 0.5853 | 0.2816 | 0.3567 | 0.8511      | 0.4851 |
+| starchat                                                                                                           | 0.4065      | 0.1594 | 0.2081 | 0.6740 | 0.2374      |        |
+| vicuna                                                                                                             | 0.4755      | 0.1621 | 0.2295 | 0.7164 | 0.2451      |        |
+| SQL                                                                                                                | ChatGPT-3.5 | 0.6824 | 0.3304 | 0.3710 | 0.9461      | 0.6482 |
+| nsql-6B                                                                                                            | 0.8022      | 0.4493 | 0.4356 | 0.9265 | 0.5483      |        |
+| RESDSQL                                                                                                            | 0.7422      | 0.2084 | 0.1868 | 0.9629 | 0.7756      |        |
 
-Table 6: 4 Evaluation Metrics compare to Ground Truth on 7 languages MBXP Dataset Samples | Languages | TSED | BLEU | Jaccard Sim | GPT-4 | Execution |
-| --- | --- | --- | --- | --- | --- |
-| Java | 0.2218 | 0.1046 | 0.1960 | 0.4248 | 0.853 |
-| Python | 0.1550 | 0.0255 | 0.1222 | 0.3396 | 0.822 |
-| JavaScript | 0.1870 | 0.0573 | 0.1685 | 0.4005 | 0.786 |
-| Typescript | 0.1186 | 0.0288 | 0.1260 | 0.4247 | 0.872 |
-| Ruby | 0.2073 | 0.0235 | 0.1796 | 0.4830 | 0.589 |
-| Kotlin | 0.1720 | 0.0336 | 0.1877 | 0.3976 | 0.637 |
+| Table 6: 4 Evaluation Metrics compare to Ground Truth on 7 languages MBXP Dataset Samples | Languages | TSED   | BLEU   | Jaccard Sim | GPT-4 | Execution |
+| ----------------------------------------------------------------------------------------- | --------- | ------ | ------ | ----------- | ----- | --------- |
+| Java                                                                                      | 0.2218    | 0.1046 | 0.1960 | 0.4248      | 0.853 |
+| Python                                                                                    | 0.1550    | 0.0255 | 0.1222 | 0.3396      | 0.822 |
+| JavaScript                                                                                | 0.1870    | 0.0573 | 0.1685 | 0.4005      | 0.786 |
+| Typescript                                                                                | 0.1186    | 0.0288 | 0.1260 | 0.4247      | 0.872 |
+| Ruby                                                                                      | 0.2073    | 0.0235 | 0.1796 | 0.4830      | 0.589 |
+| Kotlin                                                                                    | 0.1720    | 0.0336 | 0.1877 | 0.3976      | 0.637 |
 
 ![Refer to caption]() Figure 6: InterCode/SPIDER Pearson Correlation Heatmap between evaluation-metrics/models/languages
