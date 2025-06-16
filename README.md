@@ -1,3 +1,7 @@
+under development
+
+---
+
 # TypeScript Code Similarity with oxc-parser
 
 High-performance TypeScript code similarity calculation using oxc-parser, a Rust-based JavaScript/TypeScript parser.
@@ -38,12 +42,22 @@ npx ts-similarity ./src -j -o results.json
 
 See [CLI.md](./CLI.md) for detailed CLI documentation.
 
+### Quick CLI Example
+
+```bash
+# Analyze your project for code duplication
+npx ts-similarity ./src -t 0.8
+
+# Get JSON output for CI/CD integration
+npx ts-similarity ./src -t 0.9 -j -o similarity-report.json
+```
+
 ## Usage
 
 ### Basic Usage (Levenshtein)
 
 ```typescript
-import { CodeSimilarity } from './src/index.ts';
+import { CodeSimilarity } from "./src/index.ts";
 
 const similarity = new CodeSimilarity();
 
@@ -57,30 +71,88 @@ console.log(`Similarity: ${(score * 100).toFixed(1)}%`);
 ### Using APTED Algorithm
 
 ```typescript
-import { CodeSimilarity } from './src/index.ts';
+import { CodeSimilarity } from "./src/index.ts";
 
-// Use APTED with custom rename cost
-const similarity = new CodeSimilarity({
-  useAPTED: true,
-  config: {
-    deleteCost: 1.0,
-    insertCost: 1.0,
-    renameCost: 0.3  // Lower cost for renaming operations
-  }
-});
+// Use APTED algorithm (recommended for structural comparison)
+const similarity = new CodeSimilarity({ useAPTED: true });
 
 const score = similarity.calculateSimilarity(code1, code2);
 console.log(`APTED Similarity: ${(score * 100).toFixed(1)}%`);
 ```
 
+**Note**: APTED now uses `renameCost: 0.3` by default for better handling of identifier changes. You can override this:
+
+```typescript
+// Custom APTED configuration
+const similarity = new CodeSimilarity({
+  useAPTED: true,
+  config: {
+    deleteCost: 1.0,
+    insertCost: 1.0,
+    renameCost: 0.5, // Override default rename cost
+  },
+});
+```
+
+## Real-World Examples
+
+### Example 1: Detecting Renamed Functions
+
+```typescript
+const code1 = `
+function calculateUserScore(user: User, bonusPoints: number): number {
+  return user.baseScore + bonusPoints;
+}`;
+
+const code2 = `
+function computePlayerRating(player: Player, extraPoints: number): number {
+  return player.baseScore + extraPoints;
+}`;
+
+const similarity = new CodeSimilarity({ useAPTED: true });
+console.log(similarity.calculateSimilarity(code1, code2)); // ~88.8%
+```
+
+### Example 2: Comparing Different Implementations
+
+```typescript
+// Imperative style
+const code1 = `
+class Calculator {
+  private result: number = 0;
+  
+  add(value: number): void {
+    this.result += value;
+  }
+  
+  getResult(): number {
+    return this.result;
+  }
+}`;
+
+// Functional style
+const code2 = `
+const createCalculator = () => {
+  let result = 0;
+  return {
+    add: (value: number) => { result += value; },
+    getResult: () => result
+  };
+};`;
+
+console.log(similarity.calculateSimilarity(code1, code2)); // ~45% (different paradigms)
+```
+
 ## Examples
 
 Run the examples:
+
 ```bash
 pnpm run example
 ```
 
 Run tests:
+
 ```bash
 pnpm run test
 ```
@@ -88,23 +160,28 @@ pnpm run test
 ## API
 
 ### `calculateSimilarity(code1, code2)`
+
 Returns a similarity score between 0 and 1.
 
 ### `getDetailedReport(code1, code2)`
+
 Returns detailed information including similarity score and AST structures.
 
 ### `parse(code, filename?)`
+
 Parse TypeScript code and return the AST.
 
 ## How it Works
 
 ### Levenshtein Algorithm (Default)
+
 1. **AST Parsing**: Uses oxc-parser to parse TypeScript/JavaScript code into Abstract Syntax Trees
 2. **Structure Extraction**: Converts AST nodes into a simplified string representation
 3. **Similarity Calculation**: Uses Levenshtein distance to calculate similarity between AST structures
 4. **Normalization**: Returns a score between 0 and 1 (1 = identical, 0 = completely different)
 
 ### APTED Algorithm
+
 1. **AST Parsing**: Uses oxc-parser to parse TypeScript/JavaScript code into Abstract Syntax Trees
 2. **Tree Construction**: Converts AST into a tree structure with parent-child relationships
 3. **Edit Distance**: Calculates the minimum edit operations (insert, delete, rename) to transform one tree to another
@@ -112,27 +189,43 @@ Parse TypeScript code and return the AST.
 
 ## Algorithm Comparison
 
-| Feature | Levenshtein | APTED |
-|---------|-------------|--------|
-| Speed | Very Fast (~100ms for large files) | Fast (~1-2ms for large files) |
-| Accuracy | Good for similar structures | Better for structural changes |
-| Rename Detection | Limited | Configurable rename cost |
-| Use Case | Quick similarity checks | Detailed structural analysis |
+| Feature          | Levenshtein                        | APTED (default)                  |
+| ---------------- | ---------------------------------- | -------------------------------- |
+| Speed            | Very Fast (~100ms for large files) | Fast (~1-2ms for large files)    |
+| Accuracy         | Good for similar structures        | Excellent for structural changes |
+| Rename Detection | Limited                            | Optimized (renameCost: 0.3)      |
+| Use Case         | Quick similarity checks            | Recommended for code analysis    |
+
+### Similarity Examples
+
+Based on our test suite, here's what different algorithms detect:
+
+#### Similar Code (≥70% threshold)
+
+- **Renamed functions**: `calculateSum` → `addNumbers` = 88.8% (APTED)
+- **Renamed classes**: `UserService` → `PersonManager` = 91.8% (APTED)
+- **Added async/await**: 92.3% similarity (APTED)
+
+#### Dissimilar Code (<50% threshold)
+
+- **Imperative vs Functional style**: 12.2% (APTED)
+- **Function vs Class implementation**: 31.5% (Levenshtein)
+- **Different programming paradigms**: Low similarity correctly detected
 
 ## Multi-File Similarity Analysis
 
 For analyzing similarity across multiple files in a project, use the `CodeRepository` class:
 
 ```typescript
-import { CodeRepository } from './src/index.ts';
+import { CodeRepository } from "./src/index.ts";
 
 const repo = new CodeRepository();
 
 // Load files from a directory
-await repo.loadFiles('src/**/*.ts');
+await repo.loadFiles("src/**/*.ts");
 
 // Find similar files
-const similar = repo.findSimilarByMinHash('src/index.ts', 0.7);
+const similar = repo.findSimilarByMinHash("src/index.ts", 0.7);
 
 // Find all code clones
 const clones = repo.findClones(0.9);
@@ -141,11 +234,13 @@ const clones = repo.findClones(0.9);
 ### Indexing Algorithms
 
 1. **MinHash + LSH**
+
    - Fast approximate similarity search
    - Good for token-based similarity
    - O(1) query time with LSH
 
 2. **SimHash**
+
    - Captures structural similarity
    - Good for detecting similar code patterns
    - Efficient for large codebases
@@ -159,7 +254,7 @@ const clones = repo.findClones(0.9);
 
 ```typescript
 const repo = new CodeRepository();
-await repo.loadFiles('**/*.ts');
+await repo.loadFiles("**/*.ts");
 
 // Find all similar pairs
 const pairs = repo.findAllSimilarPairs(0.8);
@@ -174,12 +269,12 @@ oxc-parser is written in Rust and provides excellent performance for parsing lar
 
 ### Performance Characteristics
 
-| Method | Time Complexity | Space Complexity | Use Case |
-|--------|----------------|------------------|----------|
-| MinHash/LSH | O(1) query | O(n) | Fast similarity search |
-| SimHash | O(n) query | O(n) | Structural similarity |
-| APTED | O(n²) per pair | O(n) | Accurate similarity |
-| Hybrid | O(k) where k << n | O(n) | Best of both worlds |
+| Method      | Time Complexity   | Space Complexity | Use Case               |
+| ----------- | ----------------- | ---------------- | ---------------------- |
+| MinHash/LSH | O(1) query        | O(n)             | Fast similarity search |
+| SimHash     | O(n) query        | O(n)             | Structural similarity  |
+| APTED       | O(n²) per pair    | O(n)             | Accurate similarity    |
+| Hybrid      | O(k) where k << n | O(n)             | Best of both worlds    |
 
 ## License
 

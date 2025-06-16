@@ -151,7 +151,13 @@ export function calculateSimilarityAPTED(
     const tree1 = oxcToTreeNode(ast1.program as OxcNode);
     const tree2 = oxcToTreeNode(ast2.program as OxcNode);
     
-    const apted = new APTED(config);
+    // Default rename cost to 0.3 for better handling of identifier changes
+    const defaultConfig: Partial<APTEDConfig> = {
+      renameCost: 0.3,
+      ...config
+    };
+    
+    const apted = new APTED(defaultConfig);
     return apted.calculateSimilarity(tree1, tree2);
   } catch (error) {
     console.error("Failed to calculate APTED similarity:", error);

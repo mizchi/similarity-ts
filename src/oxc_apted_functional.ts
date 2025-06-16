@@ -21,7 +21,7 @@ export interface APTEDConfig {
 const DEFAULT_CONFIG: APTEDConfig = {
   deleteCost: 1.0,
   insertCost: 1.0,
-  renameCost: 1.0,
+  renameCost: 0.3, // Optimized for code similarity with identifier changes
 };
 
 /**

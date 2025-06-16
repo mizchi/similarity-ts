@@ -146,12 +146,8 @@ function compareFunctions(func1: FunctionInfo, func2: FunctionInfo, noSizePenalt
     const tree1 = oxcToTreeNode(func1.ast);
     const tree2 = oxcToTreeNode(func2.ast);
     
-    // Calculate edit distance
-    const distance = computeEditDistance(tree1, tree2, {
-      deleteCost: 1.0,
-      insertCost: 1.0,
-      renameCost: 0.3
-    });
+    // Calculate edit distance (default renameCost: 0.3)
+    const distance = computeEditDistance(tree1, tree2);
     
     // Calculate TSED similarity (normalized by node count)
     const maxNodes = Math.max(countNodes(tree1), countNodes(tree2));
@@ -175,9 +171,7 @@ function compareFunctions(func1: FunctionInfo, func2: FunctionInfo, noSizePenalt
     return tsedSimilarity;
   } catch (error) {
     // Fallback to content-based comparison
-    return calculateSimilarityAPTED(func1.content, func2.content, {
-      renameCost: 0.3
-    });
+    return calculateSimilarityAPTED(func1.content, func2.content);
   }
 }
 
