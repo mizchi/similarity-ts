@@ -4,6 +4,9 @@
   "description": "",
   "type": "module",
   "main": "index.js",
+  "bin": {
+    "ts-similarity": "./dist/cli.mjs"
+  },
   "scripts": {
     "test": "tsx test/similarity_test.ts && tsx test/fixtures_test.ts",
     "test:fixtures": "tsx test/fixtures_test.ts",
@@ -12,7 +15,12 @@
     "example:apted": "tsx examples/apted_comparison.ts",
     "example:multi": "tsx examples/multi_file_similarity.ts",
     "benchmark": "tsx examples/run_benchmark.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build": "pnpm run \"/^build:.*/\"",
+    "build:cjs": "tsdown src/index.ts --outfile=dist/index.cjs --format=cjs",
+    "build:mjs": "tsdown src/index.ts --outfile=dist/index.mjs --format=esm",
+    "build:cli": "tsdown src/cli.ts --outfile=dist/cli.mjs --format=esm --platform=node",
+    "prepublishOnly": "pnpm run build"
   },
   "keywords": [],
   "author": "",
@@ -22,12 +30,14 @@
     "@modelcontextprotocol/sdk": "^1.12.1",
     "@types/node": "^22.15.30",
     "oxc-parser": "^0.73.0",
+    "tsdown": "^0.12.7",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
     "zod": "^3.25.56"
   },
   "dependencies": {
     "@types/glob": "^8.1.0",
+    "chalk": "^5.4.1",
     "glob": "^11.0.3"
   }
 }

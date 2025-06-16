@@ -5,9 +5,12 @@ High-performance TypeScript code similarity calculation using oxc-parser, a Rust
 ## Features
 
 - Fast TypeScript/JavaScript code parsing with oxc-parser
-- Two similarity algorithms:
+- Multiple similarity algorithms:
   - **Levenshtein distance** on serialized AST structures (default, faster)
   - **APTED (All Path Tree Edit Distance)** for more accurate structural comparison
+  - **MinHash/LSH** for O(1) similarity search in large codebases
+  - **SimHash** for structural pattern detection
+- Command-line tool for function-level similarity analysis
 - Support for all TypeScript language features
 - Configurable operation costs for APTED algorithm
 - Simple and efficient API
@@ -17,6 +20,23 @@ High-performance TypeScript code similarity calculation using oxc-parser, a Rust
 ```bash
 pnpm install
 ```
+
+## CLI Usage
+
+The package includes a command-line tool for analyzing function-level similarity across TypeScript projects:
+
+```bash
+# Find similar functions in a directory
+npx ts-similarity ./src
+
+# With custom threshold
+npx ts-similarity ./src -t 0.8
+
+# JSON output
+npx ts-similarity ./src -j -o results.json
+```
+
+See [CLI.md](./CLI.md) for detailed CLI documentation.
 
 ## Usage
 
