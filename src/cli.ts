@@ -140,7 +140,7 @@ function getLineNumber(offset: number, lines: string[]): number {
 /**
  * Compare two functions using APTED
  */
-function compareFunctions(func1: FunctionInfo, func2: FunctionInfo): number {
+function compareFunctions(func1: FunctionInfo, func2: FunctionInfo, noSizePenalty: boolean = false): number {
   try {
     // Convert AST nodes to tree nodes
     const tree1 = oxcToTreeNode(func1.ast);
@@ -153,9 +153,26 @@ function compareFunctions(func1: FunctionInfo, func2: FunctionInfo): number {
       renameCost: 0.3
     });
     
-    // Calculate similarity
+    // Calculate TSED similarity (normalized by node count)
     const maxNodes = Math.max(countNodes(tree1), countNodes(tree2));
-    return maxNodes === 0 ? 1.0 : Math.max(1 - distance / maxNodes, 0);
+    const tsedSimilarity = maxNodes === 0 ? 1.0 : Math.max(1 - distance / maxNodes, 0);
+    
+    // Apply size penalty for very different sizes
+    const size1 = countNodes(tree1);
+    const size2 = countNodes(tree2);
+    const sizeRatio = Math.min(size1, size2) / Math.max(size1, size2);
+    
+    // Apply size penalty unless disabled
+    if (!noSizePenalty) {
+      // If size difference is too large (e.g., one is 10x larger), reduce similarity
+      if (sizeRatio < 0.1) {
+        return tsedSimilarity * sizeRatio * 10; // Scale down dramatically
+      } else if (sizeRatio < 0.3) {
+        return tsedSimilarity * (0.7 + sizeRatio); // Moderate penalty
+      }
+    }
+    
+    return tsedSimilarity;
   } catch (error) {
     // Fallback to content-based comparison
     return calculateSimilarityAPTED(func1.content, func2.content, {
@@ -204,6 +221,10 @@ async function main() {
         short: 'j',
         default: false
       },
+      'no-size-penalty': {
+        type: 'boolean',
+        default: false
+      },
       help: {
         type: 'boolean',
         short: 'h',
@@ -224,6 +245,7 @@ Options:
   -t, --threshold <num>    Similarity threshold 0-1 (default: 0.7)
   -o, --output <file>      Output file (default: console)
   -j, --json               Output as JSON
+  --no-size-penalty        Disable size-based similarity penalty
   -h, --help               Show this help
 
 Examples:
@@ -239,6 +261,7 @@ Examples:
   const threshold = parseFloat(values.threshold as string);
   const outputFile = values.output as string;
   const jsonOutput = values.json as boolean;
+  const noSizePenalty = values['no-size-penalty'] as boolean;
   
   console.log(chalk.bold('\n🔍 TypeScript Function Similarity Analyzer\n'));
   console.log(chalk.gray(`Directory: ${directory}`));
@@ -293,7 +316,7 @@ Examples:
         continue;
       }
       
-      const similarity = compareFunctions(func1, func2);
+      const similarity = compareFunctions(func1, func2, noSizePenalty);
       
       if (similarity >= threshold) {
         results.push({
