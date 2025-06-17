@@ -5,7 +5,7 @@ import {
   findAllSimilarPairs
 } from '../src/index.ts';
 import { 
-  loadFiles as loadFilesCore,
+  loadFiles,
   addFile,
   getStatistics
 } from '../src/cli/repo_checker.ts';
@@ -23,10 +23,10 @@ async function runBenchmarks() {
   // 2. Benchmark with real project files
   console.log('\n\n=== Real Project Benchmark ===\n');
   
-  const projectPath = join(import.meta.dirname, 'sample_project');
+  const projectPath = join(new URL('.', import.meta.url).pathname, 'sample_project');
   let repo = createRepository();
   const files = await loadFilesFromPattern('src/**/*.ts', projectPath);
-  loadFilesCore(repo, files);
+  repo = await loadFiles(repo, files);
   
   // Load two similar services for comparison
   const userServicePath = join(projectPath, 'src/services/user_service.ts');
@@ -73,7 +73,7 @@ async function runBenchmarks() {
     for (let i = 0; i < count; i++) {
       const size = i % 3 === 0 ? 'small' : i % 3 === 1 ? 'medium' : 'large';
       const code = benchmark.generateCodeSample(size);
-      addFile(testRepo, `test${i}.ts`, `test${i}.ts`, code);
+      testRepo = addFile(testRepo, `test${i}.ts`, `test${i}.ts`, code);
     }
     
     // Benchmark operations
@@ -103,7 +103,7 @@ async function runBenchmarks() {
   // Add 100 medium-sized files
   for (let i = 0; i < 100; i++) {
     const code = benchmark.generateCodeSample('medium');
-    addFile(memoryRepo, `mem${i}.ts`, `mem${i}.ts`, code);
+    memoryRepo = addFile(memoryRepo, `mem${i}.ts`, `mem${i}.ts`, code);
   }
   
   const finalMemory = process.memoryUsage().heapUsed / 1024 / 1024;

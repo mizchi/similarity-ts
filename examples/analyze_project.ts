@@ -1,11 +1,11 @@
-import { CodeRepository } from '../src/cli/repo_checker.ts';
+import { CodeRepository } from '../src/index.ts';
 import { join } from 'path';
 
 async function analyzeProject() {
   console.log('=== Sample Project Code Similarity Analysis ===\n');
 
-  const repo = new CodeRepository();
-  const projectPath = join(import.meta.dirname, 'sample_project');
+  const repo = CodeRepository();
+  const projectPath = join(new URL('.', import.meta.url).pathname, 'sample_project');
 
   // Load all TypeScript files from the sample project
   console.log('Loading project files...');
@@ -73,7 +73,7 @@ async function analyzeProject() {
   console.log('\n\n--- Pattern Analysis ---');
   
   // Find all services
-  const serviceFiles = Array.from(repo['files'].keys()).filter(f => f.includes('service'));
+  const serviceFiles = repo.getFiles().map(f => f.id).filter(f => f.includes('service'));
   console.log(`\nService files (${serviceFiles.length}):`);
   serviceFiles.forEach(f => console.log(`  - ${f}`));
   
@@ -105,7 +105,7 @@ async function analyzeProject() {
 
   // 4. Component similarity matrix
   console.log('\n\n--- Component Similarity Matrix ---');
-  const componentFiles = Array.from(repo['files'].keys()).filter(f => f.includes('component'));
+  const componentFiles = repo.getFiles().map(f => f.id).filter(f => f.includes('component'));
   
   if (componentFiles.length > 0) {
     console.log('\nComponents:');
@@ -135,7 +135,7 @@ async function analyzeProject() {
   console.log('\n\n--- Refactoring Opportunities ---');
   
   // Find files with similar structure but different names
-  const allFiles = Array.from(repo['files'].keys());
+  const allFiles = repo.getFiles().map(f => f.id);
   const refactoringCandidates: Array<{files: string[], pattern: string}> = [];
   
   // Group by similar structure

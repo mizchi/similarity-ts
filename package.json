@@ -15,7 +15,7 @@
     "example:apted": "tsx examples/apted_comparison.ts",
     "example:multi": "tsx examples/multi_file_similarity.ts",
     "benchmark": "tsx examples/run_benchmark.ts",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsgo --noEmit",
     "build": "pnpm run \"/^build:.*/\"",
     "build:cjs": "tsdown src/index.ts --outfile=dist/index.cjs --format=cjs",
     "build:mjs": "tsdown src/index.ts --outfile=dist/index.mjs --format=esm",
@@ -28,7 +28,9 @@
   "devDependencies": {
     "@mizchi/readability": "^0.5.8",
     "@modelcontextprotocol/sdk": "^1.12.1",
+    "@oxc-project/types": "^0.73.0",
     "@types/node": "^22.15.30",
+    "@typescript/native-preview": "7.0.0-dev.20250616.1",
     "oxc-parser": "^0.73.0",
     "tsdown": "^0.12.7",
     "tsx": "^4.19.4",

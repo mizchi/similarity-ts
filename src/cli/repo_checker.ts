@@ -13,7 +13,7 @@ import {
   SimHashConfig
 } from '../core/hash.ts';
 import { extractTokens, extractFeatures } from '../core/tokens.ts';
-import { calculateSimilarityAPTED } from '../core/apted.ts';
+import { calculateAPTEDSimilarity } from '../core/apted.ts';
 
 export interface CodeFile {
   id: string;
@@ -60,10 +60,12 @@ export function createRepository(
 export function loadFiles(
   repo: RepositoryState,
   files: Array<{ id: string; path: string; content: string }>
-): void {
+): RepositoryState {
+  let newRepo = repo;
   for (const file of files) {
-    addFile(repo, file.id, file.path, file.content);
+    newRepo = addFile(newRepo, file.id, file.path, file.content);
   }
+  return newRepo;
 }
 
 /**
@@ -74,7 +76,7 @@ export function addFile(
   id: string,
   path: string,
   content: string
-): void {
+): RepositoryState {
   // Extract tokens for MinHash
   const tokens = extractTokens(content);
   const minHashSignature = generateMinHashSignature(tokens, repo.minHashConfig);
@@ -91,10 +93,26 @@ export function addFile(
     simHash: simHashValue
   };
   
-  repo.files.set(id, file);
+  // Create a new repository state with the added file
+  const newFiles = new Map(repo.files);
+  newFiles.set(id, file);
+  
+  // Create a new LSH state with deep copy of bands
+  const newLSHState: LSHState = {
+    ...repo.lshState,
+    bands: new Map(Array.from(repo.lshState.bands.entries()).map(
+      ([band, map]) => [band, new Map(map)]
+    ))
+  };
   
   // Add to LSH index
-  addToLSH(repo.lshState, id, minHashSignature);
+  addToLSH(newLSHState, id, minHashSignature);
+  
+  return {
+    ...repo,
+    files: newFiles,
+    lshState: newLSHState
+  };
 }
 
 /**
@@ -213,7 +231,7 @@ export function findSimilarByAPTED(
     const otherFile = repo.files.get(otherId);
     if (!otherFile) continue;
     
-    const similarity = calculateSimilarityAPTED(file.content, otherFile.content, {
+    const similarity = calculateAPTEDSimilarity(file.content, otherFile.content, {
       renameCost: 0.3
     });
     

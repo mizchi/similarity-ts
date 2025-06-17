@@ -1,6 +1,6 @@
 import { 
   calculateSimilarity,
-  calculateSimilarityAPTED,
+  calculateAPTEDSimilarity,
   createRepository,
   addFile,
   findSimilarByMinHash,
@@ -89,7 +89,7 @@ export class SimilarityBenchmark {
     // APTED (default)
     const aptedResult = await this.runBenchmark(
       'APTED (default)',
-      () => calculateSimilarityAPTED(code1, code2),
+      () => calculateAPTEDSimilarity(code1, code2),
       20,
       5
     );
@@ -98,7 +98,7 @@ export class SimilarityBenchmark {
     // APTED (custom)
     const aptedCustomResult = await this.runBenchmark(
       'APTED (rename=0.3)',
-      () => calculateSimilarityAPTED(code1, code2, { renameCost: 0.3 }),
+      () => calculateAPTEDSimilarity(code1, code2, { renameCost: 0.3 }),
       20,
       5
     );
@@ -250,12 +250,12 @@ export class SimilarityBenchmark {
 
     // Test multi-file operations
     console.log('\n\n--- Multi-File Operations ---');
-    const repo = createRepository();
+    let repo = createRepository();
     
     // Add test files
     for (let i = 0; i < 50; i++) {
       const code = this.generateCodeSample(i % 3 === 0 ? 'small' : i % 3 === 1 ? 'medium' : 'large');
-      addFile(repo, `file${i}.ts`, `file${i}.ts`, code);
+      repo = addFile(repo, `file${i}.ts`, `file${i}.ts`, code);
     }
     
     console.log(`Repository contains ${50} files`);

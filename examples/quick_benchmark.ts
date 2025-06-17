@@ -1,5 +1,5 @@
 import { SimilarityBenchmark } from '../src/benchmark.ts';
-import { CodeRepository } from '../src/cli/repo_checker.ts';
+import { CodeRepository } from '../src/index.ts';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
@@ -33,7 +33,7 @@ async function quickBenchmark() {
   // 2. Real file benchmark
   console.log('\n\n--- Real Project Files ---');
   
-  const projectPath = join(import.meta.dirname, 'sample_project');
+  const projectPath = join(new URL('.', import.meta.url).pathname, 'sample_project');
   const userServicePath = join(projectPath, 'src/services/user_service.ts');
   const productServicePath = join(projectPath, 'src/services/product_service.ts');
   
@@ -58,12 +58,12 @@ async function quickBenchmark() {
   // 3. Multi-file operations
   console.log('\n\n--- Multi-File Operations ---');
   
-  const repo = new CodeRepository();
+  const repo = CodeRepository();
   
   // Add 20 test files
   for (let i = 0; i < 20; i++) {
     const code = benchmark.generateCodeSample('small');
-    repo.addFile(`file${i}.ts`, `file${i}.ts`, code);
+    await repo.addFile(`file${i}.ts`, `file${i}.ts`, code);
   }
   
   console.log(`\nRepository with ${20} files:`);

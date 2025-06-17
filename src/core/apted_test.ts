@@ -2,7 +2,7 @@ import {
   calculateSimilarity
 } from './ast.ts';
 import {
-  calculateSimilarityAPTED,
+  calculateAPTEDSimilarity,
   compareStructuresAPTED
 } from './apted.ts';
 import { parseTypeScript } from '../parser.ts';
@@ -34,7 +34,7 @@ class PersonService {
 }`;
     
     const levScore = calculateSimilarity(code1, code2);
-    const aptedScore = calculateSimilarityAPTED(code1, code2, { renameCost: 0.3 });
+    const aptedScore = calculateAPTEDSimilarity(code1, code2, { renameCost: 0.3 });
     
     console.log(`Test 1 - Structural similarity with different names:`);
     console.log(`  Levenshtein: ${(levScore * 100).toFixed(1)}%`);
@@ -65,7 +65,7 @@ function process(data: string[]): string {
 }`;
     
     const levScore = calculateSimilarity(code1, code2);
-    const aptedScore = calculateSimilarityAPTED(code1, code2);
+    const aptedScore = calculateAPTEDSimilarity(code1, code2);
     
     console.log(`Test 2 - Different implementations:`);
     console.log(`  Levenshtein: ${(levScore * 100).toFixed(1)}%`);
@@ -126,7 +126,7 @@ class Service {
     
     const start2 = performance.now();
     for (let i = 0; i < 10; i++) {
-      calculateSimilarityAPTED(smallCode, smallCode);
+      calculateAPTEDSimilarity(smallCode, smallCode);
     }
     const aptedTime = (performance.now() - start2) / 10;
     

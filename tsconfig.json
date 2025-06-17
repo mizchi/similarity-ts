@@ -11,8 +11,11 @@
     "allowImportingTsExtensions": true,
     "types": ["vitest/importMeta"],
     "lib": ["ES2022"],
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "resolveJsonModule": true,
     "allowJs": true,
     "moduleDetection": "force"
-  }
+  },
+  "exclude": ["test/__fixtures__", "examples"]
 }

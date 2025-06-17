@@ -1,4 +1,6 @@
-import { calculateSimilarity, calculateSimilarityAPTED, compareStructuresAPTED } from "../src/oxc_similarity.ts";
+import { calculateSimilarity, calculateAPTEDSimilarity } from "../src/index.ts";
+import { compareStructuresAPTED } from "../src/core/apted.ts";
+import { parseTypeScript } from "../src/parser.ts";
 
 console.log("=== APTED vs Levenshtein Comparison ===\n");
 
@@ -91,8 +93,8 @@ console.log("Comparing different similarity algorithms:\n");
 
 examples.forEach(({ name, code1, code2 }) => {
   const levenshtein = calculateSimilarity(code1, code2);
-  const apted = calculateSimilarityAPTED(code1, code2);
-  const aptedLowRename = calculateSimilarityAPTED(code1, code2, { renameCost: 0.3 });
+  const apted = calculateAPTEDSimilarity(code1, code2);
+  const aptedLowRename = calculateAPTEDSimilarity(code1, code2, { renameCost: 0.3 });
   
   console.log(`--- ${name} ---`);
   console.log(`Levenshtein:          ${(levenshtein * 100).toFixed(1)}%`);
@@ -129,11 +131,13 @@ class PersonService {
   }
 }`;
 
-const result = compareStructuresAPTED(detailedCode1, detailedCode2);
+const ast1 = parseTypeScript('file1.ts', detailedCode1);
+const ast2 = parseTypeScript('file2.ts', detailedCode2);
+const result = compareStructuresAPTED(ast1.program, ast2.program);
 
 console.log("Code comparison:");
 console.log(`Levenshtein similarity: ${(result.levenshteinSimilarity * 100).toFixed(1)}%`);
-console.log(`APTED similarity:       ${(result.aptedSimilarity * 100).toFixed(1)}%`);
+console.log(`APTED similarity:       ${(result.similarity * 100).toFixed(1)}%`);
 console.log("\nStructure preview (first 5 nodes):");
 console.log("Structure 1:", result.structure1.split('\n').slice(0, 5).join(', '));
 console.log("Structure 2:", result.structure2.split('\n').slice(0, 5).join(', '));
@@ -159,7 +163,7 @@ for (let i = 0; i < iterations; i++) {
   levenshteinTime += performance.now() - start1;
   
   const start2 = performance.now();
-  calculateSimilarityAPTED(mediumCode, mediumCode);
+  calculateAPTEDSimilarity(mediumCode, mediumCode);
   aptedTime += performance.now() - start2;
 }
 

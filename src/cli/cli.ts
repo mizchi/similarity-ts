@@ -7,7 +7,7 @@ import { glob } from 'glob';
 import chalk from 'chalk';
 import { parseTypeScript } from '../parser.ts';
 import { createRepository, addFile, findAllSimilarPairs } from './repo_checker.ts';
-import { calculateSimilarityAPTED, oxcToTreeNode, computeEditDistance, countNodes } from '../core/apted.ts';
+import { calculateAPTEDSimilarity, oxcToTreeNode, computeEditDistance, countNodes } from '../core/apted.ts';
 
 interface FunctionInfo {
   name: string;
@@ -171,7 +171,7 @@ function compareFunctions(func1: FunctionInfo, func2: FunctionInfo, noSizePenalt
     return tsedSimilarity;
   } catch (error) {
     // Fallback to content-based comparison
-    return calculateSimilarityAPTED(func1.content, func2.content);
+    return calculateAPTEDSimilarity(func1.content, func2.content);
   }
 }
 
@@ -272,13 +272,13 @@ Examples:
   }
   
   // Create repository for efficient comparison
-  const repo = createRepository();
+  let repo = createRepository();
   
   // Add all functions to repository
   for (let i = 0; i < allFunctions.length; i++) {
     const func = allFunctions[i];
     const id = `${func.filePath}:${func.name}:${func.startLine}`;
-    addFile(repo, id, func.filePath, func.content);
+    repo = addFile(repo, id, func.filePath, func.content);
   }
   
   // Find similar functions

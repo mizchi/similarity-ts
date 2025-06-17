@@ -5,14 +5,6 @@ import { levenshtein } from './levenshtein.ts';
 import type { 
   ASTNode,
   Program,
-  Expression,
-  Statement,
-  Declaration,
-  FunctionDeclaration,
-  ClassDeclaration,
-  VariableDeclarator,
-  IdentifierReference,
-  BindingIdentifier,
   NumericLiteral,
   StringLiteral,
   BooleanLiteral
@@ -53,36 +45,38 @@ export function getNodeLabel(node: ASTNode | any): string {
   }
 
   if (isFunctionDeclaration(node)) {
-    return node.id?.name || 'Function';
+    return (node as any).id?.name || 'Function';
   }
 
   if (isClassDeclaration(node)) {
-    return node.id?.name || 'Class';
+    return (node as any).id?.name || 'Class';
   }
 
   if (isVariableDeclarator(node)) {
-    return node.id && isIdentifier(node.id) ? node.id.name : 'Variable';
+    const varNode = node as any;
+    return varNode.id && isIdentifier(varNode.id) ? varNode.id.name : 'Variable';
   }
 
   // Handle literals
-  switch (node.type) {
+  const anyNode = node as any;
+  switch (anyNode.type) {
     case 'StringLiteral':
-      return `"${(node as StringLiteral).value}"`;
+      return `"${(anyNode as StringLiteral).value}"`;
     case 'NumericLiteral':
-      return String((node as NumericLiteral).value);
+      return String((anyNode as NumericLiteral).value);
     case 'BooleanLiteral':
-      return String((node as BooleanLiteral).value);
+      return String((anyNode as BooleanLiteral).value);
     case 'NullLiteral':
       return 'null';
     case 'MethodDefinition':
-      return node.key?.name || 'Method';
+      return anyNode.key?.name || 'Method';
     case 'FunctionExpression':
     case 'ArrowFunctionExpression':
-      return node.id?.name || 'Function';
+      return anyNode.id?.name || 'Function';
     case 'ClassExpression':
-      return node.id?.name || 'Class';
+      return anyNode.id?.name || 'Class';
     default:
-      return node.type || 'Unknown';
+      return anyNode.type || 'Unknown';
   }
 }
 
@@ -330,23 +324,6 @@ export function calculateAPTEDSimilarity(
   }
 }
 
-/**
- * Calculate similarity using APTED algorithm
- */
-export function calculateSimilarityAPTED(
-  code1: string,
-  code2: string,
-  config?: Partial<APTEDOptions>
-): number {
-  const defaultConfig: APTEDOptions = {
-    renameCost: 0.3,
-    deleteCost: 1.0,
-    insertCost: 1.0,
-    ...config
-  };
-  
-  return calculateAPTEDSimilarity(code1, code2, defaultConfig);
-}
 
 /**
  * Compare structures using APTED algorithm with typed AST nodes

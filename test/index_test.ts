@@ -116,22 +116,22 @@ function testFeatureExtraction() {
 async function testCodeRepository() {
   console.log('=== Testing Code Repository ===\n');
   
-  const repo = createRepository();
+  let repo = createRepository();
   
   // Add test files
-  addFile(repo, 'test1.ts', 'test1.ts', `
+  repo = addFile(repo, 'test1.ts', 'test1.ts', `
     function calculate(x: number, y: number): number {
       return x + y;
     }
   `);
   
-  addFile(repo, 'test2.ts', 'test2.ts', `
+  repo = addFile(repo, 'test2.ts', 'test2.ts', `
     function compute(a: number, b: number): number {
       return a + b;
     }
   `);
   
-  addFile(repo, 'test3.ts', 'test3.ts', `
+  repo = addFile(repo, 'test3.ts', 'test3.ts', `
     class User {
       name: string;
       age: number;

@@ -1,13 +1,12 @@
-import { CodeRepository } from '../src/cli/repo_checker.ts';
-import { CodeSimilarity } from '../src/index.ts';
+import { CodeRepository, calculateSimilarity, calculateAPTEDSimilarity } from '../src/index.ts';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
 async function detailedComparison() {
   console.log('=== Detailed Code Comparison ===\n');
 
-  const projectPath = join(import.meta.dirname, 'sample_project');
-  const repo = new CodeRepository();
+  const projectPath = join(new URL('.', import.meta.url).pathname, 'sample_project');
+  const repo = CodeRepository();
   await repo.loadFiles('src/**/*.ts', projectPath);
 
   // Compare services in detail
@@ -20,17 +19,10 @@ async function detailedComparison() {
   console.log('Comparing UserService vs ProductService:\n');
 
   // 1. Using different algorithms
-  const levenshteinSim = new CodeSimilarity();
-  const aptedSim = new CodeSimilarity({ useAPTED: true });
-  const aptedCustomSim = new CodeSimilarity({ 
-    useAPTED: true, 
-    config: { renameCost: 0.3 } 
-  });
-
   console.log('Algorithm Comparison:');
-  console.log(`  Levenshtein:        ${(levenshteinSim.calculateSimilarity(userServiceCode, productServiceCode) * 100).toFixed(1)}%`);
-  console.log(`  APTED (default):    ${(aptedSim.calculateSimilarity(userServiceCode, productServiceCode) * 100).toFixed(1)}%`);
-  console.log(`  APTED (rename=0.3): ${(aptedCustomSim.calculateSimilarity(userServiceCode, productServiceCode) * 100).toFixed(1)}%`);
+  console.log(`  Levenshtein:        ${(calculateSimilarity(userServiceCode, productServiceCode) * 100).toFixed(1)}%`);
+  console.log(`  APTED (default):    ${(calculateAPTEDSimilarity(userServiceCode, productServiceCode) * 100).toFixed(1)}%`);
+  console.log(`  APTED (rename=0.3): ${(calculateAPTEDSimilarity(userServiceCode, productServiceCode, 0.3) * 100).toFixed(1)}%`);
 
   // 2. Extract common patterns
   console.log('\n\nCommon Patterns:');
@@ -157,8 +149,8 @@ class ProductService extends BaseService<Product> {
   const productListCode = readFileSync(productListPath, 'utf-8');
 
   console.log('UserList vs ProductList:');
-  console.log(`  Levenshtein:        ${(levenshteinSim.calculateSimilarity(userListCode, productListCode) * 100).toFixed(1)}%`);
-  console.log(`  APTED (rename=0.3): ${(aptedCustomSim.calculateSimilarity(userListCode, productListCode) * 100).toFixed(1)}%`);
+  console.log(`  Levenshtein:        ${(calculateSimilarity(userListCode, productListCode) * 100).toFixed(1)}%`);
+  console.log(`  APTED (rename=0.3): ${(calculateAPTEDSimilarity(userListCode, productListCode, 0.3) * 100).toFixed(1)}%`);
 
   console.log('\nBoth components share the same pattern:');
   console.log('  - Constructor that finds container element');

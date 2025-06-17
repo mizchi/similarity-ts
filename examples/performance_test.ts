@@ -1,10 +1,9 @@
-import { CodeSimilarity } from '../src/index.ts';
-import { CodeRepository } from '../src/cli/repo_checker.ts';
+import { calculateSimilarity, calculateAPTEDSimilarity, CodeRepository } from '../src/index.ts';
 import { performance } from 'perf_hooks';
 
-function measureTime(fn: () => any): number {
+async function measureTime(fn: () => any | Promise<any>): Promise<number> {
   const start = performance.now();
-  fn();
+  await fn();
   return performance.now() - start;
 }
 
@@ -27,9 +26,9 @@ async function runPerformanceTest() {
 
   // Test different algorithms
   const algorithms = [
-    { name: 'Levenshtein', sim: new CodeSimilarity() },
-    { name: 'APTED', sim: new CodeSimilarity({ useAPTED: true }) },
-    { name: 'APTED (rename=0.3)', sim: new CodeSimilarity({ useAPTED: true, config: { renameCost: 0.3 } }) }
+    { name: 'Levenshtein', fn: (code1: string, code2: string) => calculateSimilarity(code1, code2) },
+    { name: 'APTED', fn: (code1: string, code2: string) => calculateAPTEDSimilarity(code1, code2) },
+    { name: 'APTED (rename=0.3)', fn: (code1: string, code2: string) => calculateAPTEDSimilarity(code1, code2, 0.3) }
   ];
 
   // Test with different file sizes
@@ -49,11 +48,11 @@ async function runPerformanceTest() {
     
     const times: number[] = [];
     
-    for (const { sim } of algorithms) {
+    for (const { fn } of algorithms) {
       // Run 5 times and take average
       let totalTime = 0;
       for (let i = 0; i < 5; i++) {
-        totalTime += measureTime(() => sim.calculateSimilarity(code1, code2));
+        totalTime += await measureTime(() => fn(code1, code2));
       }
       times.push(totalTime / 5);
     }
@@ -66,14 +65,14 @@ async function runPerformanceTest() {
   // Test multi-file operations
   console.log('\n\n2. Multi-File Operations Performance\n');
   
-  const repo = new CodeRepository();
+  const repo = CodeRepository();
   const fileCounts = [10, 20, 50];
   
   // Generate repository
   const maxFiles = Math.max(...fileCounts);
   for (let i = 0; i < maxFiles; i++) {
     const code = generateTestCode(20 + (i % 30));
-    repo.addFile(`file${i}.ts`, `file${i}.ts`, code);
+    await repo.addFile(`file${i}.ts`, `file${i}.ts`, code);
   }
   
   console.log('| Files | MinHash | SimHash | APTED (top 5) |');
@@ -81,15 +80,15 @@ async function runPerformanceTest() {
   
   for (const count of fileCounts) {
     // Create a subset repository
-    const subRepo = new CodeRepository();
+    const subRepo = CodeRepository();
     for (let i = 0; i < count; i++) {
       const code = generateTestCode(20 + (i % 30));
-      subRepo.addFile(`file${i}.ts`, `file${i}.ts`, code);
+      await subRepo.addFile(`file${i}.ts`, `file${i}.ts`, code);
     }
     
-    const minHashTime = measureTime(() => subRepo.findSimilarByMinHash('file0.ts', 0.5));
-    const simHashTime = measureTime(() => subRepo.findSimilarBySimHash('file0.ts', 0.5));
-    const aptedTime = measureTime(() => subRepo.findSimilarByAPTED('file0.ts', 0.5, 5));
+    const minHashTime = await measureTime(async () => await subRepo.findSimilarByMinHash('file0.ts', 0.5));
+    const simHashTime = await measureTime(async () => await subRepo.findSimilarBySimHash('file0.ts', 0.5));
+    const aptedTime = await measureTime(async () => await subRepo.findSimilarByAPTED('file0.ts', 0.5, 5));
     
     console.log(`| ${count.toString().padStart(5)} | ${minHashTime.toFixed(2).padStart(7)}ms | ${simHashTime.toFixed(2).padStart(7)}ms | ${aptedTime.toFixed(2).padStart(13)}ms |`);
   }
@@ -98,11 +97,11 @@ async function runPerformanceTest() {
   console.log('\n\n3. Memory Usage\n');
   
   const memBefore = process.memoryUsage().heapUsed / 1024 / 1024;
-  const bigRepo = new CodeRepository();
+  const bigRepo = CodeRepository();
   
   for (let i = 0; i < 100; i++) {
     const code = generateTestCode(50);
-    bigRepo.addFile(`mem${i}.ts`, `mem${i}.ts`, code);
+    await bigRepo.addFile(`mem${i}.ts`, `mem${i}.ts`, code);
   }
   
   const memAfter = process.memoryUsage().heapUsed / 1024 / 1024;

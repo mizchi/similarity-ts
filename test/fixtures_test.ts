@@ -169,14 +169,14 @@ function runFixtureTests() {
         apted: aptedScore,
         aptedCustom: aptedCustomScore,
         passed,
-        reason: error ? `Error: ${error.message}` : undefined
+        reason: error ? `Error: ${(error as Error).message}` : undefined
       });
     }
     
     console.log(`\n${testName}:`);
     console.log(`  Files: ${file1} <-> ${file2}`);
     if (error) {
-      console.log(`  Error: ${error.message}`);
+      console.log(`  Error: ${(error as Error).message}`);
     } else {
       console.log(`  Levenshtein:        ${(levScore * 100).toFixed(1)}%`);
       console.log(`  APTED:              ${(aptedScore * 100).toFixed(1)}%`);
