@@ -8,8 +8,9 @@
     "ts-similarity": "./dist/cli/cli.mjs"
   },
   "scripts": {
-    "test": "tsx test/similarity_test.ts && tsx test/fixtures_test.ts",
+    "test": "tsx test/similarity_test.ts && tsx test/fixtures_test.ts && tsx test/duplication_detection_test.ts",
     "test:fixtures": "tsx test/fixtures_test.ts",
+    "test:duplication": "tsx test/duplication_detection_test.ts",
     "test:apted": "tsx test/apted_test.ts",
     "example": "tsx examples/basic_usage.ts",
     "example:apted": "tsx examples/apted_comparison.ts",

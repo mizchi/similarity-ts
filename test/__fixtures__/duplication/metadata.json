@@ -1,0 +1,88 @@
+{
+  "description": "Various code duplication patterns found in real-world codebases",
+  "categories": {
+    "exact": {
+      "description": "Exact or near-exact code duplication with only identifier changes",
+      "patterns": [
+        {
+          "name": "Service duplication",
+          "files": ["service_duplication_1.ts", "service_duplication_2.ts"],
+          "expectedSimilarity": 0.95,
+          "detection": "Should detect as near-identical code with only name changes"
+        }
+      ]
+    },
+    "structural": {
+      "description": "Same structure but different implementation style",
+      "patterns": [
+        {
+          "name": "Array iteration patterns",
+          "files": ["array_iteration_pattern_1.ts", "array_iteration_pattern_2.ts"],
+          "expectedSimilarity": 0.70,
+          "detection": "Should detect structural similarity despite imperative vs functional style"
+        },
+        {
+          "name": "visitNode patterns",
+          "files": ["visitnode_pattern_1.ts", "visitnode_pattern_2.ts", "visitnode_pattern_3.ts"],
+          "expectedSimilarity": 0.75,
+          "detection": "Should detect similar AST traversal patterns"
+        }
+      ]
+    },
+    "semantic": {
+      "description": "Same business logic with different implementation approach",
+      "patterns": [
+        {
+          "name": "Validation logic",
+          "files": ["validation_pattern_1.ts", "validation_pattern_2.ts"],
+          "expectedSimilarity": 0.60,
+          "detection": "Should detect same validation rules despite different patterns"
+        },
+        {
+          "name": "State management",
+          "files": ["state_management_pattern_1.ts", "state_management_pattern_2.ts"],
+          "expectedSimilarity": 0.65,
+          "detection": "Should detect similar state transitions despite Redux vs OOP"
+        }
+      ]
+    },
+    "copy_paste": {
+      "description": "Typical copy-paste patterns with slight modifications",
+      "patterns": [
+        {
+          "name": "Error handling duplication",
+          "file": "error_handling_pattern.ts",
+          "detection": "Should detect repeated try-catch blocks with similar structure"
+        },
+        {
+          "name": "Loop pattern duplication",
+          "file": "loop_pattern.ts",
+          "detection": "Should detect similar loop structures across functions"
+        }
+      ]
+    },
+    "refactoring": {
+      "description": "Class to function refactoring patterns",
+      "patterns": [
+        {
+          "name": "Repository pattern",
+          "files": ["repository_class.ts", "repository_functions.ts"],
+          "expectedSimilarity": 0.85,
+          "detection": "Should detect class methods converted to functions"
+        },
+        {
+          "name": "Calculator pattern",
+          "files": ["calculator_class.ts", "calculator_functions.ts"],
+          "expectedSimilarity": 0.90,
+          "detection": "Should detect stateful class converted to functional approach"
+        },
+        {
+          "name": "User service pattern",
+          "files": ["user_service_class.ts", "user_service_functions.ts"],
+          "expectedSimilarity": 0.85,
+          "detection": "Should detect dependency injection pattern conversion"
+        }
+      ]
+    }
+  }
+}
