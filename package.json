@@ -8,28 +8,16 @@
     "ts-similarity": "./dist/cli/cli.mjs"
   },
   "scripts": {
-    "test": "pnpm test:tsx",
-    "test:vitest": "echo 'Vitest tests not yet migrated'",
-    "test:cov": "echo 'Coverage temporarily disabled due to memory issues'",
-    "test:tsx": "echo 'WARNING: Tests have memory leak issues in APTED implementation. See src/core/apted.ts TODOs' && tsx test/similarity_test.ts",
-    "test:all": "tsx test/similarity_test.ts && tsx test/fixtures_test.ts && tsx test/duplication_detection_test.ts",
-    "test:fixtures": "tsx test/fixtures_test.ts",
-    "test:duplication": "tsx test/duplication_detection_test.ts",
-    "test:apted": "tsx test/apted_test.ts",
-    "example": "tsx examples/basic_usage.ts",
-    "example:apted": "tsx examples/apted_comparison.ts",
-    "example:multi": "tsx examples/multi_file_similarity.ts",
-    "benchmark": "tsx examples/run_benchmark.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "check": "pnpm typecheck && pnpm test",
     "format": "biome format --write .",
     "format:check": "biome format .",
     "lint": "oxlint --silent",
     "lint:strict": "oxlint --deny-warnings",
-    "build": "pnpm run \"/^build:.*/\"",
-    "build:cjs": "tsdown src/index.ts --outfile=dist/index.cjs --format=cjs",
-    "build:mjs": "tsdown src/index.ts --outfile=dist/index.mjs --format=esm",
-    "build:cli": "tsdown src/cli/cli.ts --outfile=dist/cli/cli.mjs --format=esm --platform=node",
+    "build": "tsdown src/index.ts --outfile=dist/index.mjs --format=esm && tsdown src/cli/cli.ts --outfile=dist/cli/cli.mjs --format=esm --platform=node",
     "prepublishOnly": "pnpm run build"
   },
   "keywords": [],
@@ -40,10 +28,10 @@
     "@mizchi/readability": "^0.5.8",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "@oxc-project/types": "^0.73.0",
+    "@types/glob": "^8.1.0",
     "@types/node": "^22.15.30",
     "@typescript/native-preview": "7.0.0-dev.20250616.1",
     "@vitest/coverage-v8": "^3.2.3",
-    "oxc-parser": "^0.73.0",
     "oxlint": "^1.1.0",
     "tsdown": "^0.12.7",
     "tsx": "^4.19.4",
@@ -52,11 +40,13 @@
     "zod": "^3.25.56"
   },
   "dependencies": {
-    "@types/glob": "^8.1.0",
     "chalk": "^5.4.1",
-    "glob": "^11.0.3"
+    "glob": "^11.0.3",
+    "oxc-parser": "^0.73.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }
