@@ -31,9 +31,9 @@ enum Commands {
         #[arg(long, default_value_t = 0.3)]
         rename_cost: f64,
 
-        /// Check across files (default: false, only check within files)
+        /// Only check within files (default: false, checks across files)
         #[arg(long)]
-        cross_file: bool,
+        within_file: bool,
 
         /// File extensions to include (default: ts,tsx,js,jsx)
         #[arg(long, value_delimiter = ',')]
@@ -94,8 +94,8 @@ fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
     match args.command {
-        Some(Commands::Check { directory, threshold, rename_cost, cross_file, extensions }) => {
-            check_directory(directory, threshold, rename_cost, cross_file, extensions)?;
+        Some(Commands::Check { directory, threshold, rename_cost, within_file, extensions }) => {
+            check_directory(directory, threshold, rename_cost, !within_file, extensions)?;
         }
         Some(Commands::Compare { file1, file2, rename_cost, delete_cost, insert_cost }) => {
             compare_files(file1, file2, rename_cost, delete_cost, insert_cost)?;
@@ -111,10 +111,10 @@ fn main() -> anyhow::Result<()> {
             let args: Vec<String> = std::env::args().collect();
             if args.len() >= 2 {
                 // If a directory is provided, check it
-                check_directory(args[1].clone(), 0.8, 0.3, false, None)?;
+                check_directory(args[1].clone(), 0.8, 0.3, true, None)?;
             } else {
                 // Otherwise check current directory
-                check_directory(".".to_string(), 0.8, 0.3, false, None)?;
+                check_directory(".".to_string(), 0.8, 0.3, true, None)?;
             }
         }
     }

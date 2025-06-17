@@ -41,8 +41,8 @@ ts-similarity check src
 # With custom threshold (default: 80%)
 ts-similarity check src -t 0.9
 
-# Check across files (not just within files)
-ts-similarity check src --cross-file
+# Check only within files (default is across files)
+ts-similarity check src --within-file
 
 # Specify file extensions
 ts-similarity check src --extensions ts,tsx
@@ -97,12 +97,12 @@ ts-similarity compare file1.ts file2.ts \
 
 ### `check` - Check Directory for Duplicates (Default)
 
-Recursively checks a directory for duplicate functions, respecting .gitignore files.
+Recursively checks a directory for duplicate functions across all files, respecting .gitignore files.
 
 **Options:**
 - `-t, --threshold` (default: 0.8) - Similarity threshold (0.0-1.0)
 - `--rename-cost` (default: 0.3) - Cost for renaming nodes
-- `--cross-file` - Check for duplicates across files (not just within files)
+- `--within-file` - Only check for duplicates within individual files (default: check across files)
 - `--extensions` - Comma-separated list of file extensions (default: ts,tsx,js,jsx)
 
 **Example Output:**
