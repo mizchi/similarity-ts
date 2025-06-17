@@ -2,7 +2,7 @@ use ignore::WalkBuilder;
 use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
-use ts_similarity_core::{find_similar_functions_across_files, find_similar_functions_in_file, TSEDOptions};
+use ts_similarity_core::{find_similar_functions_across_files, find_similar_functions_in_file, FunctionType, TSEDOptions};
 
 pub fn check_directory(
     directory: String,
@@ -98,19 +98,19 @@ fn check_file_duplicates(
                     println!(
                         "  {} {} (lines {}-{}) <-> {} {} (lines {}-{})",
                         match func1.function_type {
-                            ts_similarity_core::FunctionType::Function => "function",
-                            ts_similarity_core::FunctionType::Method => "method",
-                            ts_similarity_core::FunctionType::Arrow => "arrow",
-                            ts_similarity_core::FunctionType::Constructor => "constructor",
+                            FunctionType::Function => "function",
+                            FunctionType::Method => "method",
+                            FunctionType::Arrow => "arrow",
+                            FunctionType::Constructor => "constructor",
                         },
                         func1.name,
                         func1.start_line,
                         func1.end_line,
                         match func2.function_type {
-                            ts_similarity_core::FunctionType::Function => "function",
-                            ts_similarity_core::FunctionType::Method => "method",
-                            ts_similarity_core::FunctionType::Arrow => "arrow",
-                            ts_similarity_core::FunctionType::Constructor => "constructor",
+                            FunctionType::Function => "function",
+                            FunctionType::Method => "method",
+                            FunctionType::Arrow => "arrow",
+                            FunctionType::Constructor => "constructor",
                         },
                         func2.name,
                         func2.start_line,
