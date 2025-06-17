@@ -318,7 +318,7 @@ export function calculateAPTEDSimilarity(
     // Normalize to 0-1 range using TSED formula
     return Math.max(1 - distance / maxNodes, 0);
   } catch (error) {
-    console.error('Error in APTED calculation:', error);
+    // console.error('Error in APTED calculation:', error);
     // Fall back to simple string comparison
     return code1 === code2 ? 1.0 : 0.0;
   }

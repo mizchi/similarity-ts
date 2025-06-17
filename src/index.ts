@@ -34,6 +34,24 @@ export type { APTEDOptions } from "./core/apted.ts";
 export type { ASTNode, Program } from "./core/oxc_types.ts";
 export { addFile, findSimilarByMinHash, findSimilarBySimHash, findSimilarByAPTED, getStatistics } from "./cli/repo_checker.ts";
 
+// Function extraction and comparison
+export {
+  extractFunctions,
+  compareFunctions,
+  findDuplicateFunctions,
+  type FunctionDefinition,
+  type FunctionComparisonResult
+} from "./core/function_extractor.ts";
+
+export {
+  normalizeSemantics,
+  methodToFunction,
+  functionToMethod,
+  areSemanticallySimilar,
+  type NormalizationOptions,
+  type SemanticPattern
+} from "./core/semantic_normalizer.ts";
+
 // Type definitions
 export interface SimilarityOptions {
   algorithm?: "levenshtein" | "apted";

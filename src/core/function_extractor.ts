@@ -1,0 +1,390 @@
+// Function extraction and comparison utilities
+import { parseTypeScript } from '../parser.ts';
+import { calculateAPTEDSimilarity } from './apted.ts';
+// import type { Program } from './oxc_types.ts';
+
+export interface FunctionDefinition {
+  name: string;
+  type: 'function' | 'method' | 'arrow' | 'constructor';
+  parameters: string[];
+  body: string;
+  ast: any;
+  startLine: number;
+  endLine: number;
+  className?: string; // For methods
+}
+
+export interface FunctionComparisonResult {
+  similarity: number;
+  isStructurallyEquivalent: boolean;
+  differences: {
+    thisUsage: boolean;
+    scopeVariables: string[];
+    parameterNames: boolean;
+  };
+}
+
+/**
+ * Extract all function definitions from code
+ */
+export function extractFunctions(code: string): FunctionDefinition[] {
+  const ast = parseTypeScript('temp.ts', code);
+  const functions: FunctionDefinition[] = [];
+  const lines = code.split('\n');
+  
+  function getLineNumber(offset: number): number {
+    let charCount = 0;
+    for (let i = 0; i < lines.length; i++) {
+      charCount += lines[i].length + 1;
+      if (charCount > offset) {
+        return i + 1;
+      }
+    }
+    return lines.length;
+  }
+  
+  function extractBodyCode(bodyNode: any): string {
+    if (!bodyNode) {
+      return '';
+    }
+    
+    // start/end プロパティを直接使用（span プロパティがない場合がある）
+    const start = bodyNode.start ?? bodyNode.span?.start;
+    const end = bodyNode.end ?? bodyNode.span?.end;
+    
+    if (start === undefined || end === undefined || start >= end || start < 0 || end > code.length) {
+      return '';
+    }
+    
+    // BlockStatementの場合は中括弧の内側のコンテンツを取得
+    if (bodyNode.type === 'BlockStatement') {
+      // 中括弧を含む全体を取得してから、中身だけを抽出
+      const fullBody = code.substring(start, end);
+      const match = fullBody.match(/^\s*{\s*([\s\S]*?)\s*}\s*$/);
+      if (match) {
+        return match[1].trim();
+      }
+    }
+    
+    // ArrowFunctionの式本体の場合
+    return code.substring(start, end).trim();
+  }
+  
+  function extractParameters(params: any): string[] {
+    if (!params) return [];
+    
+    // paramsは直接配列の場合が多い
+    const paramList = Array.isArray(params) ? params : 
+                     (params.items || params.parameters || []);
+    
+    if (!Array.isArray(paramList)) return [];
+    
+    return paramList.map((param: any) => {
+      // Identifier with typeAnnotation の場合
+      if (param.type === 'Identifier') {
+        return param.name;
+      }
+      // FormalParameter の場合
+      if (param.type === 'FormalParameter' && param.pattern?.type === 'BindingIdentifier') {
+        return param.pattern.name;
+      }
+      // BindingIdentifier の場合
+      if (param.type === 'BindingIdentifier') {
+        return param.name;
+      }
+      // pattern を持つ場合
+      if (param.pattern?.type === 'BindingIdentifier') {
+        return param.pattern.name;
+      }
+      return 'unknown';
+    }).filter(p => p !== 'unknown');
+  }
+  
+  function visitNode(node: any, className?: string) {
+    if (!node || typeof node !== 'object') return;
+    
+    // Debug: Log node types
+    if (node.type && ['FunctionDeclaration', 'VariableDeclaration', 'ClassDeclaration', 'MethodDefinition', 'ArrowFunctionExpression', 'FunctionExpression', 'VariableDeclarator'].includes(node.type)) {
+      // console.log('Found node type:', node.type, node.id?.name);
+    }
+    
+    // Function declarations
+    if (node.type === 'FunctionDeclaration' && node.id) {
+      functions.push({
+        name: node.id.name,
+        type: 'function',
+        parameters: extractParameters(node.params),
+        body: node.body ? extractBodyCode(node.body) : '',
+        ast: node,
+        startLine: getLineNumber(node.start ?? node.span?.start ?? 0),
+        endLine: getLineNumber(node.end ?? node.span?.end ?? 0)
+      });
+    }
+    
+    // Handle VariableDeclaration nodes
+    if (node.type === 'VariableDeclaration' && node.declarations) {
+      for (const decl of node.declarations) {
+        visitNode(decl, className);
+      }
+      return;
+    }
+    
+    // Arrow functions assigned to variables
+    // Debug for VariableDeclarator
+    // if (node.type === 'VariableDeclarator') {
+    //   console.log('  Checking VariableDeclarator:', {
+    //     initType: node.init?.type,
+    //     idType: node.id?.type,
+    //     idName: node.id?.name
+    //   });
+    // }
+    
+    if (node.type === 'VariableDeclarator' && 
+        node.init?.type === 'ArrowFunctionExpression' &&
+        (node.id?.type === 'BindingIdentifier' || node.id?.type === 'Identifier')) {
+      // Arrow functionは body（BlockStatement）または expression を持つ
+      let bodyContent = '';
+      if (node.init.body) {
+        bodyContent = extractBodyCode(node.init.body);
+      } else {
+        // 式本体の場合は式自体を本体として扱う（expression arrow function）
+        const funcStart = node.init.start ?? node.init.span?.start ?? 0;
+        const funcEnd = node.init.end ?? node.init.span?.end ?? 0;
+        const funcCode = code.substring(funcStart, funcEnd);
+        const arrowPos = funcCode.indexOf('=>');
+        if (arrowPos !== -1) {
+          bodyContent = funcCode.substring(arrowPos + 2).trim();
+        }
+      }
+      
+      functions.push({
+        name: node.id.name,
+        type: 'arrow',
+        parameters: extractParameters(node.init.params),
+        body: bodyContent,
+        ast: node.init,
+        startLine: getLineNumber(node.start ?? node.span?.start ?? 0),
+        endLine: getLineNumber(node.end ?? node.span?.end ?? 0)
+      });
+    }
+    
+    // Function expressions assigned to variables
+    if (node.type === 'VariableDeclarator' && 
+        node.init?.type === 'FunctionExpression' &&
+        (node.id?.type === 'BindingIdentifier' || node.id?.type === 'Identifier')) {
+      functions.push({
+        name: node.id.name,
+        type: 'function',
+        parameters: extractParameters(node.init.params),
+        body: node.init.body ? extractBodyCode(node.init.body) : '',
+        ast: node.init,
+        startLine: getLineNumber(node.start ?? node.span?.start ?? 0),
+        endLine: getLineNumber(node.end ?? node.span?.end ?? 0)
+      });
+    }
+    
+    // Class methods
+    if (node.type === 'MethodDefinition' && node.key) {
+      const methodName = node.key.name || 'unknown';
+      const isConstructor = node.kind === 'constructor';
+      
+      functions.push({
+        name: isConstructor ? 'constructor' : methodName,
+        type: isConstructor ? 'constructor' : 'method',
+        parameters: extractParameters(node.value?.params),
+        body: node.value?.body ? extractBodyCode(node.value.body) : '',
+        ast: node.value,
+        startLine: getLineNumber(node.start ?? node.span?.start ?? 0),
+        endLine: getLineNumber(node.end ?? node.span?.end ?? 0),
+        className
+      });
+    }
+    
+    // Track class name for methods
+    if (node.type === 'ClassDeclaration' && node.id) {
+      const currentClassName = node.id.name;
+      if (node.body?.body) {
+        for (const member of node.body.body) {
+          visitNode(member, currentClassName);
+        }
+      }
+      return; // Don't traverse class body again
+    }
+    
+    // Traverse children
+    for (const key in node) {
+      if (key === 'parent' || key === 'scope') continue;
+      const value = node[key];
+      if (Array.isArray(value)) {
+        value.forEach(v => visitNode(v, className));
+      } else if (value && typeof value === 'object') {
+        visitNode(value, className);
+      }
+    }
+  }
+  
+  visitNode(ast.program);
+  return functions;
+}
+
+/**
+ * Normalize function body by replacing context-specific references
+ */
+export function normalizeFunctionBody(
+  func: FunctionDefinition,
+  options: {
+    replaceThis?: boolean;
+    normalizeParams?: boolean;
+  } = {}
+): string {
+  let normalizedBody = func.body;
+  
+  if (options.replaceThis && func.type === 'method') {
+    // Replace this.x with normalized form
+    normalizedBody = normalizedBody.replace(/\bthis\s*\.\s*(\w+)/g, 'context.$1');
+  }
+  
+  if (options.normalizeParams) {
+    // Replace parameter names with generic names
+    func.parameters.forEach((param, index) => {
+      const genericName = `param${index + 1}`;
+      const regex = new RegExp(`\\b${param}\\b`, 'g');
+      normalizedBody = normalizedBody.replace(regex, genericName);
+    });
+  }
+  
+  return normalizedBody;
+}
+
+/**
+ * Compare two function definitions
+ */
+export function compareFunctions(
+  func1: FunctionDefinition,
+  func2: FunctionDefinition,
+  options: {
+    ignoreThis?: boolean;
+    ignoreParamNames?: boolean;
+  } = {}
+): FunctionComparisonResult {
+  // Check if functions are defined
+  if (!func1 || !func2) {
+    return {
+      similarity: 0,
+      isStructurallyEquivalent: false,
+      differences: {
+        thisUsage: false,
+        scopeVariables: [],
+        parameterNames: true
+      }
+    };
+  }
+  
+  // Check if they have the same number of parameters
+  const sameParamCount = (func1.parameters?.length || 0) === (func2.parameters?.length || 0);
+  
+  // Normalize bodies for comparison
+  const body1 = normalizeFunctionBody(func1, {
+    replaceThis: options.ignoreThis,
+    normalizeParams: options.ignoreParamNames
+  });
+  
+  const body2 = normalizeFunctionBody(func2, {
+    replaceThis: options.ignoreThis,
+    normalizeParams: options.ignoreParamNames
+  });
+  
+  // Check for this usage
+  const thisInFunc1 = /\bthis\s*\./.test(func1.body);
+  const thisInFunc2 = /\bthis\s*\./.test(func2.body);
+  const differentThisUsage = thisInFunc1 !== thisInFunc2;
+  
+  // Extract scope variables (simplified - just looks for assignments)
+  const scopeVars1 = extractScopeVariables(func1.body);
+  const scopeVars2 = extractScopeVariables(func2.body);
+  
+  // Calculate similarity
+  const similarity = calculateBodySimilarity(body1, body2);
+  
+  // Check structural equivalence
+  const isStructurallyEquivalent = 
+    sameParamCount && 
+    similarity > 0.9 &&
+    (!differentThisUsage || options.ignoreThis === true);
+  
+  return {
+    similarity,
+    isStructurallyEquivalent,
+    differences: {
+      thisUsage: differentThisUsage,
+      scopeVariables: [...new Set([...scopeVars1, ...scopeVars2])],
+      parameterNames: !arraysEqual(func1.parameters || [], func2.parameters || [])
+    }
+  };
+}
+
+/**
+ * Extract variable declarations from function body
+ */
+function extractScopeVariables(body: string): string[] {
+  const variables: string[] = [];
+  
+  // Match let, const, var declarations
+  const varMatches = body.matchAll(/\b(?:let|const|var)\s+(\w+)/g);
+  for (const match of varMatches) {
+    variables.push(match[1]);
+  }
+  
+  return variables;
+}
+
+/**
+ * Calculate similarity between two function bodies using APTED
+ */
+function calculateBodySimilarity(body1: string, body2: string): number {
+  // Use APTED algorithm for more accurate AST-based comparison
+  return calculateAPTEDSimilarity(body1, body2);
+}
+
+/**
+ * Check if two arrays are equal
+ */
+function arraysEqual(arr1: string[], arr2: string[]): boolean {
+  if (arr1.length !== arr2.length) return false;
+  return arr1.every((val, index) => val === arr2[index]);
+}
+
+/**
+ * Find duplicate functions across different contexts
+ */
+export function findDuplicateFunctions(
+  functions: FunctionDefinition[],
+  options: {
+    ignoreThis?: boolean;
+    ignoreParamNames?: boolean;
+    similarityThreshold?: number;
+  } = {}
+): Array<[FunctionDefinition, FunctionDefinition, FunctionComparisonResult]> {
+  const duplicates: Array<[FunctionDefinition, FunctionDefinition, FunctionComparisonResult]> = [];
+  const threshold = options.similarityThreshold || 0.8;
+  
+  for (let i = 0; i < functions.length; i++) {
+    for (let j = i + 1; j < functions.length; j++) {
+      const func1 = functions[i];
+      const func2 = functions[j];
+      
+      // Skip if both are from the same class
+      if (func1.className && func1.className === func2.className) {
+        continue;
+      }
+      
+      const comparison = compareFunctions(func1, func2, options);
+      
+      if (comparison.similarity >= threshold) {
+        duplicates.push([func1, func2, comparison]);
+      }
+    }
+  }
+  
+  return duplicates;
+}
