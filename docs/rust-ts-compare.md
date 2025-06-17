@@ -160,6 +160,22 @@ The Rust implementation handles more node types and preserves more structural in
 - **TypeScript**: Exponential memory growth, OOM errors on large files
 - **Rust**: Constant memory usage with Rc (Reference Counting)
 
+### Rust Micro-benchmarks (cargo bench)
+
+Detailed performance characteristics using Criterion benchmark:
+
+| Operation | Small Files | Medium Files |
+|-----------|-------------|--------------|
+| Full TSED Calculation | 16.6 µs | 13.6 µs |
+| Parsing Only | 2.3 µs | 6.5 µs |
+| Tree Edit Distance Only | 11.1 µs | 0.22 µs |
+| 100 Comparisons | 1.73 ms | - |
+
+Key insights:
+- Parsing takes only ~14% of total time for small files
+- Tree edit distance calculation is surprisingly fast for medium files (213ns)
+- Linear scaling: 100 comparisons take ~100x single comparison time (no hidden overhead)
+
 ## Conclusion
 
 While both implementations correctly identify similar and dissimilar code patterns, the Rust implementation provides more accurate and intuitive similarity scores. The ~18% average difference is significant enough to recommend the Rust implementation for production use cases where accuracy is important.

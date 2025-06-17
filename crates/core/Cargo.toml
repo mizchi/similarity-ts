@@ -10,3 +10,8 @@ oxc_span = { workspace = true }
 oxc_allocator = { workspace = true }
 
 [dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "tsed_benchmark"
+harness = false
