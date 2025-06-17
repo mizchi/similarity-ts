@@ -2,6 +2,7 @@
 import { parseTypeScript } from '../parser.ts';
 import { calculateAPTEDSimilarity } from './apted.ts';
 import { normalizeSemantics } from './semantic_normalizer.ts';
+import { traverseAST, createVisitor } from './ast_traversal.ts';
 import type { Program, Function, Statement } from './oxc_types.ts';
 
 export interface FunctionBodyComparisonResult {
@@ -19,41 +20,36 @@ export function extractFunctionBody(code: string, functionName: string, isMethod
   const ast = parseTypeScript('temp.ts', code);
   
   function findFunction(node: any): any {
-    if (!node || typeof node !== 'object') return null;
-    
-    // Function declaration
-    if (node.type === 'FunctionDeclaration' && node.id?.name === functionName) {
-      return node;
+    interface FindState {
+      found: any | null;
     }
     
-    // Method in class
-    if (node.type === 'MethodDefinition' && node.key?.name === functionName) {
-      return node.value;
-    }
+    const state: FindState = { found: null };
     
-    // Variable with function expression or arrow function
-    if (node.type === 'VariableDeclarator' && node.id?.name === functionName) {
-      if (node.init?.type === 'FunctionExpression' || node.init?.type === 'ArrowFunctionExpression') {
-        return node.init;
-      }
-    }
-    
-    // Traverse children
-    for (const key in node) {
-      if (key === 'parent' || key === 'scope') continue;
-      const value = node[key];
-      if (Array.isArray(value)) {
-        for (const child of value) {
-          const result = findFunction(child);
-          if (result) return result;
+    traverseAST(node, createVisitor<FindState>({
+      FunctionDeclaration(node, state) {
+        if (node.id?.name === functionName && !state.found) {
+          state.found = node;
         }
-      } else if (value && typeof value === 'object') {
-        const result = findFunction(value);
-        if (result) return result;
+      },
+      
+      MethodDefinition(node, state) {
+        if (node.key?.name === functionName && !state.found) {
+          state.found = node.value;
+        }
+      },
+      
+      VariableDeclarator(node, state) {
+        if (node.id?.name === functionName && !state.found) {
+          if (node.init?.type === 'FunctionExpression' || 
+              node.init?.type === 'ArrowFunctionExpression') {
+            state.found = node.init;
+          }
+        }
       }
-    }
+    }), state);
     
-    return null;
+    return state.found;
   }
   
   const funcNode = findFunction(ast.program);
@@ -209,47 +205,55 @@ export function findDuplicateFunctionBodies(
 }
 
 /**
- * Extract all function names from code
+ * Extract all function names from code using ast_traversal
  */
 function extractAllFunctionNames(code: string): Array<{ name: string; isMethod: boolean }> {
   const ast = parseTypeScript('temp.ts', code);
-  const functions: Array<{ name: string; isMethod: boolean }> = [];
   
-  function visitNode(node: any, inClass: boolean = false) {
-    if (!node || typeof node !== 'object') return;
-    
-    // Function declaration
-    if (node.type === 'FunctionDeclaration' && node.id?.name) {
-      functions.push({ name: node.id.name, isMethod: false });
-    }
-    
-    // Method in class
-    if (node.type === 'MethodDefinition' && node.key?.name) {
-      functions.push({ name: node.key.name, isMethod: true });
-    }
-    
-    // Variable with function
-    if (node.type === 'VariableDeclarator' && node.id?.name) {
-      if (node.init?.type === 'FunctionExpression' || node.init?.type === 'ArrowFunctionExpression') {
-        functions.push({ name: node.id.name, isMethod: false });
-      }
-    }
-    
-    // Track class context
-    const isClass = node.type === 'ClassDeclaration' || node.type === 'ClassExpression';
-    
-    // Traverse children
-    for (const key in node) {
-      if (key === 'parent' || key === 'scope') continue;
-      const value = node[key];
-      if (Array.isArray(value)) {
-        value.forEach(v => visitNode(v, isClass || inClass));
-      } else if (value && typeof value === 'object') {
-        visitNode(value, isClass || inClass);
-      }
-    }
+  interface ExtractState {
+    functions: Array<{ name: string; isMethod: boolean }>;
+    inClass: boolean;
   }
   
-  visitNode(ast.program);
-  return functions;
+  const state: ExtractState = {
+    functions: [],
+    inClass: false
+  };
+  
+  traverseAST(ast.program, createVisitor<ExtractState>({
+    enter(node, state) {
+      if (node.type === 'ClassDeclaration' || node.type === 'ClassExpression') {
+        state.inClass = true;
+      }
+    },
+    
+    leave(node, state) {
+      if (node.type === 'ClassDeclaration' || node.type === 'ClassExpression') {
+        state.inClass = false;
+      }
+    },
+    
+    FunctionDeclaration(node, state) {
+      if (node.id?.name) {
+        state.functions.push({ name: node.id.name, isMethod: false });
+      }
+    },
+    
+    MethodDefinition(node, state) {
+      if (node.key?.name) {
+        state.functions.push({ name: node.key.name, isMethod: true });
+      }
+    },
+    
+    VariableDeclarator(node, state) {
+      if (node.id?.name) {
+        if (node.init?.type === 'FunctionExpression' || 
+            node.init?.type === 'ArrowFunctionExpression') {
+          state.functions.push({ name: node.id.name, isMethod: false });
+        }
+      }
+    }
+  }), state);
+  
+  return state.functions;
 }
