@@ -7,7 +7,7 @@ import type { ParseResult } from 'oxc-parser';
 /**
  * Extract structure from AST node with proper type handling
  */
-export function extractStructure(node: ASTNode | any): any {
+function extractStructure(node: ASTNode | any): any {
   if (!node || typeof node !== 'object') {
     return node;
   }

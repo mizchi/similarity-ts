@@ -10,8 +10,8 @@ import {
   getStatistics
 } from '../src/cli/repo_checker.ts';
 import { loadFilesFromPattern } from '../src/cli/io.ts';
-import { readFile } from '../src/cli/io.ts';
 import { join } from 'path';
+import { readFileSync } from 'fs';
 
 async function runBenchmarks() {
   const benchmark = new SimilarityBenchmark();
@@ -32,8 +32,8 @@ async function runBenchmarks() {
   const userServicePath = join(projectPath, 'src/services/user_service.ts');
   const productServicePath = join(projectPath, 'src/services/product_service.ts');
   
-  const userServiceCode = readFile(userServicePath);
-  const productServiceCode = readFile(productServicePath);
+  const userServiceCode = readFileSync(userServicePath, 'utf-8');
+  const productServiceCode = readFileSync(productServicePath, 'utf-8');
   
   console.log('Benchmarking UserService vs ProductService comparison:');
   console.log(`File sizes: ${userServiceCode.length} and ${productServiceCode.length} characters`);

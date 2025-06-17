@@ -19,7 +19,7 @@ export interface TreeNode {
   subtreeSize?: number;
 }
 
-export interface EditOperation {
+interface EditOperation {
   type: 'insert' | 'delete' | 'rename';
   node: TreeNode;
   cost: number;
@@ -34,7 +34,7 @@ export interface APTEDOptions {
 /**
  * Get label from AST node with proper type checking
  */
-export function getNodeLabel(node: ASTNode | any): string {
+function getNodeLabel(node: ASTNode | any): string {
   if (!node || typeof node !== 'object') {
     return String(node);
   }
@@ -83,7 +83,7 @@ export function getNodeLabel(node: ASTNode | any): string {
 /**
  * Get children from AST node with proper type handling
  */
-export function getNodeChildren(node: ASTNode | any): (ASTNode | any)[] {
+function getNodeChildren(node: ASTNode | any): (ASTNode | any)[] {
   if (!node || typeof node !== 'object') {
     return [];
   }
@@ -130,14 +130,14 @@ export function oxcToTreeNode(node: ASTNode | any, idCounter = { value: 0 }): Tr
 /**
  * Get node identifier
  */
-export function getNodeId(node: TreeNode): string {
+function getNodeId(node: TreeNode): string {
   return node.id;
 }
 
 /**
  * Get subtree size (number of nodes in subtree)
  */
-export function getSubtreeSize(node: TreeNode): number {
+function getSubtreeSize(node: TreeNode): number {
   if (node.subtreeSize !== undefined) {
     return node.subtreeSize;
   }
@@ -154,7 +154,7 @@ export function getSubtreeSize(node: TreeNode): number {
 /**
  * Compute optimal alignment between children of two nodes
  */
-export function computeChildrenAlignment(
+function computeChildrenAlignment(
   node1Children: TreeNode[],
   node2Children: TreeNode[],
   costMatrix: Map<string, Map<string, number>>

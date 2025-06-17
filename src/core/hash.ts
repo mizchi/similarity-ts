@@ -18,7 +18,7 @@ export interface LSHState {
 /**
  * Generate multiple hash functions for MinHash
  */
-export function generateHashFunctions(num: number): Array<(token: string) => number> {
+function generateHashFunctions(num: number): Array<(token: string) => number> {
   const functions: Array<(token: string) => number> = [];
   
   // Use different random seeds for each hash function
@@ -98,7 +98,7 @@ export function createLSHState(signatureLength: number, numBands: number): LSHSt
 /**
  * Hash a band for LSH
  */
-export function hashBand(band: number[]): string {
+function hashBand(band: number[]): string {
   return band.join(',');
 }
 
@@ -172,7 +172,7 @@ export function createSimHashConfig(bits: number = 64): SimHashConfig {
 /**
  * Simple string hash function for SimHash
  */
-export function stringHash(str: string): number {
+function stringHash(str: string): number {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     hash = ((hash << 5) - hash + str.charCodeAt(i)) >>> 0;
@@ -213,7 +213,7 @@ export function generateSimHash(
 /**
  * Calculate Hamming distance between two bigints
  */
-export function hammingDistance(a: bigint, b: bigint): number {
+function hammingDistance(a: bigint, b: bigint): number {
   let xor = a ^ b;
   let count = 0;
   

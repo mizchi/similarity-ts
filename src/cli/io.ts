@@ -3,7 +3,7 @@ import { readFileSync } from 'fs';
 import { join, relative } from 'path';
 import { glob } from 'glob';
 
-export interface FileInfo {
+interface FileInfo {
   id: string;
   path: string;
   content: string;
@@ -30,9 +30,3 @@ export async function loadFilesFromPattern(
   return results;
 }
 
-/**
- * Read a single file
- */
-export function readFile(filePath: string): string {
-  return readFileSync(filePath, 'utf-8');
-}

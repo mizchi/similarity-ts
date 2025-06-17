@@ -193,34 +193,6 @@ export interface FunctionComparisonResult {
   };
 }
 
-/**
- * Normalize function body by replacing context-specific references
- */
-export function normalizeFunctionBody(
-  func: FunctionDefinition,
-  options: {
-    replaceThis?: boolean;
-    normalizeParams?: boolean;
-  } = {}
-): string {
-  let normalizedBody = func.body;
-  
-  if (options.replaceThis && func.type === 'method') {
-    // Replace this.x with normalized form
-    normalizedBody = normalizedBody.replace(/\bthis\s*\.\s*(\w+)/g, 'context.$1');
-  }
-  
-  if (options.normalizeParams) {
-    // Replace parameter names with generic names
-    func.parameters.forEach((param, index) => {
-      const genericName = `param${index + 1}`;
-      const regex = new RegExp(`\\b${param}\\b`, 'g');
-      normalizedBody = normalizedBody.replace(regex, genericName);
-    });
-  }
-  
-  return normalizedBody;
-}
 
 /**
  * Compare two function definitions

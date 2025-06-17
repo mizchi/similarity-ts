@@ -3,11 +3,11 @@
  * This module provides a common traversal pattern used across the codebase
  */
 
-export interface NodeHandler<T> {
+interface NodeHandler<T> {
   (node: any, state: T, parent?: any): void;
 }
 
-export interface NodeHandlers<T> {
+interface NodeHandlers<T> {
   // Lifecycle hooks
   enter?: NodeHandler<T>;
   leave?: NodeHandler<T>;
@@ -83,42 +83,3 @@ export function createVisitor<T>(handlers: NodeHandlers<T>): NodeHandlers<T> {
   return handlers;
 }
 
-/**
- * Helper to collect nodes of specific types
- */
-export function collectNodes<T = any>(
-  node: any,
-  nodeTypes: string[]
-): T[] {
-  const nodes: T[] = [];
-  
-  traverseAST(node, {
-    enter(node) {
-      if (node.type && nodeTypes.includes(node.type)) {
-        nodes.push(node);
-      }
-    }
-  }, {});
-  
-  return nodes;
-}
-
-/**
- * Helper to find first node matching predicate
- */
-export function findNode<T = any>(
-  node: any,
-  predicate: (node: any) => boolean
-): T | null {
-  let found: T | null = null;
-  
-  traverseAST(node, {
-    enter(node) {
-      if (!found && predicate(node)) {
-        found = node;
-      }
-    }
-  }, {});
-  
-  return found;
-}
