@@ -106,6 +106,13 @@ function getNodeChildren(node: ASTNode | any): (ASTNode | any)[] {
 
 /**
  * Convert AST node to TreeNode structure
+ * 
+ * TODO: This implementation has severe memory leak issues when processing large ASTs.
+ * The recursive conversion creates a huge number of TreeNode objects that are not 
+ * properly garbage collected. This causes out-of-memory errors even with small files.
+ * Needs to be refactored to use an iterative approach or streaming processing.
+ * 
+ * See: https://github.com/your-repo/issues/XXX
  */
 export function oxcToTreeNode(node: ASTNode | any, idCounter = { value: 0 }): TreeNode {
   const label = getNodeLabel(node);
@@ -213,6 +220,19 @@ function computeChildrenAlignment(
 
 /**
  * Compute edit distance between two trees
+ * 
+ * TODO: This implementation has severe memory usage issues:
+ * 1. The memoization Map grows unbounded for large trees
+ * 2. The computeChildrenAlignment creates m×n matrices which can be huge
+ * 3. The recursive nature holds many intermediate results in memory
+ * 
+ * This causes out-of-memory errors even for moderately sized files (< 1KB).
+ * Needs complete rewrite with:
+ * - Bounded memoization (LRU cache)
+ * - Streaming/iterative processing
+ * - Memory-efficient alignment algorithm
+ * 
+ * Current workaround: Use file size limits before calling APTED functions
  */
 export function computeEditDistance(tree1: TreeNode, tree2: TreeNode, options: APTEDOptions = {}): number {
   const { renameCost = 1, deleteCost = 1, insertCost = 1 } = options;

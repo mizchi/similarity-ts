@@ -298,6 +298,29 @@ const pairs = findAllSimilarPairs(repo, 0.8);
 const cloneGroups = findCodeClones(repo, 0.9);
 ```
 
+## Known Issues
+
+### Memory Leak in APTED Implementation
+
+**⚠️ WARNING**: The current APTED algorithm implementation has severe memory leak issues that can cause out-of-memory errors even with small files (< 1KB). 
+
+**Symptoms**:
+- Tests fail with "JavaScript heap out of memory" error
+- Memory usage grows exponentially during APTED calculations
+- Even small file comparisons can use > 3GB of memory
+
+**Root Cause**:
+- Unbounded memoization in `computeEditDistance`
+- Large m×n matrices in `computeChildrenAlignment`
+- Recursive tree conversion creating too many objects
+
+**Temporary Workarounds**:
+1. Use Levenshtein algorithm instead of APTED for production use
+2. Limit file size before calling APTED functions
+3. Run tests with increased memory: `NODE_OPTIONS="--max-old-space-size=8192" pnpm test`
+
+**TODO**: Complete rewrite of APTED implementation needed. See `src/core/apted.ts` for detailed TODOs.
+
 ## Performance
 
 oxc-parser is written in Rust and provides excellent performance for parsing large codebases. The similarity calculation is optimized for efficiency while maintaining accuracy.
