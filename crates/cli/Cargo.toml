@@ -1,0 +1,15 @@
+[package]
+name = "ts-similarity-cli"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "ts-similarity"
+path = "src/main.rs"
+
+[dependencies]
+ts-similarity-core = { path = "../core" }
+clap = { version = "4.0", features = ["derive"] }
+anyhow = "1.0"
+
+[dev-dependencies]

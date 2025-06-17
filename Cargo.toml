@@ -1,7 +1,12 @@
-[package]
-name = "ts-similarity"
-version = "0.1.0"
-edition = "2024"
+[workspace]
+members = [
+    "crates/core",
+    "crates/cli",
+]
+resolver = "2"
 
-[dependencies]
-oxc_parser = "0.72.3"
+[workspace.dependencies]
+oxc_parser = "0.73.0"
+oxc_ast = "0.73.0"
+oxc_span = "0.73.0"
+oxc_allocator = "0.73.0"
