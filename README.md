@@ -4,7 +4,7 @@ under development
 
 # TypeScript Code Similarity with oxc-parser
 
-High-performance TypeScript code similarity calculation using oxc-parser, a Rust-based JavaScript/TypeScript parser.
+High-performance TypeScript code similarity calculation using oxc-parser, a Rust-based JavaScript/TypeScript parser. This project provides both TypeScript and Rust implementations of the TSED (Tree Structure Edit Distance) algorithm.
 
 ## Features
 
@@ -19,15 +19,60 @@ High-performance TypeScript code similarity calculation using oxc-parser, a Rust
 - Configurable operation costs for APTED algorithm
 - Simple and efficient API
 
+## Dual Implementation: TypeScript & Rust
+
+This project provides two implementations of the same algorithm:
+
+### TypeScript Implementation
+- Located in `src/`
+- Easy integration with JavaScript/TypeScript projects
+- Suitable for Node.js applications
+- Has known memory issues with large files
+
+### Rust Implementation
+- Located in `crates/`
+- 16x faster for medium-sized files
+- No memory issues
+- Includes CLI tool
+
+### Performance & Accuracy Comparison
+
+| Aspect | TypeScript | Rust |
+|--------|------------|------|
+| Small files (~500B) | 2.89ms | 3.93ms |
+| Medium files (~5KB) | 77.60ms | 4.86ms |
+| Large files (~20KB) | Memory error | ~10ms |
+| Accuracy (similar code) | 70.9% | 91.5% |
+| Memory usage | Exponential growth | Constant |
+
+See [docs/rust-ts-compare.md](./docs/rust-ts-compare.md) for detailed comparison.
+
 ## Installation
+
+### TypeScript Version
 
 ```bash
 pnpm install
 ```
 
+### Rust Version
+
+```bash
+# Build the Rust CLI
+cargo build --release
+
+# Run benchmarks
+cargo bench
+
+# Use the Rust CLI
+./target/release/ts-similarity file1.ts file2.ts
+```
+
 ## CLI Usage
 
-The package includes a command-line tool for analyzing function-level similarity across TypeScript projects:
+Both TypeScript and Rust versions include command-line tools:
+
+### TypeScript CLI
 
 ```bash
 # Find similar functions in a directory
@@ -40,7 +85,18 @@ npx ts-similarity ./src -t 0.8
 npx ts-similarity ./src -j -o results.json
 ```
 
-See [CLI.md](./CLI.md) for detailed CLI documentation.
+### Rust CLI
+
+```bash
+# Compare two files
+./target/release/ts-similarity file1.ts file2.ts
+
+# Output:
+# TSED Similarity: 83.33%
+# Distance: 0.1667
+```
+
+See [CLI.md](./CLI.md) for detailed TypeScript CLI documentation.
 
 ### Quick CLI Example
 
