@@ -1,5 +1,5 @@
 import { CodeSimilarity } from '../src/index.ts';
-import { CodeRepository } from '../src/cli/code_repository.ts';
+import { CodeRepository } from '../src/cli/repo_checker.ts';
 import { performance } from 'perf_hooks';
 
 function measureTime(fn: () => any): number {

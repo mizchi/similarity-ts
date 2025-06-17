@@ -25,11 +25,11 @@ import {
   findSimilarBySimHash as findSimilarBySimHashCore,
   findAllSimilarPairs as findAllSimilarPairsCore,
   findClones as findClonesCore
-} from './cli/code_repository.ts';
+} from './cli/repo_checker.ts';
 import { loadFilesFromPattern } from './cli/io.ts';
 
 // Re-export types
-export type { CodeFile, SimilarityResult } from './cli/code_repository.ts';
+export type { CodeFile, SimilarityResult } from './cli/repo_checker.ts';
 export type { APTEDOptions as APTEDConfig } from './core/apted.ts';
 export type { ASTNode, Program } from './core/oxc_types.ts';
 

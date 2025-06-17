@@ -1,4 +1,4 @@
-import { CodeRepository } from '../src/cli/code_repository.ts';
+import { CodeRepository } from '../src/cli/repo_checker.ts';
 import { join } from 'path';
 
 async function demonstrateMultiFileSimilarity() {

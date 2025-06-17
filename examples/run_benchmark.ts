@@ -8,7 +8,7 @@ import {
   loadFiles as loadFilesCore,
   addFile,
   getStatistics
-} from '../src/cli/code_repository.ts';
+} from '../src/cli/repo_checker.ts';
 import { loadFilesFromPattern } from '../src/cli/io.ts';
 import { readFile } from '../src/cli/io.ts';
 import { join } from 'path';

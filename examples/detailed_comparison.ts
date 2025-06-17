@@ -1,4 +1,4 @@
-import { CodeRepository } from '../src/cli/code_repository.ts';
+import { CodeRepository } from '../src/cli/repo_checker.ts';
 import { CodeSimilarity } from '../src/index.ts';
 import { readFileSync } from 'fs';
 import { join } from 'path';
