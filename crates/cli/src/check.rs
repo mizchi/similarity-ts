@@ -2,7 +2,9 @@ use ignore::WalkBuilder;
 use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
-use ts_similarity_core::{find_similar_functions_across_files, find_similar_functions_in_file, FunctionType, TSEDOptions};
+use ts_similarity_core::{
+    find_similar_functions_across_files, find_similar_functions_in_file, FunctionType, TSEDOptions,
+};
 
 pub fn check_directory(
     directory: String,
@@ -21,9 +23,7 @@ pub fn check_directory(
     let mut visited = HashSet::new();
 
     // Walk directory respecting .gitignore
-    let walker = WalkBuilder::new(&directory)
-        .follow_links(false)
-        .build();
+    let walker = WalkBuilder::new(&directory).follow_links(false).build();
 
     for entry in walker {
         let entry = entry?;

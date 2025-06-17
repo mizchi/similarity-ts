@@ -4,6 +4,8 @@ use oxc_span::Span;
 use crate::parser::parse_and_convert_to_tree;
 use crate::tsed::{calculate_tsed, TSEDOptions};
 
+type CrossFileSimilarityResult = Vec<(String, FunctionDefinition, String, FunctionDefinition, f64)>;
+
 #[derive(Debug, Clone)]
 pub struct FunctionDefinition {
     pub name: String,
@@ -112,20 +114,18 @@ fn extract_from_statement(stmt: &Statement, ctx: &mut ExtractionContext) {
         }
         Statement::VariableDeclaration(var_decl) => {
             for decl in &var_decl.declarations {
-                if let Some(init) = &decl.init {
-                    if let Expression::ArrowFunctionExpression(arrow) = init {
-                        if let BindingPatternKind::BindingIdentifier(ident) = &decl.id.kind {
-                            let params = extract_parameters(&arrow.params);
-                            ctx.functions.push(FunctionDefinition {
-                                name: ident.name.to_string(),
-                                function_type: FunctionType::Arrow,
-                                parameters: params,
-                                body_span: arrow.span,
-                                start_line: get_line_number(arrow.span.start, ctx.source_text),
-                                end_line: get_line_number(arrow.span.end, ctx.source_text),
-                                class_name: None,
-                            });
-                        }
+                if let Some(Expression::ArrowFunctionExpression(arrow)) = &decl.init {
+                    if let BindingPatternKind::BindingIdentifier(ident) = &decl.id.kind {
+                        let params = extract_parameters(&arrow.params);
+                        ctx.functions.push(FunctionDefinition {
+                            name: ident.name.to_string(),
+                            function_type: FunctionType::Arrow,
+                            parameters: params,
+                            body_span: arrow.span,
+                            start_line: get_line_number(arrow.span.start, ctx.source_text),
+                            end_line: get_line_number(arrow.span.end, ctx.source_text),
+                            class_name: None,
+                        });
                     }
                 }
             }
@@ -135,8 +135,8 @@ fn extract_from_statement(stmt: &Statement, ctx: &mut ExtractionContext) {
                 extract_from_declaration(decl, ctx);
             }
         }
-        Statement::ExportDefaultDeclaration(export) => match &export.declaration {
-            ExportDefaultDeclarationKind::FunctionDeclaration(func) => {
+        Statement::ExportDefaultDeclaration(export) => {
+            if let ExportDefaultDeclarationKind::FunctionDeclaration(func) = &export.declaration {
                 let name = func
                     .id
                     .as_ref()
@@ -153,8 +153,7 @@ fn extract_from_statement(stmt: &Statement, ctx: &mut ExtractionContext) {
                     class_name: None,
                 });
             }
-            _ => {}
-        },
+        }
         _ => {}
     }
 }
@@ -211,20 +210,18 @@ fn extract_from_declaration(decl: &Declaration, ctx: &mut ExtractionContext) {
         }
         Declaration::VariableDeclaration(var) => {
             for decl in &var.declarations {
-                if let Some(init) = &decl.init {
-                    if let Expression::ArrowFunctionExpression(arrow) = init {
-                        if let BindingPatternKind::BindingIdentifier(ident) = &decl.id.kind {
-                            let params = extract_parameters(&arrow.params);
-                            ctx.functions.push(FunctionDefinition {
-                                name: ident.name.to_string(),
-                                function_type: FunctionType::Arrow,
-                                parameters: params,
-                                body_span: arrow.span,
-                                start_line: get_line_number(arrow.span.start, ctx.source_text),
-                                end_line: get_line_number(arrow.span.end, ctx.source_text),
-                                class_name: None,
-                            });
-                        }
+                if let Some(Expression::ArrowFunctionExpression(arrow)) = &decl.init {
+                    if let BindingPatternKind::BindingIdentifier(ident) = &decl.id.kind {
+                        let params = extract_parameters(&arrow.params);
+                        ctx.functions.push(FunctionDefinition {
+                            name: ident.name.to_string(),
+                            function_type: FunctionType::Arrow,
+                            parameters: params,
+                            body_span: arrow.span,
+                            start_line: get_line_number(arrow.span.start, ctx.source_text),
+                            end_line: get_line_number(arrow.span.end, ctx.source_text),
+                            class_name: None,
+                        });
                     }
                 }
             }
@@ -316,7 +313,7 @@ pub fn find_similar_functions_across_files(
     files: &[(String, String)], // (filename, source_text)
     threshold: f64,
     options: &TSEDOptions,
-) -> Result<Vec<(String, FunctionDefinition, String, FunctionDefinition, f64)>, String> {
+) -> Result<CrossFileSimilarityResult, String> {
     let mut all_functions = Vec::new();
 
     // Extract functions from all files
@@ -496,7 +493,7 @@ mod tests {
         options.apted_options.rename_cost = 0.3;
 
         let similar_pairs =
-            find_similar_functions_across_files(&vec![file1, file2], 0.7, &options).unwrap();
+            find_similar_functions_across_files(&[file1, file2], 0.7, &options).unwrap();
 
         // Should find that processUser/handleUser and validateUser/checkUser are similar
         assert!(similar_pairs.len() >= 2);
