@@ -25,11 +25,11 @@ import {
   findSimilarBySimHash as findSimilarBySimHashCore,
   findAllSimilarPairs as findAllSimilarPairsCore,
   findClones as findClonesCore
-} from './code_repository.ts';
-import { loadFilesFromPattern } from './io.ts';
+} from './cli/code_repository.ts';
+import { loadFilesFromPattern } from './cli/io.ts';
 
 // Re-export types
-export type { CodeFile, SimilarityResult } from './code_repository.ts';
+export type { CodeFile, SimilarityResult } from './cli/code_repository.ts';
 export type { APTEDOptions as APTEDConfig } from './core/apted.ts';
 
 // Type definitions

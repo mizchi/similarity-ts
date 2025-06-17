@@ -12,7 +12,7 @@ import {
   addFile,
   findSimilarByMinHash,
   findSimilarBySimHash
-} from '../src/code_repository.ts';
+} from '../src/cli/code_repository.ts';
 
 function testMinHash() {
   console.log('=== Testing MinHash ===\n');

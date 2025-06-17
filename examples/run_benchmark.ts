@@ -8,9 +8,9 @@ import {
   loadFiles as loadFilesCore,
   addFile,
   getStatistics
-} from '../src/code_repository.ts';
-import { loadFilesFromPattern } from '../src/io.ts';
-import { readFile } from '../src/io.ts';
+} from '../src/cli/code_repository.ts';
+import { loadFilesFromPattern } from '../src/cli/io.ts';
+import { readFile } from '../src/cli/io.ts';
 import { join } from 'path';
 
 async function runBenchmarks() {

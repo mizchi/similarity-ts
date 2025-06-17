@@ -11,9 +11,9 @@ import {
   LSHState,
   MinHashConfig,
   SimHashConfig
-} from './core/hash.ts';
-import { extractTokens, extractFeatures } from './core/tokens.ts';
-import { calculateSimilarityAPTED } from './core/apted.ts';
+} from '../core/hash.ts';
+import { extractTokens, extractFeatures } from '../core/tokens.ts';
+import { calculateSimilarityAPTED } from '../core/apted.ts';
 
 export interface CodeFile {
   id: string;
