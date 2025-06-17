@@ -1,5 +1,6 @@
 // Semantic normalization for function comparison
 import { parseTypeScript } from '../parser.ts';
+import { traverseAST, createVisitor } from './ast_traversal.ts';
 import type { 
   Program,
   Expression,
@@ -63,45 +64,46 @@ export function normalizeSemantics(
 }
 
 /**
- * Extract semantic patterns from AST
+ * Extract semantic patterns from AST using ast_traversal
  */
 function extractSemanticPatterns(
   program: Program,
   parameters: string[]
 ): SemanticPattern[] {
-  const patterns: SemanticPattern[] = [];
-  const paramSet = new Set(parameters);
+  interface PatternState {
+    patterns: SemanticPattern[];
+    paramSet: Set<string>;
+  }
   
-  function visitNode(node: any) {
-    if (!node || typeof node !== 'object') return;
-    
-    // Member expressions (this.x or param.x)
-    if (node.type === 'MemberExpression') {
-      const memberExpr = node as any;
-      if (memberExpr.object?.type === 'ThisExpression') {
-        patterns.push({
+  const state: PatternState = {
+    patterns: [],
+    paramSet: new Set(parameters)
+  };
+  
+  traverseAST(program, createVisitor<PatternState>({
+    MemberExpression(node, state) {
+      if (node.object?.type === 'ThisExpression') {
+        state.patterns.push({
           type: 'property_access',
           target: 'this',
-          identifier: memberExpr.property?.name || 'unknown'
+          identifier: node.property?.name || 'unknown'
         });
-      } else if (memberExpr.object?.type === 'Identifier') {
-        const objName = memberExpr.object.name;
-        const target = paramSet.has(objName) ? 'parameter' : 'external';
-        patterns.push({
+      } else if (node.object?.type === 'Identifier') {
+        const objName = node.object.name;
+        const target = state.paramSet.has(objName) ? 'parameter' : 'external';
+        state.patterns.push({
           type: 'property_access',
           target,
           identifier: objName
         });
       }
-    }
+    },
     
-    // Method calls
-    if (node.type === 'CallExpression') {
-      const callExpr = node as any;
-      if (callExpr.callee?.type === 'MemberExpression') {
-        const memberExpr = callExpr.callee;
+    CallExpression(node, state) {
+      if (node.callee?.type === 'MemberExpression') {
+        const memberExpr = node.callee;
         if (memberExpr.object?.type === 'ThisExpression') {
-          patterns.push({
+          state.patterns.push({
             type: 'method_call',
             target: 'this',
             identifier: memberExpr.property?.name || 'unknown'
@@ -109,21 +111,9 @@ function extractSemanticPatterns(
         }
       }
     }
-    
-    // Traverse children
-    for (const key in node) {
-      if (key === 'parent' || key === 'scope') continue;
-      const value = node[key];
-      if (Array.isArray(value)) {
-        value.forEach(visitNode);
-      } else if (value && typeof value === 'object') {
-        visitNode(value);
-      }
-    }
-  }
+  }), state);
   
-  visitNode(program);
-  return patterns;
+  return state.patterns;
 }
 
 /**

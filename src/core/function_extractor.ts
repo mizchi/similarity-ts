@@ -1,7 +1,7 @@
-// Function extraction and comparison utilities
+// Function extraction - Step 1: Simple refactoring without context management
 import { parseTypeScript } from '../parser.ts';
 import { calculateAPTEDSimilarity } from './apted.ts';
-// import type { Program } from './oxc_types.ts';
+import { traverseAST, createVisitor } from './ast_traversal.ts';
 
 export interface FunctionDefinition {
   name: string;
@@ -11,9 +11,178 @@ export interface FunctionDefinition {
   ast: any;
   startLine: number;
   endLine: number;
-  className?: string; // For methods
+  className?: string;
 }
 
+interface ExtractorState {
+  functions: FunctionDefinition[];
+  code: string;
+  lines: string[];
+  className?: string; // Temporary - will be replaced with context stack
+}
+
+export function extractFunctions(code: string): FunctionDefinition[] {
+  const ast = parseTypeScript('temp.ts', code);
+  const state: ExtractorState = {
+    functions: [],
+    code,
+    lines: code.split('\n'),
+    className: undefined
+  };
+  
+  // Helper functions remain the same
+  function getLineNumber(offset: number): number {
+    let charCount = 0;
+    for (let i = 0; i < state.lines.length; i++) {
+      charCount += state.lines[i].length + 1;
+      if (charCount > offset) {
+        return i + 1;
+      }
+    }
+    return state.lines.length;
+  }
+  
+  function extractBodyCode(bodyNode: any): string {
+    if (!bodyNode) {
+      return '';
+    }
+    
+    const start = bodyNode.start ?? bodyNode.span?.start;
+    const end = bodyNode.end ?? bodyNode.span?.end;
+    
+    if (start === undefined || end === undefined || start >= end || start < 0 || end > code.length) {
+      return '';
+    }
+    
+    if (bodyNode.type === 'BlockStatement') {
+      const fullBody = code.substring(start, end);
+      const match = fullBody.match(/^\s*{\s*([\s\S]*?)\s*}\s*$/);
+      if (match) {
+        return match[1].trim();
+      }
+    }
+    
+    return code.substring(start, end).trim();
+  }
+  
+  function extractParameters(params: any): string[] {
+    if (!params) return [];
+    
+    const paramList = Array.isArray(params) ? params : 
+                     (params.items || params.parameters || []);
+    
+    if (!Array.isArray(paramList)) return [];
+    
+    return paramList.map((param: any) => {
+      if (param.type === 'Identifier') {
+        return param.name;
+      }
+      if (param.type === 'FormalParameter' && param.pattern?.type === 'BindingIdentifier') {
+        return param.pattern.name;
+      }
+      if (param.type === 'BindingIdentifier') {
+        return param.name;
+      }
+      if (param.pattern?.type === 'BindingIdentifier') {
+        return param.pattern.name;
+      }
+      return 'unknown';
+    }).filter(p => p !== 'unknown');
+  }
+  
+  // Use ast_traversal
+  traverseAST(ast.program, createVisitor<ExtractorState>({
+    // Track class context manually for now
+    enter(node, state) {
+      if (node.type === 'ClassDeclaration' && node.id) {
+        state.className = node.id.name;
+      }
+    },
+    
+    leave(node, state) {
+      if (node.type === 'ClassDeclaration') {
+        state.className = undefined;
+      }
+    },
+    
+    FunctionDeclaration(node, state) {
+      if (node.id) {
+        state.functions.push({
+          name: node.id.name,
+          type: 'function',
+          parameters: extractParameters(node.params),
+          body: node.body ? extractBodyCode(node.body) : '',
+          ast: node,
+          startLine: getLineNumber(node.start ?? node.span?.start ?? 0),
+          endLine: getLineNumber(node.end ?? node.span?.end ?? 0)
+        });
+      }
+    },
+    
+    MethodDefinition(node, state) {
+      if (node.key) {
+        const methodName = node.key.name || 'unknown';
+        const isConstructor = node.kind === 'constructor';
+        
+        state.functions.push({
+          name: isConstructor ? 'constructor' : methodName,
+          type: isConstructor ? 'constructor' : 'method',
+          parameters: extractParameters(node.value?.params),
+          body: node.value?.body ? extractBodyCode(node.value.body) : '',
+          ast: node.value,
+          startLine: getLineNumber(node.start ?? node.span?.start ?? 0),
+          endLine: getLineNumber(node.end ?? node.span?.end ?? 0),
+          className: state.className
+        });
+      }
+    },
+    
+    VariableDeclarator(node, state) {
+      if (node.init?.type === 'ArrowFunctionExpression' &&
+          (node.id?.type === 'BindingIdentifier' || node.id?.type === 'Identifier')) {
+        let bodyContent = '';
+        if (node.init.body) {
+          bodyContent = extractBodyCode(node.init.body);
+        } else {
+          const funcStart = node.init.start ?? node.init.span?.start ?? 0;
+          const funcEnd = node.init.end ?? node.init.span?.end ?? 0;
+          const funcCode = code.substring(funcStart, funcEnd);
+          const arrowPos = funcCode.indexOf('=>');
+          if (arrowPos !== -1) {
+            bodyContent = funcCode.substring(arrowPos + 2).trim();
+          }
+        }
+        
+        state.functions.push({
+          name: node.id.name,
+          type: 'arrow',
+          parameters: extractParameters(node.init.params),
+          body: bodyContent,
+          ast: node.init,
+          startLine: getLineNumber(node.start ?? node.span?.start ?? 0),
+          endLine: getLineNumber(node.end ?? node.span?.end ?? 0)
+        });
+      }
+      
+      if (node.init?.type === 'FunctionExpression' &&
+          (node.id?.type === 'BindingIdentifier' || node.id?.type === 'Identifier')) {
+        state.functions.push({
+          name: node.id.name,
+          type: 'function',
+          parameters: extractParameters(node.init.params),
+          body: node.init.body ? extractBodyCode(node.init.body) : '',
+          ast: node.init,
+          startLine: getLineNumber(node.start ?? node.span?.start ?? 0),
+          endLine: getLineNumber(node.end ?? node.span?.end ?? 0)
+        });
+      }
+    }
+  }), state);
+  
+  return state.functions;
+}
+
+// Other functions that need to be reimplemented
 export interface FunctionComparisonResult {
   similarity: number;
   isStructurallyEquivalent: boolean;
@@ -22,209 +191,6 @@ export interface FunctionComparisonResult {
     scopeVariables: string[];
     parameterNames: boolean;
   };
-}
-
-/**
- * Extract all function definitions from code
- */
-export function extractFunctions(code: string): FunctionDefinition[] {
-  const ast = parseTypeScript('temp.ts', code);
-  const functions: FunctionDefinition[] = [];
-  const lines = code.split('\n');
-  
-  function getLineNumber(offset: number): number {
-    let charCount = 0;
-    for (let i = 0; i < lines.length; i++) {
-      charCount += lines[i].length + 1;
-      if (charCount > offset) {
-        return i + 1;
-      }
-    }
-    return lines.length;
-  }
-  
-  function extractBodyCode(bodyNode: any): string {
-    if (!bodyNode) {
-      return '';
-    }
-    
-    // start/end プロパティを直接使用（span プロパティがない場合がある）
-    const start = bodyNode.start ?? bodyNode.span?.start;
-    const end = bodyNode.end ?? bodyNode.span?.end;
-    
-    if (start === undefined || end === undefined || start >= end || start < 0 || end > code.length) {
-      return '';
-    }
-    
-    // BlockStatementの場合は中括弧の内側のコンテンツを取得
-    if (bodyNode.type === 'BlockStatement') {
-      // 中括弧を含む全体を取得してから、中身だけを抽出
-      const fullBody = code.substring(start, end);
-      const match = fullBody.match(/^\s*{\s*([\s\S]*?)\s*}\s*$/);
-      if (match) {
-        return match[1].trim();
-      }
-    }
-    
-    // ArrowFunctionの式本体の場合
-    return code.substring(start, end).trim();
-  }
-  
-  function extractParameters(params: any): string[] {
-    if (!params) return [];
-    
-    // paramsは直接配列の場合が多い
-    const paramList = Array.isArray(params) ? params : 
-                     (params.items || params.parameters || []);
-    
-    if (!Array.isArray(paramList)) return [];
-    
-    return paramList.map((param: any) => {
-      // Identifier with typeAnnotation の場合
-      if (param.type === 'Identifier') {
-        return param.name;
-      }
-      // FormalParameter の場合
-      if (param.type === 'FormalParameter' && param.pattern?.type === 'BindingIdentifier') {
-        return param.pattern.name;
-      }
-      // BindingIdentifier の場合
-      if (param.type === 'BindingIdentifier') {
-        return param.name;
-      }
-      // pattern を持つ場合
-      if (param.pattern?.type === 'BindingIdentifier') {
-        return param.pattern.name;
-      }
-      return 'unknown';
-    }).filter(p => p !== 'unknown');
-  }
-  
-  function visitNode(node: any, className?: string) {
-    if (!node || typeof node !== 'object') return;
-    
-    // Debug: Log node types
-    if (node.type && ['FunctionDeclaration', 'VariableDeclaration', 'ClassDeclaration', 'MethodDefinition', 'ArrowFunctionExpression', 'FunctionExpression', 'VariableDeclarator'].includes(node.type)) {
-      // console.log('Found node type:', node.type, node.id?.name);
-    }
-    
-    // Function declarations
-    if (node.type === 'FunctionDeclaration' && node.id) {
-      functions.push({
-        name: node.id.name,
-        type: 'function',
-        parameters: extractParameters(node.params),
-        body: node.body ? extractBodyCode(node.body) : '',
-        ast: node,
-        startLine: getLineNumber(node.start ?? node.span?.start ?? 0),
-        endLine: getLineNumber(node.end ?? node.span?.end ?? 0)
-      });
-    }
-    
-    // Handle VariableDeclaration nodes
-    if (node.type === 'VariableDeclaration' && node.declarations) {
-      for (const decl of node.declarations) {
-        visitNode(decl, className);
-      }
-      return;
-    }
-    
-    // Arrow functions assigned to variables
-    // Debug for VariableDeclarator
-    // if (node.type === 'VariableDeclarator') {
-    //   console.log('  Checking VariableDeclarator:', {
-    //     initType: node.init?.type,
-    //     idType: node.id?.type,
-    //     idName: node.id?.name
-    //   });
-    // }
-    
-    if (node.type === 'VariableDeclarator' && 
-        node.init?.type === 'ArrowFunctionExpression' &&
-        (node.id?.type === 'BindingIdentifier' || node.id?.type === 'Identifier')) {
-      // Arrow functionは body（BlockStatement）または expression を持つ
-      let bodyContent = '';
-      if (node.init.body) {
-        bodyContent = extractBodyCode(node.init.body);
-      } else {
-        // 式本体の場合は式自体を本体として扱う（expression arrow function）
-        const funcStart = node.init.start ?? node.init.span?.start ?? 0;
-        const funcEnd = node.init.end ?? node.init.span?.end ?? 0;
-        const funcCode = code.substring(funcStart, funcEnd);
-        const arrowPos = funcCode.indexOf('=>');
-        if (arrowPos !== -1) {
-          bodyContent = funcCode.substring(arrowPos + 2).trim();
-        }
-      }
-      
-      functions.push({
-        name: node.id.name,
-        type: 'arrow',
-        parameters: extractParameters(node.init.params),
-        body: bodyContent,
-        ast: node.init,
-        startLine: getLineNumber(node.start ?? node.span?.start ?? 0),
-        endLine: getLineNumber(node.end ?? node.span?.end ?? 0)
-      });
-    }
-    
-    // Function expressions assigned to variables
-    if (node.type === 'VariableDeclarator' && 
-        node.init?.type === 'FunctionExpression' &&
-        (node.id?.type === 'BindingIdentifier' || node.id?.type === 'Identifier')) {
-      functions.push({
-        name: node.id.name,
-        type: 'function',
-        parameters: extractParameters(node.init.params),
-        body: node.init.body ? extractBodyCode(node.init.body) : '',
-        ast: node.init,
-        startLine: getLineNumber(node.start ?? node.span?.start ?? 0),
-        endLine: getLineNumber(node.end ?? node.span?.end ?? 0)
-      });
-    }
-    
-    // Class methods
-    if (node.type === 'MethodDefinition' && node.key) {
-      const methodName = node.key.name || 'unknown';
-      const isConstructor = node.kind === 'constructor';
-      
-      functions.push({
-        name: isConstructor ? 'constructor' : methodName,
-        type: isConstructor ? 'constructor' : 'method',
-        parameters: extractParameters(node.value?.params),
-        body: node.value?.body ? extractBodyCode(node.value.body) : '',
-        ast: node.value,
-        startLine: getLineNumber(node.start ?? node.span?.start ?? 0),
-        endLine: getLineNumber(node.end ?? node.span?.end ?? 0),
-        className
-      });
-    }
-    
-    // Track class name for methods
-    if (node.type === 'ClassDeclaration' && node.id) {
-      const currentClassName = node.id.name;
-      if (node.body?.body) {
-        for (const member of node.body.body) {
-          visitNode(member, currentClassName);
-        }
-      }
-      return; // Don't traverse class body again
-    }
-    
-    // Traverse children
-    for (const key in node) {
-      if (key === 'parent' || key === 'scope') continue;
-      const value = node[key];
-      if (Array.isArray(value)) {
-        value.forEach(v => visitNode(v, className));
-      } else if (value && typeof value === 'object') {
-        visitNode(value, className);
-      }
-    }
-  }
-  
-  visitNode(ast.program);
-  return functions;
 }
 
 /**
