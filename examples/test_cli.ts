@@ -5,7 +5,7 @@ import { spawn } from 'child_process';
 import { join, dirname } from 'path';
 
 const __dirname = dirname(new URL(import.meta.url).pathname);
-const cliPath = join(__dirname, '../src/cli.ts');
+const cliPath = join(__dirname, '../src/cli/cli.ts');
 const targetDir = join(__dirname, 'sample_project/src');
 
 console.log('🔍 Testing TypeScript Function Similarity CLI\n');

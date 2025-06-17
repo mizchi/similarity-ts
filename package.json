@@ -5,7 +5,7 @@
   "type": "module",
   "main": "index.js",
   "bin": {
-    "ts-similarity": "./dist/cli.mjs"
+    "ts-similarity": "./dist/cli/cli.mjs"
   },
   "scripts": {
     "test": "tsx test/similarity_test.ts && tsx test/fixtures_test.ts",
@@ -19,7 +19,7 @@
     "build": "pnpm run \"/^build:.*/\"",
     "build:cjs": "tsdown src/index.ts --outfile=dist/index.cjs --format=cjs",
     "build:mjs": "tsdown src/index.ts --outfile=dist/index.mjs --format=esm",
-    "build:cli": "tsdown src/cli.ts --outfile=dist/cli.mjs --format=esm --platform=node",
+    "build:cli": "tsdown src/cli/cli.ts --outfile=dist/cli/cli.mjs --format=esm --platform=node",
     "prepublishOnly": "pnpm run build"
   },
   "keywords": [],

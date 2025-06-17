@@ -5,9 +5,9 @@ import { readFileSync } from 'fs';
 import { join, relative } from 'path';
 import { glob } from 'glob';
 import chalk from 'chalk';
-import { parseTypeScript } from './parser.ts';
-import { createRepository, addFile, findAllSimilarPairs } from './cli/code_repository.ts';
-import { calculateSimilarityAPTED, oxcToTreeNode, computeEditDistance, countNodes } from './core/apted.ts';
+import { parseTypeScript } from '../parser.ts';
+import { createRepository, addFile, findAllSimilarPairs } from './code_repository.ts';
+import { calculateSimilarityAPTED, oxcToTreeNode, computeEditDistance, countNodes } from '../core/apted.ts';
 
 interface FunctionInfo {
   name: string;
