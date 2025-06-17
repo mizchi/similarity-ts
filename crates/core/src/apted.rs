@@ -1,6 +1,6 @@
+use crate::tree::TreeNode;
 use std::collections::HashMap;
 use std::rc::Rc;
-use crate::tree::TreeNode;
 
 #[derive(Debug, Clone)]
 pub struct APTEDOptions {
@@ -11,15 +11,15 @@ pub struct APTEDOptions {
 
 impl Default for APTEDOptions {
     fn default() -> Self {
-        APTEDOptions {
-            rename_cost: 1.0,
-            delete_cost: 1.0,
-            insert_cost: 1.0,
-        }
+        APTEDOptions { rename_cost: 1.0, delete_cost: 1.0, insert_cost: 1.0 }
     }
 }
 
-pub fn compute_edit_distance(tree1: &Rc<TreeNode>, tree2: &Rc<TreeNode>, options: &APTEDOptions) -> f64 {
+pub fn compute_edit_distance(
+    tree1: &Rc<TreeNode>,
+    tree2: &Rc<TreeNode>,
+    options: &APTEDOptions,
+) -> f64 {
     let mut memo: HashMap<(usize, usize), f64> = HashMap::new();
     compute_edit_distance_recursive(tree1, tree2, options, &mut memo)
 }
@@ -31,7 +31,7 @@ fn compute_edit_distance_recursive(
     memo: &mut HashMap<(usize, usize), f64>,
 ) -> f64 {
     let key = (node1.id, node2.id);
-    
+
     if let Some(&cost) = memo.get(&key) {
         return cost;
     }
@@ -54,7 +54,7 @@ fn compute_edit_distance_recursive(
     if !node1.children.is_empty() || !node2.children.is_empty() {
         // Compute all pairwise costs between children
         let mut child_cost_matrix: HashMap<(usize, usize), f64> = HashMap::new();
-        
+
         for child1 in &node1.children {
             for child2 in &node2.children {
                 let cost = compute_edit_distance_recursive(child1, child2, options, memo);

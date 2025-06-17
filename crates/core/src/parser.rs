@@ -6,15 +6,18 @@ use std::rc::Rc;
 
 use crate::tree::TreeNode;
 
-pub fn parse_and_convert_to_tree(filename: &str, source_text: &str) -> Result<Rc<TreeNode>, String> {
+pub fn parse_and_convert_to_tree(
+    filename: &str,
+    source_text: &str,
+) -> Result<Rc<TreeNode>, String> {
     let allocator = Allocator::default();
     let source_type = SourceType::from_path(filename).unwrap_or(SourceType::tsx());
     let ret = Parser::new(&allocator, source_text, source_type).parse();
-    
+
     if !ret.errors.is_empty() {
         return Err(format!("Parse errors: {:?}", ret.errors));
     }
-    
+
     let mut id_counter = 0;
     Ok(ast_to_tree_node(&ret.program, &mut id_counter))
 }
@@ -35,23 +38,21 @@ pub fn ast_to_tree_node(program: &Program, id_counter: &mut usize) -> Rc<TreeNod
 fn statement_to_tree_node(stmt: &Statement, id_counter: &mut usize) -> Option<Rc<TreeNode>> {
     match stmt {
         Statement::FunctionDeclaration(func) => {
-            let label = func.id.as_ref()
-                .map(|id| id.name.as_str())
-                .unwrap_or("Function")
-                .to_string();
+            let label =
+                func.id.as_ref().map(|id| id.name.as_str()).unwrap_or("Function").to_string();
             let mut node = TreeNode::new(label, "FunctionDeclaration".to_string(), *id_counter);
             *id_counter += 1;
 
             // Add parameters
             for param in &func.params.items {
-                if let Some(param_node) = formal_parameter_to_tree_node(&param, id_counter) {
+                if let Some(param_node) = formal_parameter_to_tree_node(param, id_counter) {
                     node.add_child(param_node);
                 }
             }
 
             // Add body
             if let Some(body) = &func.body {
-                if let Some(body_node) = function_body_to_tree_node(&body, id_counter) {
+                if let Some(body_node) = function_body_to_tree_node(body, id_counter) {
                     node.add_child(body_node);
                 }
             }
@@ -59,16 +60,13 @@ fn statement_to_tree_node(stmt: &Statement, id_counter: &mut usize) -> Option<Rc
             Some(Rc::new(node))
         }
         Statement::ClassDeclaration(class) => {
-            let label = class.id.as_ref()
-                .map(|id| id.name.as_str())
-                .unwrap_or("Class")
-                .to_string();
+            let label = class.id.as_ref().map(|id| id.name.as_str()).unwrap_or("Class").to_string();
             let mut node = TreeNode::new(label, "ClassDeclaration".to_string(), *id_counter);
             *id_counter += 1;
 
             // Add class body elements
             for element in &class.body.body {
-                if let Some(elem_node) = class_element_to_tree_node(&element, id_counter) {
+                if let Some(elem_node) = class_element_to_tree_node(element, id_counter) {
                     node.add_child(elem_node);
                 }
             }
@@ -76,11 +74,15 @@ fn statement_to_tree_node(stmt: &Statement, id_counter: &mut usize) -> Option<Rc
             Some(Rc::new(node))
         }
         Statement::VariableDeclaration(var_decl) => {
-            let mut node = TreeNode::new("VariableDeclaration".to_string(), "VariableDeclaration".to_string(), *id_counter);
+            let mut node = TreeNode::new(
+                "VariableDeclaration".to_string(),
+                "VariableDeclaration".to_string(),
+                *id_counter,
+            );
             *id_counter += 1;
 
             for decl in &var_decl.declarations {
-                if let Some(decl_node) = variable_declarator_to_tree_node(&decl, id_counter) {
+                if let Some(decl_node) = variable_declarator_to_tree_node(decl, id_counter) {
                     node.add_child(decl_node);
                 }
             }
@@ -90,11 +92,10 @@ fn statement_to_tree_node(stmt: &Statement, id_counter: &mut usize) -> Option<Rc
         Statement::ExpressionStatement(expr_stmt) => {
             expression_to_tree_node(&expr_stmt.expression, id_counter)
         }
-        Statement::BlockStatement(block) => {
-            block_statement_to_tree_node(&block, id_counter)
-        }
+        Statement::BlockStatement(block) => block_statement_to_tree_node(block, id_counter),
         Statement::IfStatement(if_stmt) => {
-            let mut node = TreeNode::new("IfStatement".to_string(), "IfStatement".to_string(), *id_counter);
+            let mut node =
+                TreeNode::new("IfStatement".to_string(), "IfStatement".to_string(), *id_counter);
             *id_counter += 1;
 
             // Add test expression
@@ -109,7 +110,7 @@ fn statement_to_tree_node(stmt: &Statement, id_counter: &mut usize) -> Option<Rc
 
             // Add alternate if exists
             if let Some(alt) = &if_stmt.alternate {
-                if let Some(alt_node) = statement_to_tree_node(&alt, id_counter) {
+                if let Some(alt_node) = statement_to_tree_node(alt, id_counter) {
                     node.add_child(alt_node);
                 }
             }
@@ -117,11 +118,15 @@ fn statement_to_tree_node(stmt: &Statement, id_counter: &mut usize) -> Option<Rc
             Some(Rc::new(node))
         }
         Statement::ReturnStatement(ret_stmt) => {
-            let mut node = TreeNode::new("ReturnStatement".to_string(), "ReturnStatement".to_string(), *id_counter);
+            let mut node = TreeNode::new(
+                "ReturnStatement".to_string(),
+                "ReturnStatement".to_string(),
+                *id_counter,
+            );
             *id_counter += 1;
 
             if let Some(arg) = &ret_stmt.argument {
-                if let Some(arg_node) = expression_to_tree_node(&arg, id_counter) {
+                if let Some(arg_node) = expression_to_tree_node(arg, id_counter) {
                     node.add_child(arg_node);
                 }
             }
@@ -140,7 +145,11 @@ fn statement_to_tree_node(stmt: &Statement, id_counter: &mut usize) -> Option<Rc
 fn expression_to_tree_node(expr: &Expression, id_counter: &mut usize) -> Option<Rc<TreeNode>> {
     match expr {
         Expression::Identifier(ident) => {
-            let node = TreeNode::new(ident.name.as_str().to_string(), "Identifier".to_string(), *id_counter);
+            let node = TreeNode::new(
+                ident.name.as_str().to_string(),
+                "Identifier".to_string(),
+                *id_counter,
+            );
             *id_counter += 1;
             Some(Rc::new(node))
         }
@@ -163,7 +172,11 @@ fn expression_to_tree_node(expr: &Expression, id_counter: &mut usize) -> Option<
             Some(Rc::new(node))
         }
         Expression::BinaryExpression(bin_expr) => {
-            let mut node = TreeNode::new(format!("{:?}", bin_expr.operator), "BinaryExpression".to_string(), *id_counter);
+            let mut node = TreeNode::new(
+                format!("{:?}", bin_expr.operator),
+                "BinaryExpression".to_string(),
+                *id_counter,
+            );
             *id_counter += 1;
 
             if let Some(left_node) = expression_to_tree_node(&bin_expr.left, id_counter) {
@@ -177,7 +190,11 @@ fn expression_to_tree_node(expr: &Expression, id_counter: &mut usize) -> Option<
             Some(Rc::new(node))
         }
         Expression::CallExpression(call_expr) => {
-            let mut node = TreeNode::new("CallExpression".to_string(), "CallExpression".to_string(), *id_counter);
+            let mut node = TreeNode::new(
+                "CallExpression".to_string(),
+                "CallExpression".to_string(),
+                *id_counter,
+            );
             *id_counter += 1;
 
             if let Some(callee_node) = expression_to_tree_node(&call_expr.callee, id_counter) {
@@ -196,14 +213,18 @@ fn expression_to_tree_node(expr: &Expression, id_counter: &mut usize) -> Option<
         }
         _ => {
             // For other expression types, create a generic node
-            let node = TreeNode::new("Expression".to_string(), "Expression".to_string(), *id_counter);
+            let node =
+                TreeNode::new("Expression".to_string(), "Expression".to_string(), *id_counter);
             *id_counter += 1;
             Some(Rc::new(node))
         }
     }
 }
 
-fn formal_parameter_to_tree_node(param: &FormalParameter, id_counter: &mut usize) -> Option<Rc<TreeNode>> {
+fn formal_parameter_to_tree_node(
+    param: &FormalParameter,
+    id_counter: &mut usize,
+) -> Option<Rc<TreeNode>> {
     let label = match &param.pattern.kind {
         BindingPatternKind::BindingIdentifier(ident) => ident.name.as_str().to_string(),
         _ => "Parameter".to_string(),
@@ -214,11 +235,12 @@ fn formal_parameter_to_tree_node(param: &FormalParameter, id_counter: &mut usize
 }
 
 fn function_body_to_tree_node(body: &FunctionBody, id_counter: &mut usize) -> Option<Rc<TreeNode>> {
-    let mut node = TreeNode::new("BlockStatement".to_string(), "BlockStatement".to_string(), *id_counter);
+    let mut node =
+        TreeNode::new("BlockStatement".to_string(), "BlockStatement".to_string(), *id_counter);
     *id_counter += 1;
 
     for stmt in &body.statements {
-        if let Some(stmt_node) = statement_to_tree_node(&stmt, id_counter) {
+        if let Some(stmt_node) = statement_to_tree_node(stmt, id_counter) {
             node.add_child(stmt_node);
         }
     }
@@ -226,12 +248,16 @@ fn function_body_to_tree_node(body: &FunctionBody, id_counter: &mut usize) -> Op
     Some(Rc::new(node))
 }
 
-fn block_statement_to_tree_node(block: &BlockStatement, id_counter: &mut usize) -> Option<Rc<TreeNode>> {
-    let mut node = TreeNode::new("BlockStatement".to_string(), "BlockStatement".to_string(), *id_counter);
+fn block_statement_to_tree_node(
+    block: &BlockStatement,
+    id_counter: &mut usize,
+) -> Option<Rc<TreeNode>> {
+    let mut node =
+        TreeNode::new("BlockStatement".to_string(), "BlockStatement".to_string(), *id_counter);
     *id_counter += 1;
 
     for stmt in &block.body {
-        if let Some(stmt_node) = statement_to_tree_node(&stmt, id_counter) {
+        if let Some(stmt_node) = statement_to_tree_node(stmt, id_counter) {
             node.add_child(stmt_node);
         }
     }
@@ -239,7 +265,10 @@ fn block_statement_to_tree_node(block: &BlockStatement, id_counter: &mut usize) 
     Some(Rc::new(node))
 }
 
-fn variable_declarator_to_tree_node(decl: &VariableDeclarator, id_counter: &mut usize) -> Option<Rc<TreeNode>> {
+fn variable_declarator_to_tree_node(
+    decl: &VariableDeclarator,
+    id_counter: &mut usize,
+) -> Option<Rc<TreeNode>> {
     let label = match &decl.id.kind {
         BindingPatternKind::BindingIdentifier(ident) => ident.name.as_str().to_string(),
         _ => "Variable".to_string(),
@@ -248,7 +277,7 @@ fn variable_declarator_to_tree_node(decl: &VariableDeclarator, id_counter: &mut 
     *id_counter += 1;
 
     if let Some(init) = &decl.init {
-        if let Some(init_node) = expression_to_tree_node(&init, id_counter) {
+        if let Some(init_node) = expression_to_tree_node(init, id_counter) {
             node.add_child(init_node);
         }
     }
@@ -256,7 +285,10 @@ fn variable_declarator_to_tree_node(decl: &VariableDeclarator, id_counter: &mut 
     Some(Rc::new(node))
 }
 
-fn class_element_to_tree_node(element: &ClassElement, id_counter: &mut usize) -> Option<Rc<TreeNode>> {
+fn class_element_to_tree_node(
+    element: &ClassElement,
+    id_counter: &mut usize,
+) -> Option<Rc<TreeNode>> {
     match element {
         ClassElement::MethodDefinition(method) => {
             let label = match &method.key {
@@ -269,7 +301,7 @@ fn class_element_to_tree_node(element: &ClassElement, id_counter: &mut usize) ->
 
             // Add method body
             if let Some(body) = &method.value.body {
-                if let Some(body_node) = function_body_to_tree_node(&body, id_counter) {
+                if let Some(body_node) = function_body_to_tree_node(body, id_counter) {
                     node.add_child(body_node);
                 }
             }

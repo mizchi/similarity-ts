@@ -11,13 +11,7 @@ pub struct TreeNode {
 
 impl TreeNode {
     pub fn new(label: String, value: String, id: usize) -> Self {
-        TreeNode {
-            label,
-            value,
-            children: Vec::new(),
-            id,
-            subtree_size: None,
-        }
+        TreeNode { label, value, children: Vec::new(), id, subtree_size: None }
     }
 
     pub fn add_child(&mut self, child: Rc<TreeNode>) {
