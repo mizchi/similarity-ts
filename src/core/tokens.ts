@@ -4,7 +4,7 @@ import type { ParseResult } from "oxc-parser";
 /**
  * Extract tokens from code string (legacy compatibility)
  */
-export function extractTokens(code: string): Set<string> {
+function extractTokens(code: string): Set<string> {
   // Simple tokenization for backward compatibility
   const tokens = new Set<string>();
   const words = code.match(/\b\w+\b/g) || [];
@@ -15,7 +15,7 @@ export function extractTokens(code: string): Set<string> {
 /**
  * Extract features from code (legacy compatibility)
  */
-export function extractFeatures(code: string): string[] {
+function extractFeatures(code: string): string[] {
   return Array.from(extractTokens(code));
 }
 

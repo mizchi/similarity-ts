@@ -6,7 +6,7 @@ import type { ASTNode, Program, NumericLiteral, StringLiteral, BooleanLiteral } 
 import { isIdentifier, isFunctionDeclaration, isClassDeclaration, isVariableDeclarator } from "./oxc_types.ts";
 import type { ParseResult } from "oxc-parser";
 
-export interface TreeNode {
+interface TreeNode {
   label: string;
   value: string;
   children: TreeNode[];
