@@ -1,11 +1,16 @@
 use oxc_allocator::Allocator;
-use oxc_ast::ast::*;
+use oxc_ast::ast::{BindingPatternKind, BlockStatement, ClassElement, Expression, FormalParameter, FunctionBody, Program, PropertyKey, Statement, VariableDeclarator};
 use oxc_parser::Parser;
 use oxc_span::SourceType;
 use std::rc::Rc;
 
 use crate::tree::TreeNode;
 
+/// Parse TypeScript code and convert to TreeNode structure
+/// 
+/// # Errors
+/// 
+/// Returns an error if parsing fails due to syntax errors
 pub fn parse_and_convert_to_tree(
     filename: &str,
     source_text: &str,
@@ -39,7 +44,7 @@ fn statement_to_tree_node(stmt: &Statement, id_counter: &mut usize) -> Option<Rc
     match stmt {
         Statement::FunctionDeclaration(func) => {
             let label =
-                func.id.as_ref().map(|id| id.name.as_str()).unwrap_or("Function").to_string();
+                func.id.as_ref().map_or("Function", |id| id.name.as_str()).to_string();
             let mut node = TreeNode::new(label, "FunctionDeclaration".to_string(), *id_counter);
             *id_counter += 1;
 
@@ -60,7 +65,7 @@ fn statement_to_tree_node(stmt: &Statement, id_counter: &mut usize) -> Option<Rc
             Some(Rc::new(node))
         }
         Statement::ClassDeclaration(class) => {
-            let label = class.id.as_ref().map(|id| id.name.as_str()).unwrap_or("Class").to_string();
+            let label = class.id.as_ref().map_or("Class", |id| id.name.as_str()).to_string();
             let mut node = TreeNode::new(label, "ClassDeclaration".to_string(), *id_counter);
             *id_counter += 1;
 

@@ -15,6 +15,8 @@ impl Default for APTEDOptions {
     }
 }
 
+#[must_use]
+#[allow(clippy::cast_precision_loss)]
 pub fn compute_edit_distance(
     tree1: &Rc<TreeNode>,
     tree2: &Rc<TreeNode>,

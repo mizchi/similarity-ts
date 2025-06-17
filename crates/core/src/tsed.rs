@@ -21,6 +21,8 @@ impl Default for TSEDOptions {
 
 /// Calculate TSED (Tree Structure Edit Distance) similarity between two trees
 /// Returns a value between 0.0 and 1.0, where 1.0 means identical
+#[must_use]
+#[allow(clippy::cast_precision_loss)]
 pub fn calculate_tsed(tree1: &Rc<TreeNode>, tree2: &Rc<TreeNode>, options: &TSEDOptions) -> f64 {
     let distance = compute_edit_distance(tree1, tree2, &options.apted_options);
 
@@ -31,6 +33,10 @@ pub fn calculate_tsed(tree1: &Rc<TreeNode>, tree2: &Rc<TreeNode>, options: &TSED
 }
 
 /// Calculate TSED from TypeScript code strings
+/// 
+/// # Errors
+/// 
+/// Returns an error if parsing fails for either code string
 pub fn calculate_tsed_from_code(
     code1: &str,
     code2: &str,

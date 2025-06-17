@@ -10,6 +10,7 @@ pub struct TreeNode {
 }
 
 impl TreeNode {
+    #[must_use]
     pub fn new(label: String, value: String, id: usize) -> Self {
         TreeNode { label, value, children: Vec::new(), id, subtree_size: None }
     }
@@ -18,6 +19,7 @@ impl TreeNode {
         self.children.push(child);
     }
 
+    #[must_use]
     pub fn get_subtree_size(&self) -> usize {
         // Since we can't mutate through Rc, we'll calculate it each time
         // In a real implementation, you might want to use RefCell for interior mutability
