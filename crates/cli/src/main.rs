@@ -35,7 +35,7 @@ enum Commands {
         #[arg(long, default_value_t = 1.0)]
         insert_cost: f64,
     },
-    
+
     /// Find similar functions within a single file
     Functions {
         /// TypeScript file to analyze
@@ -49,7 +49,7 @@ enum Commands {
         #[arg(long, default_value_t = 0.3)]
         rename_cost: f64,
     },
-    
+
     /// Find similar functions across multiple files
     CrossFile {
         /// Files to analyze
@@ -96,7 +96,13 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn compare_files(file1: String, file2: String, rename_cost: f64, delete_cost: f64, insert_cost: f64) -> anyhow::Result<()> {
+fn compare_files(
+    file1: String,
+    file2: String,
+    rename_cost: f64,
+    delete_cost: f64,
+    insert_cost: f64,
+) -> anyhow::Result<()> {
     // Read files
     let code1 = fs::read_to_string(&file1)?;
     let code2 = fs::read_to_string(&file2)?;
@@ -134,9 +140,10 @@ fn find_similar_functions(file: String, threshold: f64, rename_cost: f64) -> any
             } else {
                 println!("Similar functions in {}:", file);
                 println!("{}", "=".repeat(60));
-                
+
                 for (func1, func2, similarity) in similar_pairs {
-                    println!("\n{} {} (lines {}-{}) <-> {} {} (lines {}-{})",
+                    println!(
+                        "\n{} {} (lines {}-{}) <-> {} {} (lines {}-{})",
                         match func1.function_type {
                             ts_similarity_core::FunctionType::Function => "function",
                             ts_similarity_core::FunctionType::Method => "method",
@@ -157,7 +164,7 @@ fn find_similar_functions(file: String, threshold: f64, rename_cost: f64) -> any
                         func2.end_line,
                     );
                     println!("Similarity: {:.2}%", similarity * 100.0);
-                    
+
                     if let Some(class1) = &func1.class_name {
                         println!("  {} is in class {}", func1.name, class1);
                     }
@@ -176,9 +183,13 @@ fn find_similar_functions(file: String, threshold: f64, rename_cost: f64) -> any
     Ok(())
 }
 
-fn find_similar_across_files(files: Vec<String>, threshold: f64, rename_cost: f64) -> anyhow::Result<()> {
+fn find_similar_across_files(
+    files: Vec<String>,
+    threshold: f64,
+    rename_cost: f64,
+) -> anyhow::Result<()> {
     let mut file_contents = Vec::new();
-    
+
     for file in &files {
         let code = fs::read_to_string(file)?;
         file_contents.push((file.clone(), code));
@@ -190,13 +201,17 @@ fn find_similar_across_files(files: Vec<String>, threshold: f64, rename_cost: f6
     match find_similar_functions_across_files(&file_contents, threshold, &options) {
         Ok(similar_pairs) => {
             if similar_pairs.is_empty() {
-                println!("No similar functions found across files with threshold {:.0}%", threshold * 100.0);
+                println!(
+                    "No similar functions found across files with threshold {:.0}%",
+                    threshold * 100.0
+                );
             } else {
                 println!("Similar functions across files:");
                 println!("{}", "=".repeat(60));
-                
+
                 for (file1, func1, file2, func2, similarity) in similar_pairs {
-                    println!("\n{}:{} (lines {}-{}) <-> {}:{} (lines {}-{})",
+                    println!(
+                        "\n{}:{} (lines {}-{}) <-> {}:{} (lines {}-{})",
                         Path::new(&file1).file_name().unwrap().to_string_lossy(),
                         func1.name,
                         func1.start_line,
@@ -207,7 +222,7 @@ fn find_similar_across_files(files: Vec<String>, threshold: f64, rename_cost: f6
                         func2.end_line,
                     );
                     println!("Similarity: {:.2}%", similarity * 100.0);
-                    
+
                     if let Some(class1) = &func1.class_name {
                         println!("  {} is in class {}", func1.name, class1);
                     }

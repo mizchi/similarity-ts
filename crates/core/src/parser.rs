@@ -1,5 +1,8 @@
 use oxc_allocator::Allocator;
-use oxc_ast::ast::{BindingPatternKind, BlockStatement, ClassElement, Expression, FormalParameter, FunctionBody, Program, PropertyKey, Statement, VariableDeclarator};
+use oxc_ast::ast::{
+    BindingPatternKind, BlockStatement, ClassElement, Expression, FormalParameter, FunctionBody,
+    Program, PropertyKey, Statement, VariableDeclarator,
+};
 use oxc_parser::Parser;
 use oxc_span::SourceType;
 use std::rc::Rc;
@@ -7,9 +10,9 @@ use std::rc::Rc;
 use crate::tree::TreeNode;
 
 /// Parse TypeScript code and convert to `TreeNode` structure
-/// 
+///
 /// # Errors
-/// 
+///
 /// Returns an error if parsing fails due to syntax errors
 pub fn parse_and_convert_to_tree(
     filename: &str,
@@ -43,8 +46,7 @@ pub fn ast_to_tree_node(program: &Program, id_counter: &mut usize) -> Rc<TreeNod
 fn statement_to_tree_node(stmt: &Statement, id_counter: &mut usize) -> Option<Rc<TreeNode>> {
     match stmt {
         Statement::FunctionDeclaration(func) => {
-            let label =
-                func.id.as_ref().map_or("Function", |id| id.name.as_str()).to_string();
+            let label = func.id.as_ref().map_or("Function", |id| id.name.as_str()).to_string();
             let mut node = TreeNode::new(label, "FunctionDeclaration".to_string(), *id_counter);
             *id_counter += 1;
 

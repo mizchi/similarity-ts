@@ -12,12 +12,6 @@ function extractTokens(code: string): Set<string> {
   return tokens;
 }
 
-/**
- * Extract features from code (legacy compatibility)
- */
-function extractFeatures(code: string): string[] {
-  return Array.from(extractTokens(code));
-}
 
 /**
  * Extract tokens from pre-parsed AST

@@ -1,5 +1,8 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use ts_similarity_core::{calculate_tsed_from_code, parse_and_convert_to_tree, compute_edit_distance, TSEDOptions, APTEDOptions};
+use ts_similarity_core::{
+    calculate_tsed_from_code, compute_edit_distance, parse_and_convert_to_tree, APTEDOptions,
+    TSEDOptions,
+};
 
 const SMALL_CODE_1: &str = r#"
 function add(a: number, b: number): number {
@@ -148,7 +151,7 @@ export class UserRepository {
 #[allow(clippy::needless_raw_string_hashes)]
 fn benchmark_tsed_calculation(c: &mut Criterion) {
     let mut group = c.benchmark_group("TSED Calculation");
-    
+
     group.bench_function("small files (full calculation)", |b| {
         b.iter(|| {
             calculate_tsed_from_code(
@@ -160,7 +163,7 @@ fn benchmark_tsed_calculation(c: &mut Criterion) {
             )
         });
     });
-    
+
     group.bench_function("medium files (full calculation)", |b| {
         b.iter(|| {
             calculate_tsed_from_code(
@@ -172,43 +175,33 @@ fn benchmark_tsed_calculation(c: &mut Criterion) {
             )
         });
     });
-    
+
     group.finish();
 }
 
 fn benchmark_parsing(c: &mut Criterion) {
     let mut group = c.benchmark_group("Parsing");
-    
+
     group.bench_function("parse small file", |b| {
-        b.iter(|| {
-            parse_and_convert_to_tree(
-                black_box("small.ts"),
-                black_box(SMALL_CODE_1),
-            )
-        });
+        b.iter(|| parse_and_convert_to_tree(black_box("small.ts"), black_box(SMALL_CODE_1)));
     });
-    
+
     group.bench_function("parse medium file", |b| {
-        b.iter(|| {
-            parse_and_convert_to_tree(
-                black_box("medium.ts"),
-                black_box(MEDIUM_CODE_1),
-            )
-        });
+        b.iter(|| parse_and_convert_to_tree(black_box("medium.ts"), black_box(MEDIUM_CODE_1)));
     });
-    
+
     group.finish();
 }
 
 fn benchmark_tree_edit_distance(c: &mut Criterion) {
     let mut group = c.benchmark_group("Tree Edit Distance");
-    
+
     // Pre-parse trees for edit distance benchmark
     let small_tree_1 = parse_and_convert_to_tree("small1.ts", SMALL_CODE_1).unwrap();
     let small_tree_2 = parse_and_convert_to_tree("small2.ts", SMALL_CODE_2).unwrap();
     let medium_tree_1 = parse_and_convert_to_tree("medium1.ts", MEDIUM_CODE_1).unwrap();
     let medium_tree_2 = parse_and_convert_to_tree("medium2.ts", MEDIUM_CODE_2).unwrap();
-    
+
     group.bench_function("small trees", |b| {
         b.iter(|| {
             compute_edit_distance(
@@ -218,7 +211,7 @@ fn benchmark_tree_edit_distance(c: &mut Criterion) {
             )
         });
     });
-    
+
     group.bench_function("medium trees", |b| {
         b.iter(|| {
             compute_edit_distance(
@@ -228,13 +221,13 @@ fn benchmark_tree_edit_distance(c: &mut Criterion) {
             )
         });
     });
-    
+
     group.finish();
 }
 
 fn benchmark_repeated_calculations(c: &mut Criterion) {
     let mut group = c.benchmark_group("Repeated Calculations");
-    
+
     // Benchmark how well the implementation handles repeated calculations
     // This can help identify if there are any caching opportunities
     group.bench_function("100 small file comparisons", |b| {
@@ -246,11 +239,12 @@ fn benchmark_repeated_calculations(c: &mut Criterion) {
                     black_box("small1.ts"),
                     black_box("small2.ts"),
                     &TSEDOptions::default(),
-                ).expect("TSED calculation should not fail in benchmark");
+                )
+                .expect("TSED calculation should not fail in benchmark");
             }
         });
     });
-    
+
     group.finish();
 }
 

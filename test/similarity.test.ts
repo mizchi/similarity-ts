@@ -85,10 +85,10 @@ describe.skip("Algorithm Comparison (skipped due to memory issues)", () => {
         });
       }
     `;
-    
+
     const levSimilarity = calculateSimilarity(code1, code2);
     const aptedSimilarity = calculateAPTEDSimilarity(code1, code2, { renameCost: 0.3 });
-    
+
     // APTED should recognize these as more similar due to structural similarity
     expect(aptedSimilarity).toBeGreaterThan(levSimilarity);
   });
@@ -96,10 +96,10 @@ describe.skip("Algorithm Comparison (skipped due to memory issues)", () => {
   it("both algorithms should handle syntax errors gracefully", () => {
     const validCode = `function test() { return 1; }`;
     const invalidCode = `function test() { return 1 }`; // Missing semicolon is ok
-    
+
     const levSimilarity = calculateSimilarity(validCode, invalidCode);
     const aptedSimilarity = calculateAPTEDSimilarity(validCode, invalidCode);
-    
+
     expect(levSimilarity).toBeGreaterThan(0.9);
     expect(aptedSimilarity).toBeGreaterThan(0.9);
   });

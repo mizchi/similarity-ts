@@ -33,9 +33,9 @@ pub fn calculate_tsed(tree1: &Rc<TreeNode>, tree2: &Rc<TreeNode>, options: &TSED
 }
 
 /// Calculate TSED from TypeScript code strings
-/// 
+///
 /// # Errors
-/// 
+///
 /// Returns an error if parsing fails for either code string
 pub fn calculate_tsed_from_code(
     code1: &str,
