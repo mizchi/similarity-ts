@@ -6,7 +6,7 @@ use std::rc::Rc;
 
 use crate::tree::TreeNode;
 
-/// Parse TypeScript code and convert to TreeNode structure
+/// Parse TypeScript code and convert to `TreeNode` structure
 /// 
 /// # Errors
 /// 

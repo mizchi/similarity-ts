@@ -63,7 +63,7 @@ mod tests {
 
         let similarity =
             calculate_tsed_from_code(code, code, "test1.ts", "test2.ts", &options).unwrap();
-        assert_eq!(similarity, 1.0);
+        assert!((similarity - 1.0).abs() < f64::EPSILON);
     }
 
     #[test]

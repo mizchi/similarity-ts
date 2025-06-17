@@ -1,5 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use ts_similarity_core::{calculate_tsed_from_code, parse_and_convert_to_tree, compute_edit_distance};
+use ts_similarity_core::{calculate_tsed_from_code, parse_and_convert_to_tree, compute_edit_distance, TSEDOptions, APTEDOptions};
 
 const SMALL_CODE_1: &str = r#"
 function add(a: number, b: number): number {
@@ -145,6 +145,7 @@ export class UserRepository {
 }
 "#;
 
+#[allow(clippy::needless_raw_string_hashes)]
 fn benchmark_tsed_calculation(c: &mut Criterion) {
     let mut group = c.benchmark_group("TSED Calculation");
     
@@ -155,9 +156,9 @@ fn benchmark_tsed_calculation(c: &mut Criterion) {
                 black_box(SMALL_CODE_2),
                 black_box("small1.ts"),
                 black_box("small2.ts"),
-                &Default::default(),
+                &TSEDOptions::default(),
             )
-        })
+        });
     });
     
     group.bench_function("medium files (full calculation)", |b| {
@@ -167,9 +168,9 @@ fn benchmark_tsed_calculation(c: &mut Criterion) {
                 black_box(MEDIUM_CODE_2),
                 black_box("medium1.ts"),
                 black_box("medium2.ts"),
-                &Default::default(),
+                &TSEDOptions::default(),
             )
-        })
+        });
     });
     
     group.finish();
@@ -184,7 +185,7 @@ fn benchmark_parsing(c: &mut Criterion) {
                 black_box("small.ts"),
                 black_box(SMALL_CODE_1),
             )
-        })
+        });
     });
     
     group.bench_function("parse medium file", |b| {
@@ -193,7 +194,7 @@ fn benchmark_parsing(c: &mut Criterion) {
                 black_box("medium.ts"),
                 black_box(MEDIUM_CODE_1),
             )
-        })
+        });
     });
     
     group.finish();
@@ -213,9 +214,9 @@ fn benchmark_tree_edit_distance(c: &mut Criterion) {
             compute_edit_distance(
                 black_box(&small_tree_1),
                 black_box(&small_tree_2),
-                &Default::default(),
+                &APTEDOptions::default(),
             )
-        })
+        });
     });
     
     group.bench_function("medium trees", |b| {
@@ -223,9 +224,9 @@ fn benchmark_tree_edit_distance(c: &mut Criterion) {
             compute_edit_distance(
                 black_box(&medium_tree_1),
                 black_box(&medium_tree_2),
-                &Default::default(),
+                &APTEDOptions::default(),
             )
-        })
+        });
     });
     
     group.finish();
@@ -239,15 +240,15 @@ fn benchmark_repeated_calculations(c: &mut Criterion) {
     group.bench_function("100 small file comparisons", |b| {
         b.iter(|| {
             for _ in 0..100 {
-                calculate_tsed_from_code(
+                let _ = calculate_tsed_from_code(
                     black_box(SMALL_CODE_1),
                     black_box(SMALL_CODE_2),
                     black_box("small1.ts"),
                     black_box("small2.ts"),
-                    &Default::default(),
-                ).unwrap();
+                    &TSEDOptions::default(),
+                ).expect("TSED calculation should not fail in benchmark");
             }
-        })
+        });
     });
     
     group.finish();
