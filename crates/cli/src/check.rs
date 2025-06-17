@@ -12,6 +12,7 @@ pub fn check_directory(
     rename_cost: f64,
     cross_file: bool,
     extensions: Option<Vec<String>>,
+    min_lines: u32,
 ) -> anyhow::Result<()> {
     let default_extensions = vec!["ts", "tsx", "js", "jsx"];
     let exts: Vec<&str> = extensions
@@ -58,6 +59,7 @@ pub fn check_directory(
 
     let mut options = TSEDOptions::default();
     options.apted_options.rename_cost = rename_cost;
+    options.min_lines = min_lines;
 
     if cross_file {
         // Check across all files
@@ -94,29 +96,29 @@ fn check_file_duplicates(
                 println!("Duplicates in {}:", file.display());
                 println!("{}", "-".repeat(60));
 
-                for (func1, func2, similarity) in &similar_pairs {
+                for result in &similar_pairs {
                     println!(
                         "  {} {} (lines {}-{}) <-> {} {} (lines {}-{})",
-                        match func1.function_type {
+                        match result.func1.function_type {
                             FunctionType::Function => "function",
                             FunctionType::Method => "method",
                             FunctionType::Arrow => "arrow",
                             FunctionType::Constructor => "constructor",
                         },
-                        func1.name,
-                        func1.start_line,
-                        func1.end_line,
-                        match func2.function_type {
+                        result.func1.name,
+                        result.func1.start_line,
+                        result.func1.end_line,
+                        match result.func2.function_type {
                             FunctionType::Function => "function",
                             FunctionType::Method => "method",
                             FunctionType::Arrow => "arrow",
                             FunctionType::Constructor => "constructor",
                         },
-                        func2.name,
-                        func2.start_line,
-                        func2.end_line,
+                        result.func2.name,
+                        result.func2.start_line,
+                        result.func2.end_line,
                     );
-                    println!("  Similarity: {:.2}%", similarity * 100.0);
+                    println!("  Similarity: {:.2}%, Impact: {} lines", result.similarity * 100.0, result.impact);
                 }
                 println!();
                 Ok(similar_pairs.len())
@@ -157,19 +159,19 @@ fn check_cross_file_duplicates(
                 println!("Duplicate functions across files:");
                 println!("{}", "=".repeat(60));
 
-                for (file1, func1, file2, func2, similarity) in &similar_pairs {
+                for (file1, result, file2) in &similar_pairs {
                     println!(
                         "\n{}:{} (lines {}-{}) <-> {}:{} (lines {}-{})",
                         Path::new(&file1).file_name().unwrap().to_string_lossy(),
-                        func1.name,
-                        func1.start_line,
-                        func1.end_line,
+                        result.func1.name,
+                        result.func1.start_line,
+                        result.func1.end_line,
                         Path::new(&file2).file_name().unwrap().to_string_lossy(),
-                        func2.name,
-                        func2.start_line,
-                        func2.end_line,
+                        result.func2.name,
+                        result.func2.start_line,
+                        result.func2.end_line,
                     );
-                    println!("Similarity: {:.2}%", similarity * 100.0);
+                    println!("Similarity: {:.2}%, Impact: {} lines", result.similarity * 100.0, result.impact);
                 }
 
                 println!("\nTotal duplicate pairs found: {}", similar_pairs.len());

@@ -38,6 +38,10 @@ enum Commands {
         /// File extensions to include (default: ts,tsx,js,jsx)
         #[arg(long, value_delimiter = ',')]
         extensions: Option<Vec<String>>,
+
+        /// Minimum lines for a function to be considered (default: 3)
+        #[arg(long, default_value_t = 3)]
+        min_lines: u32,
     },
 
     /// Compare two files
@@ -73,6 +77,10 @@ enum Commands {
         /// Rename cost (default: 0.3)
         #[arg(long, default_value_t = 0.3)]
         rename_cost: f64,
+
+        /// Minimum lines for a function to be considered (default: 3)
+        #[arg(long, default_value_t = 3)]
+        min_lines: u32,
     },
 
     /// Find similar functions across multiple files
@@ -87,6 +95,10 @@ enum Commands {
         /// Rename cost (default: 0.3)
         #[arg(long, default_value_t = 0.3)]
         rename_cost: f64,
+
+        /// Minimum lines for a function to be considered (default: 3)
+        #[arg(long, default_value_t = 3)]
+        min_lines: u32,
     },
 }
 
@@ -94,27 +106,27 @@ fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
     match args.command {
-        Some(Commands::Check { directory, threshold, rename_cost, within_file, extensions }) => {
-            check_directory(directory, threshold, rename_cost, !within_file, extensions)?;
+        Some(Commands::Check { directory, threshold, rename_cost, within_file, extensions, min_lines }) => {
+            check_directory(directory, threshold, rename_cost, !within_file, extensions, min_lines)?;
         }
         Some(Commands::Compare { file1, file2, rename_cost, delete_cost, insert_cost }) => {
             compare_files(file1, file2, rename_cost, delete_cost, insert_cost)?;
         }
-        Some(Commands::Functions { file, threshold, rename_cost }) => {
-            find_similar_functions(file, threshold, rename_cost)?;
+        Some(Commands::Functions { file, threshold, rename_cost, min_lines }) => {
+            find_similar_functions(file, threshold, rename_cost, min_lines)?;
         }
-        Some(Commands::CrossFile { files, threshold, rename_cost }) => {
-            find_similar_across_files(files, threshold, rename_cost)?;
+        Some(Commands::CrossFile { files, threshold, rename_cost, min_lines }) => {
+            find_similar_across_files(files, threshold, rename_cost, min_lines)?;
         }
         None => {
             // Default behavior: check current directory
             let args: Vec<String> = std::env::args().collect();
             if args.len() >= 2 {
                 // If a directory is provided, check it
-                check_directory(args[1].clone(), 0.8, 0.3, true, None)?;
+                check_directory(args[1].clone(), 0.8, 0.3, true, None, 3)?;
             } else {
                 // Otherwise check current directory
-                check_directory(".".to_string(), 0.8, 0.3, true, None)?;
+                check_directory(".".to_string(), 0.8, 0.3, true, None, 3)?;
             }
         }
     }
@@ -154,10 +166,12 @@ fn compare_files(
     Ok(())
 }
 
-fn find_similar_functions(file: String, threshold: f64, rename_cost: f64) -> anyhow::Result<()> {
+fn find_similar_functions(file: String, threshold: f64, rename_cost: f64, min_lines: u32) -> anyhow::Result<()> {
     let code = fs::read_to_string(&file)?;
     let mut options = TSEDOptions::default();
     options.apted_options.rename_cost = rename_cost;
+    options.min_lines = min_lines;
+    options.min_lines = min_lines;
 
     match find_similar_functions_in_file(&file, &code, threshold, &options) {
         Ok(similar_pairs) => {
@@ -167,35 +181,35 @@ fn find_similar_functions(file: String, threshold: f64, rename_cost: f64) -> any
                 println!("Similar functions in {}:", file);
                 println!("{}", "=".repeat(60));
 
-                for (func1, func2, similarity) in similar_pairs {
+                for result in similar_pairs {
                     println!(
                         "\n{} {} (lines {}-{}) <-> {} {} (lines {}-{})",
-                        match func1.function_type {
+                        match result.func1.function_type {
                             FunctionType::Function => "function",
                             FunctionType::Method => "method",
                             FunctionType::Arrow => "arrow",
                             FunctionType::Constructor => "constructor",
                         },
-                        func1.name,
-                        func1.start_line,
-                        func1.end_line,
-                        match func2.function_type {
+                        result.func1.name,
+                        result.func1.start_line,
+                        result.func1.end_line,
+                        match result.func2.function_type {
                             FunctionType::Function => "function",
                             FunctionType::Method => "method",
                             FunctionType::Arrow => "arrow",
                             FunctionType::Constructor => "constructor",
                         },
-                        func2.name,
-                        func2.start_line,
-                        func2.end_line,
+                        result.func2.name,
+                        result.func2.start_line,
+                        result.func2.end_line,
                     );
-                    println!("Similarity: {:.2}%", similarity * 100.0);
+                    println!("Similarity: {:.2}%, Impact: {} lines", result.similarity * 100.0, result.impact);
 
-                    if let Some(class1) = &func1.class_name {
-                        println!("  {} is in class {}", func1.name, class1);
+                    if let Some(class1) = &result.func1.class_name {
+                        println!("  {} is in class {}", result.func1.name, class1);
                     }
-                    if let Some(class2) = &func2.class_name {
-                        println!("  {} is in class {}", func2.name, class2);
+                    if let Some(class2) = &result.func2.class_name {
+                        println!("  {} is in class {}", result.func2.name, class2);
                     }
                 }
             }
@@ -213,6 +227,7 @@ fn find_similar_across_files(
     files: Vec<String>,
     threshold: f64,
     rename_cost: f64,
+    min_lines: u32,
 ) -> anyhow::Result<()> {
     let mut file_contents = Vec::new();
 
@@ -223,6 +238,7 @@ fn find_similar_across_files(
 
     let mut options = TSEDOptions::default();
     options.apted_options.rename_cost = rename_cost;
+    options.min_lines = min_lines;
 
     match find_similar_functions_across_files(&file_contents, threshold, &options) {
         Ok(similar_pairs) => {
@@ -235,25 +251,25 @@ fn find_similar_across_files(
                 println!("Similar functions across files:");
                 println!("{}", "=".repeat(60));
 
-                for (file1, func1, file2, func2, similarity) in similar_pairs {
+                for (file1, result, file2) in similar_pairs {
                     println!(
                         "\n{}:{} (lines {}-{}) <-> {}:{} (lines {}-{})",
                         Path::new(&file1).file_name().unwrap().to_string_lossy(),
-                        func1.name,
-                        func1.start_line,
-                        func1.end_line,
+                        result.func1.name,
+                        result.func1.start_line,
+                        result.func1.end_line,
                         Path::new(&file2).file_name().unwrap().to_string_lossy(),
-                        func2.name,
-                        func2.start_line,
-                        func2.end_line,
+                        result.func2.name,
+                        result.func2.start_line,
+                        result.func2.end_line,
                     );
-                    println!("Similarity: {:.2}%", similarity * 100.0);
+                    println!("Similarity: {:.2}%, Impact: {} lines", result.similarity * 100.0, result.impact);
 
-                    if let Some(class1) = &func1.class_name {
-                        println!("  {} is in class {}", func1.name, class1);
+                    if let Some(class1) = &result.func1.class_name {
+                        println!("  {} is in class {}", result.func1.name, class1);
                     }
-                    if let Some(class2) = &func2.class_name {
-                        println!("  {} is in class {}", func2.name, class2);
+                    if let Some(class2) = &result.func2.class_name {
+                        println!("  {} is in class {}", result.func2.name, class2);
                     }
                 }
             }

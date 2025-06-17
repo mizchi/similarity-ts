@@ -4,7 +4,28 @@ use oxc_span::Span;
 use crate::parser::parse_and_convert_to_tree;
 use crate::tsed::{calculate_tsed, TSEDOptions};
 
-type CrossFileSimilarityResult = Vec<(String, FunctionDefinition, String, FunctionDefinition, f64)>;
+type CrossFileSimilarityResult = Vec<(String, SimilarityResult, String)>;
+
+#[derive(Debug, Clone)]
+pub struct SimilarityResult {
+    pub func1: FunctionDefinition,
+    pub func2: FunctionDefinition,
+    pub similarity: f64,
+    pub impact: u32,  // Total lines that could be removed
+}
+
+impl SimilarityResult {
+    pub fn new(func1: FunctionDefinition, func2: FunctionDefinition, similarity: f64) -> Self {
+        // Impact is the smaller function's line count (since we'd remove the duplicate)
+        let impact = func1.line_count().min(func2.line_count());
+        SimilarityResult {
+            func1,
+            func2,
+            similarity,
+            impact,
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct FunctionDefinition {
@@ -15,6 +36,12 @@ pub struct FunctionDefinition {
     pub start_line: u32,
     pub end_line: u32,
     pub class_name: Option<String>,
+}
+
+impl FunctionDefinition {
+    pub fn line_count(&self) -> u32 {
+        self.end_line - self.start_line + 1
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -289,21 +316,36 @@ pub fn find_similar_functions_in_file(
     source_text: &str,
     threshold: f64,
     options: &TSEDOptions,
-) -> Result<Vec<(FunctionDefinition, FunctionDefinition, f64)>, String> {
+) -> Result<Vec<SimilarityResult>, String> {
     let functions = extract_functions(filename, source_text)?;
     let mut similar_pairs = Vec::new();
 
     // Compare all pairs
     for i in 0..functions.len() {
         for j in (i + 1)..functions.len() {
+            // Skip if either function is too short
+            if functions[i].line_count() < options.min_lines || functions[j].line_count() < options.min_lines {
+                continue;
+            }
+            
             let similarity =
                 compare_functions(&functions[i], &functions[j], source_text, source_text, options)?;
 
             if similarity >= threshold {
-                similar_pairs.push((functions[i].clone(), functions[j].clone(), similarity));
+                similar_pairs.push(SimilarityResult::new(
+                    functions[i].clone(),
+                    functions[j].clone(),
+                    similarity,
+                ));
             }
         }
     }
+    
+    // Sort by impact (descending), then by similarity (descending)
+    similar_pairs.sort_by(|a, b| {
+        b.impact.cmp(&a.impact)
+            .then(b.similarity.partial_cmp(&a.similarity).unwrap_or(std::cmp::Ordering::Equal))
+    });
 
     Ok(similar_pairs)
 }
@@ -336,20 +378,29 @@ pub fn find_similar_functions_across_files(
             if file1 == file2 {
                 continue;
             }
+            
+            // Skip if either function is too short
+            if func1.line_count() < options.min_lines || func2.line_count() < options.min_lines {
+                continue;
+            }
 
             let similarity = compare_functions(func1, func2, source1, source2, options)?;
 
             if similarity >= threshold {
                 similar_pairs.push((
                     file1.clone(),
-                    func1.clone(),
+                    SimilarityResult::new(func1.clone(), func2.clone(), similarity),
                     file2.clone(),
-                    func2.clone(),
-                    similarity,
                 ));
             }
         }
     }
+    
+    // Sort by impact (descending), then by similarity (descending)
+    similar_pairs.sort_by(|a, b| {
+        b.1.impact.cmp(&a.1.impact)
+            .then(b.1.similarity.partial_cmp(&a.1.similarity).unwrap_or(std::cmp::Ordering::Equal))
+    });
 
     Ok(similar_pairs)
 }
@@ -447,9 +498,9 @@ mod tests {
         // Let's check that we found the expected similar pairs
         let sum_pairs = similar_pairs
             .iter()
-            .filter(|(f1, f2, _)| {
-                (f1.name.contains("Sum") || f2.name.contains("Sum"))
-                    || (f1.name == "addNumbers" || f2.name == "addNumbers")
+            .filter(|result| {
+                (result.func1.name.contains("Sum") || result.func2.name.contains("Sum"))
+                    || (result.func1.name == "addNumbers" || result.func2.name == "addNumbers")
             })
             .count();
         assert!(sum_pairs >= 3, "Expected at least 3 pairs involving sum functions");
@@ -499,15 +550,15 @@ mod tests {
         assert!(similar_pairs.len() >= 2);
 
         // Check specific pairs
-        let process_handle = similar_pairs.iter().find(|(_, f1, _, f2, _)| {
-            (f1.name == "processUser" && f2.name == "handleUser")
-                || (f1.name == "handleUser" && f2.name == "processUser")
+        let process_handle = similar_pairs.iter().find(|(_, result, _)| {
+            (result.func1.name == "processUser" && result.func2.name == "handleUser")
+                || (result.func1.name == "handleUser" && result.func2.name == "processUser")
         });
         assert!(process_handle.is_some());
 
-        let validate_check = similar_pairs.iter().find(|(_, f1, _, f2, _)| {
-            (f1.name == "validateUser" && f2.name == "checkUser")
-                || (f1.name == "checkUser" && f2.name == "validateUser")
+        let validate_check = similar_pairs.iter().find(|(_, result, _)| {
+            (result.func1.name == "validateUser" && result.func2.name == "checkUser")
+                || (result.func1.name == "checkUser" && result.func2.name == "validateUser")
         });
         assert!(validate_check.is_some());
     }

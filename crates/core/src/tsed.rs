@@ -5,6 +5,7 @@ use std::rc::Rc;
 #[derive(Debug, Clone)]
 pub struct TSEDOptions {
     pub apted_options: APTEDOptions,
+    pub min_lines: u32,  // Minimum number of lines for a function to be considered
 }
 
 impl Default for TSEDOptions {
@@ -15,6 +16,7 @@ impl Default for TSEDOptions {
                 delete_cost: 1.0,
                 insert_cost: 1.0,
             },
+            min_lines: 3, // Default minimum lines to avoid trivial matches
         }
     }
 }
