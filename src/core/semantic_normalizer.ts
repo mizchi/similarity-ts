@@ -2,13 +2,7 @@
 import { parseTypeScript } from '../parser.ts';
 import { traverseAST, createVisitor } from './ast_traversal.ts';
 import type { 
-  Program,
-  Expression,
-  Statement,
-  MemberExpression,
-  ThisExpression,
-  IdentifierReference,
-  CallExpression
+  Program
 } from './oxc_types.ts';
 
 export interface NormalizationOptions {
@@ -33,8 +27,9 @@ export function normalizeSemantics(
   parameters: string[],
   options: NormalizationOptions = {}
 ): string {
-  const ast = parseTypeScript('temp.ts', `function temp() { ${functionBody} }`);
-  const patterns = extractSemanticPatterns(ast.program, parameters);
+  // AST-based pattern extraction could be used for more advanced normalization in the future
+  // const ast = parseTypeScript('temp.ts', `function temp() { ${functionBody} }`);
+  // const patterns = extractSemanticPatterns(ast.program, parameters);
   
   let normalized = functionBody;
   
