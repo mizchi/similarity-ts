@@ -1,9 +1,7 @@
 // Semantic normalization for function comparison
-import { parseTypeScript } from '../parser.ts';
-import { traverseAST, createVisitor } from './ast_traversal.ts';
-import type { 
-  Program
-} from './oxc_types.ts';
+// import { parseTypeScript } from '../parser.ts';
+// import { traverseAST, createVisitor } from './ast_traversal.ts';
+// import type { Program } from './oxc_types.ts';
 
 export interface NormalizationOptions {
   normalizeThis?: boolean;
@@ -58,58 +56,59 @@ export function normalizeSemantics(
   return normalized;
 }
 
-/**
- * Extract semantic patterns from AST using ast_traversal
- */
-function extractSemanticPatterns(
-  program: Program,
-  parameters: string[]
-): SemanticPattern[] {
-  interface PatternState {
-    patterns: SemanticPattern[];
-    paramSet: Set<string>;
-  }
-  
-  const state: PatternState = {
-    patterns: [],
-    paramSet: new Set(parameters)
-  };
-  
-  traverseAST(program, createVisitor<PatternState>({
-    MemberExpression(node, state) {
-      if (node.object?.type === 'ThisExpression') {
-        state.patterns.push({
-          type: 'property_access',
-          target: 'this',
-          identifier: node.property?.name || 'unknown'
-        });
-      } else if (node.object?.type === 'Identifier') {
-        const objName = node.object.name;
-        const target = state.paramSet.has(objName) ? 'parameter' : 'external';
-        state.patterns.push({
-          type: 'property_access',
-          target,
-          identifier: objName
-        });
-      }
-    },
-    
-    CallExpression(node, state) {
-      if (node.callee?.type === 'MemberExpression') {
-        const memberExpr = node.callee;
-        if (memberExpr.object?.type === 'ThisExpression') {
-          state.patterns.push({
-            type: 'method_call',
-            target: 'this',
-            identifier: memberExpr.property?.name || 'unknown'
-          });
-        }
-      }
-    }
-  }), state);
-  
-  return state.patterns;
-}
+// /**
+//  * Extract semantic patterns from AST using ast_traversal
+//  * This function could be used for more advanced semantic analysis in the future
+//  */
+// function extractSemanticPatterns(
+//   program: Program,
+//   parameters: string[]
+// ): SemanticPattern[] {
+//   interface PatternState {
+//     patterns: SemanticPattern[];
+//     paramSet: Set<string>;
+//   }
+//   
+//   const state: PatternState = {
+//     patterns: [],
+//     paramSet: new Set(parameters)
+//   };
+//   
+//   traverseAST(program, createVisitor<PatternState>({
+//     MemberExpression(node, state) {
+//       if (node.object?.type === 'ThisExpression') {
+//         state.patterns.push({
+//           type: 'property_access',
+//           target: 'this',
+//           identifier: node.property?.name || 'unknown'
+//         });
+//       } else if (node.object?.type === 'Identifier') {
+//         const objName = node.object.name;
+//         const target = state.paramSet.has(objName) ? 'parameter' : 'external';
+//         state.patterns.push({
+//           type: 'property_access',
+//           target,
+//           identifier: objName
+//         });
+//       }
+//     },
+//     
+//     CallExpression(node, state) {
+//       if (node.callee?.type === 'MemberExpression') {
+//         const memberExpr = node.callee;
+//         if (memberExpr.object?.type === 'ThisExpression') {
+//           state.patterns.push({
+//             type: 'method_call',
+//             target: 'this',
+//             identifier: memberExpr.property?.name || 'unknown'
+//           });
+//         }
+//       }
+//     }
+//   }), state);
+//   
+//   return state.patterns;
+// }
 
 /**
  * Extract local variable names from function body
