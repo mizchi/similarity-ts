@@ -1,11 +1,11 @@
 import {
-  calculateSimilarity,
-  compareStructures
+  calculateSimilarity
 } from './ast.ts';
 import {
   calculateSimilarityAPTED,
   compareStructuresAPTED
 } from './apted.ts';
+import { parseTypeScript } from '../parser.ts';
 
 function runAPTEDTests() {
   let passed = 0;
@@ -86,11 +86,15 @@ function process(data: string[]): string {
     const code1 = `interface Config { timeout: number; }`;
     const code2 = `interface Settings { timeout: number; }`;
     
-    const levResult = compareStructures(code1, code2);
-    const aptedResult = compareStructuresAPTED(code1, code2, { renameCost: 0.3 });
+    // Parse the code to get AST
+    const ast1 = parseTypeScript('file1.ts', code1);
+    const ast2 = parseTypeScript('file2.ts', code2);
+    
+    const levScore = calculateSimilarity(code1, code2);
+    const aptedResult = compareStructuresAPTED(ast1.program, ast2.program, { renameCost: 0.3 });
     
     console.log(`Test 3 - Structure comparison:`);
-    console.log(`  Levenshtein similarity: ${(levResult.similarity * 100).toFixed(1)}%`);
+    console.log(`  Levenshtein similarity: ${(levScore * 100).toFixed(1)}%`);
     console.log(`  APTED similarity: ${(aptedResult.similarity * 100).toFixed(1)}%`);
     console.log(`  APTED Levenshtein component: ${(aptedResult.levenshteinSimilarity * 100).toFixed(1)}%`);
     
