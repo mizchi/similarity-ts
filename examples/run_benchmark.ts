@@ -5,8 +5,8 @@ import {
   findAllSimilarPairs
 } from '../src/index.ts';
 import { 
-  loadFiles,
-  addFile,
+  loadFilesAsync,
+  addFileAsync,
   getStatistics
 } from '../src/cli/repo_checker.ts';
 import { loadFilesFromPattern } from '../src/cli/io.ts';
@@ -26,7 +26,7 @@ async function runBenchmarks() {
   const projectPath = join(new URL('.', import.meta.url).pathname, 'sample_project');
   let repo = createRepository();
   const files = await loadFilesFromPattern('src/**/*.ts', projectPath);
-  repo = await loadFiles(repo, files);
+  repo = await loadFilesAsync(repo, files);
   
   // Load two similar services for comparison
   const userServicePath = join(projectPath, 'src/services/user_service.ts');
@@ -97,14 +97,16 @@ async function runBenchmarks() {
   // 5. Memory usage estimation
   console.log('\n\n=== Memory Usage ===\n');
   
-  const memoryRepo = createRepository();
+  let memoryRepo = createRepository();
   const initialMemory = process.memoryUsage().heapUsed / 1024 / 1024;
   
   // Add 100 medium-sized files
+  const memoryFiles = [];
   for (let i = 0; i < 100; i++) {
     const code = benchmark.generateCodeSample('medium');
-    memoryRepo = addFile(memoryRepo, `mem${i}.ts`, `mem${i}.ts`, code);
+    memoryFiles.push({ id: `mem${i}.ts`, path: `mem${i}.ts`, content: code });
   }
+  memoryRepo = await loadFilesAsync(memoryRepo, memoryFiles);
   
   const finalMemory = process.memoryUsage().heapUsed / 1024 / 1024;
   const memoryIncrease = finalMemory - initialMemory;

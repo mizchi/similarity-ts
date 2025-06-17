@@ -1,15 +1,19 @@
 // Main exports for TypeScript Code Similarity
-export { parseTypeScript as parse } from "./parser.ts";
+export { 
+  parseTypeScript as parse,
+  parseTypeScriptAsync as parseAsync,
+  parseMultipleAsync
+} from "./parser.ts";
 
 // Import core functionality
 import { astToString } from "./core/ast.ts";
 import { calculateSimilarity as calculateLevenshteinSimilarity, compareStructures } from "./core/ast.ts";
 import {
-  calculateAPTEDSimilarity as calculateAPTEDSimilarityCore,
+  calculateAPTEDSimilarityFromAST,
   compareStructuresAPTED,
   type APTEDOptions,
 } from "./core/apted.ts";
-import { parseTypeScript } from "./parser.ts";
+import { parseTypeScript, parseTypeScriptAsync } from "./parser.ts";
 
 // Import repository functionality
 import {
@@ -18,10 +22,11 @@ import {
   type RepositoryState,
   createRepository,
   loadFiles,
-  addFile,
+  loadFilesAsync,
+  addFileAsync,
   findSimilarByMinHash,
   findSimilarBySimHash,
-  findSimilarByAPTED,
+  findSimilarByAPTEDAsync,
   findAllSimilarPairs,
   findClones,
   getStatistics,
@@ -32,7 +37,14 @@ import { loadFilesFromPattern } from "./cli/io.ts";
 export type { CodeFile, SimilarityResult, RepositoryState } from "./cli/repo_checker.ts";
 export type { APTEDOptions } from "./core/apted.ts";
 export type { ASTNode, Program } from "./core/oxc_types.ts";
-export { addFile, findSimilarByMinHash, findSimilarBySimHash, findSimilarByAPTED, getStatistics } from "./cli/repo_checker.ts";
+export { 
+  addFileAsync,
+  findSimilarByMinHash, 
+  findSimilarBySimHash, 
+  findSimilarByAPTEDAsync,
+  getStatistics,
+  loadFilesAsync
+} from "./cli/repo_checker.ts";
 
 // Function extraction and comparison
 export {
@@ -85,8 +97,40 @@ export function calculateAPTEDSimilarity(
   code2: string,
   config?: Partial<APTEDOptions>
 ): number {
-  return calculateAPTEDSimilarityCore(code1, code2, config);
+  try {
+    const ast1 = parseTypeScript('file1.ts', code1);
+    const ast2 = parseTypeScript('file2.ts', code2);
+    return calculateAPTEDSimilarityFromAST(ast1, ast2, config);
+  } catch (error) {
+    // Fall back to simple string comparison
+    return code1 === code2 ? 1.0 : 0.0;
+  }
 }
+
+/**
+ * Calculate similarity using APTED algorithm (asynchronous)
+ */
+export async function calculateAPTEDSimilarityAsync(
+  code1: string,
+  code2: string,
+  config?: Partial<APTEDOptions>
+): Promise<number> {
+  try {
+    const [ast1, ast2] = await Promise.all([
+      parseTypeScriptAsync('file1.ts', code1),
+      parseTypeScriptAsync('file2.ts', code2)
+    ]);
+    return calculateAPTEDSimilarityFromAST(ast1, ast2, config);
+  } catch (error) {
+    // Fall back to simple string comparison
+    return code1 === code2 ? 1.0 : 0.0;
+  }
+}
+
+/**
+ * Calculate similarity from pre-parsed ASTs
+ */
+export { calculateAPTEDSimilarityFromAST };
 
 /**
  * Get detailed comparison report including AST structures
@@ -133,18 +177,18 @@ export function getDetailedReport(
 export { createRepository };
 
 /**
- * Factory function to create a CodeRepository instance with stateful methods
+ * Factory function to create a repository analyzer with stateful methods
  */
-export function CodeRepository() {
+export function buildRepoAnalyzer() {
   let state = createRepository();
   
   return {
     async loadFiles(pattern: string): Promise<void> {
-      state = await loadFilesIntoRepository(state, pattern);
+      state = await loadFilesIntoRepositoryAsync(state, pattern);
     },
     
     async addFile(id: string, path: string, content: string): Promise<void> {
-      state = addFile(state, id, path, content);
+      state = await addFileAsync(state, id, path, content);
     },
     
     findSimilarByMinHash(fileId: string, threshold: number = 0.7): SimilarityResult[] {
@@ -155,8 +199,8 @@ export function CodeRepository() {
       return findSimilarBySimHash(state, fileId, threshold);
     },
     
-    findSimilarByAPTED(fileId: string, threshold: number = 0.7, maxComparisons: number = 100): SimilarityResult[] {
-      return findSimilarByAPTED(state, fileId, threshold, maxComparisons);
+    async findSimilarByAPTED(fileId: string, threshold: number = 0.7, maxComparisons: number = 100): Promise<SimilarityResult[]> {
+      return findSimilarByAPTEDAsync(state, fileId, threshold, maxComparisons);
     },
     
     findAllSimilarPairs(threshold: number = 0.7, method: 'minhash' | 'simhash' = 'minhash'): SimilarityResult[] {
@@ -174,8 +218,8 @@ export function CodeRepository() {
 }
 
 /**
- * Load files from a glob pattern into the repository
- * Returns a new repository state with the loaded files
+ * Load files from a glob pattern into the repository (synchronous parsing)
+ * @deprecated Use loadFilesIntoRepositoryAsync for better performance
  */
 export async function loadFilesIntoRepository(
   repo: RepositoryState,
@@ -183,6 +227,17 @@ export async function loadFilesIntoRepository(
 ): Promise<RepositoryState> {
   const files = await loadFilesFromPattern(pattern);
   return loadFiles(repo, files);
+}
+
+/**
+ * Load files from a glob pattern into the repository with parallel parsing
+ */
+export async function loadFilesIntoRepositoryAsync(
+  repo: RepositoryState,
+  pattern: string
+): Promise<RepositoryState> {
+  const files = await loadFilesFromPattern(pattern);
+  return loadFilesAsync(repo, files);
 }
 
 /**

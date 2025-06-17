@@ -1,6 +1,5 @@
 // APTED (All Path Tree Edit Distance) algorithm implementation with proper types
 import { astToString } from './ast.ts';
-import { parseTypeScript } from '../parser.ts';
 import { levenshtein } from './levenshtein.ts';
 import type { 
   ASTNode,
@@ -10,6 +9,7 @@ import type {
   BooleanLiteral
 } from './oxc_types.ts';
 import { isIdentifier, isFunctionDeclaration, isClassDeclaration, isVariableDeclarator } from './oxc_types.ts';
+import type { ParseResult } from 'oxc-parser';
 
 export interface TreeNode {
   label: string;
@@ -19,11 +19,6 @@ export interface TreeNode {
   subtreeSize?: number;
 }
 
-interface EditOperation {
-  type: 'insert' | 'delete' | 'rename';
-  node: TreeNode;
-  cost: number;
-}
 
 export interface APTEDOptions {
   renameCost?: number;
@@ -127,12 +122,6 @@ export function oxcToTreeNode(node: ASTNode | any, idCounter = { value: 0 }): Tr
   return { label, value, children, id };
 }
 
-/**
- * Get node identifier
- */
-function getNodeId(node: TreeNode): string {
-  return node.id;
-}
 
 /**
  * Get subtree size (number of nodes in subtree)
@@ -298,17 +287,14 @@ export function countNodes(node: TreeNode): number {
 }
 
 /**
- * Calculate APTED similarity between two code strings
+ * Calculate APTED similarity from pre-parsed ASTs
  */
-export function calculateAPTEDSimilarity(
-  code1: string,
-  code2: string,
+export function calculateAPTEDSimilarityFromAST(
+  ast1: ParseResult,
+  ast2: ParseResult,
   options: APTEDOptions = {}
 ): number {
   try {
-    const ast1 = parseTypeScript('file1.ts', code1);
-    const ast2 = parseTypeScript('file2.ts', code2);
-
     const tree1 = oxcToTreeNode(ast1.program);
     const tree2 = oxcToTreeNode(ast2.program);
 
@@ -319,10 +305,10 @@ export function calculateAPTEDSimilarity(
     return Math.max(1 - distance / maxNodes, 0);
   } catch (error) {
     // console.error('Error in APTED calculation:', error);
-    // Fall back to simple string comparison
-    return code1 === code2 ? 1.0 : 0.0;
+    return 0.0;
   }
 }
+
 
 
 /**

@@ -1,11 +1,11 @@
-import { CodeRepository } from '../src/cli/repo_checker.ts';
+import { buildRepoAnalyzer } from '../src/index.ts';
 import { join } from 'path';
 
 async function demonstrateMultiFileSimilarity() {
   console.log('=== Multi-File Code Similarity Analysis ===\n');
 
   // Create repository
-  const repo = new CodeRepository();
+  const repo = buildRepoAnalyzer();
 
   // Load test fixtures
   console.log('Loading test fixtures...');
@@ -96,7 +96,7 @@ async function demonstrateMultiFileSimilarity() {
 async function customRepositoryExample() {
   console.log('\n\n=== Custom Repository Example ===\n');
   
-  const repo = new CodeRepository();
+  const repo = buildRepoAnalyzer();
   
   // Add files manually
   repo.addFile('service1.ts', 'service1.ts', `

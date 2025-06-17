@@ -12,15 +12,100 @@ import {
   MinHashConfig,
   SimHashConfig
 } from '../core/hash.ts';
-import { extractTokens, extractFeatures } from '../core/tokens.ts';
-import { calculateAPTEDSimilarity } from '../core/apted.ts';
+import { 
+  extractTokensFromAST,
+  extractFeaturesFromAST
+} from '../core/tokens.ts';
+import { parseTypeScript, parseTypeScriptAsync, parseMultipleAsync } from '../parser.ts';
+import type { ParseResult } from 'oxc-parser';
+import { 
+  calculateAPTEDSimilarityFromAST
+} from '../core/apted.ts';
 
 export interface CodeFile {
   id: string;
   path: string;
   content: string;
+  ast?: ParseResult; // Pre-parsed AST
   minHashSignature?: number[];
   simHash?: bigint;
+}
+
+// Helper functions for sync token/feature extraction
+function extractTokens(code: string): Set<string> {
+  try {
+    const ast = parseTypeScript("file.ts", code);
+    return extractTokensFromAST(ast);
+  } catch (error) {
+    // On parse error, fall back to simple tokenization
+    const tokens = new Set<string>();
+    const words = code.match(/\b\w+\b/g) || [];
+    words.forEach(word => tokens.add(word));
+    return tokens;
+  }
+}
+
+function extractFeatures(code: string): Map<string, number> {
+  try {
+    const ast = parseTypeScript("file.ts", code);
+    return extractFeaturesFromAST(ast);
+  } catch (error) {
+    // Fallback to simple feature extraction
+    const features = new Map<string, number>();
+    const words = code.match(/\b\w+\b/g) || [];
+    for (const word of words) {
+      features.set(word, (features.get(word) || 0) + 1);
+    }
+    return features;
+  }
+}
+
+// Helper functions for async token/feature extraction
+async function extractTokensAsync(code: string): Promise<Set<string>> {
+  try {
+    const ast = await parseTypeScriptAsync("file.ts", code);
+    return extractTokensFromAST(ast);
+  } catch (error) {
+    // On parse error, fall back to simple tokenization
+    const tokens = new Set<string>();
+    const words = code.match(/\b\w+\b/g) || [];
+    words.forEach(word => tokens.add(word));
+    return tokens;
+  }
+}
+
+async function extractFeaturesAsync(code: string): Promise<Map<string, number>> {
+  try {
+    const ast = await parseTypeScriptAsync("file.ts", code);
+    return extractFeaturesFromAST(ast);
+  } catch (error) {
+    // Fallback to simple feature extraction
+    const features = new Map<string, number>();
+    const words = code.match(/\b\w+\b/g) || [];
+    for (const word of words) {
+      features.set(word, (features.get(word) || 0) + 1);
+    }
+    return features;
+  }
+}
+
+// Helper function for async APTED similarity calculation
+async function calculateAPTEDSimilarityAsync(
+  code1: string,
+  code2: string,
+  options: any = {}
+): Promise<number> {
+  try {
+    const [ast1, ast2] = await Promise.all([
+      parseTypeScriptAsync('file1.ts', code1),
+      parseTypeScriptAsync('file2.ts', code2)
+    ]);
+
+    return calculateAPTEDSimilarityFromAST(ast1, ast2, options);
+  } catch (error) {
+    // Fall back to simple string comparison
+    return code1 === code2 ? 1.0 : 0.0;
+  }
 }
 
 export interface SimilarityResult {
@@ -54,8 +139,8 @@ export function createRepository(
 }
 
 /**
- * Load multiple files into the repository
- * Note: This function now accepts pre-loaded file data to avoid IO operations
+ * Load multiple files into the repository (synchronous)
+ * @deprecated Use loadFilesAsync for better performance
  */
 export function loadFiles(
   repo: RepositoryState,
@@ -69,7 +154,37 @@ export function loadFiles(
 }
 
 /**
- * Add a single file to the repository
+ * Load multiple files into the repository with parallel parsing
+ */
+export async function loadFilesAsync(
+  repo: RepositoryState,
+  files: Array<{ id: string; path: string; content: string }>
+): Promise<RepositoryState> {
+  // Parse all files in parallel
+  const parseResults = await parseMultipleAsync(
+    files.map(f => ({ filename: f.path, code: f.content }))
+  );
+  
+  let newRepo = repo;
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const parseResult = parseResults[i];
+    
+    if (parseResult.error) {
+      console.error(`Failed to parse ${file.path}:`, parseResult.error);
+      // Add file without AST
+      newRepo = await addFileAsync(newRepo, file.id, file.path, file.content);
+    } else {
+      // Add file with pre-parsed AST
+      newRepo = await addFileWithASTAsync(newRepo, file.id, file.path, file.content, parseResult.ast);
+    }
+  }
+  return newRepo;
+}
+
+/**
+ * Add a single file to the repository (synchronous)
+ * @deprecated Use addFileAsync for better performance
  */
 export function addFile(
   repo: RepositoryState,
@@ -89,6 +204,104 @@ export function addFile(
     id,
     path,
     content,
+    minHashSignature,
+    simHash: simHashValue
+  };
+  
+  // Create a new repository state with the added file
+  const newFiles = new Map(repo.files);
+  newFiles.set(id, file);
+  
+  // Create a new LSH state with deep copy of bands
+  const newLSHState: LSHState = {
+    ...repo.lshState,
+    bands: new Map(Array.from(repo.lshState.bands.entries()).map(
+      ([band, map]) => [band, new Map(map)]
+    ))
+  };
+  
+  // Add to LSH index
+  addToLSH(newLSHState, id, minHashSignature);
+  
+  return {
+    ...repo,
+    files: newFiles,
+    lshState: newLSHState
+  };
+}
+
+/**
+ * Add a single file to the repository (asynchronous)
+ */
+export async function addFileAsync(
+  repo: RepositoryState,
+  id: string,
+  path: string,
+  content: string
+): Promise<RepositoryState> {
+  // Parse and extract in parallel
+  const [ast, tokens, features] = await Promise.all([
+    parseTypeScriptAsync(path, content).catch(() => null),
+    extractTokensAsync(content),
+    extractFeaturesAsync(content)
+  ]);
+  
+  const minHashSignature = generateMinHashSignature(tokens, repo.minHashConfig);
+  const simHashValue = generateSimHash(features, repo.simHashConfig);
+  
+  const file: CodeFile = {
+    id,
+    path,
+    content,
+    ast: ast || undefined,
+    minHashSignature,
+    simHash: simHashValue
+  };
+  
+  // Create a new repository state with the added file
+  const newFiles = new Map(repo.files);
+  newFiles.set(id, file);
+  
+  // Create a new LSH state with deep copy of bands
+  const newLSHState: LSHState = {
+    ...repo.lshState,
+    bands: new Map(Array.from(repo.lshState.bands.entries()).map(
+      ([band, map]) => [band, new Map(map)]
+    ))
+  };
+  
+  // Add to LSH index
+  addToLSH(newLSHState, id, minHashSignature);
+  
+  return {
+    ...repo,
+    files: newFiles,
+    lshState: newLSHState
+  };
+}
+
+/**
+ * Add a file with pre-parsed AST
+ */
+async function addFileWithASTAsync(
+  repo: RepositoryState,
+  id: string,
+  path: string,
+  content: string,
+  ast: ParseResult
+): Promise<RepositoryState> {
+  // Extract from pre-parsed AST
+  const tokens = extractTokensFromAST(ast);
+  const features = extractFeaturesFromAST(ast);
+  
+  const minHashSignature = generateMinHashSignature(tokens, repo.minHashConfig);
+  const simHashValue = generateSimHash(features, repo.simHashConfig);
+  
+  const file: CodeFile = {
+    id,
+    path,
+    content,
+    ast,
     minHashSignature,
     simHash: simHashValue
   };
@@ -200,9 +413,10 @@ export function findSimilarBySimHash(
 }
 
 /**
- * Find similar files using APTED (more accurate but slower)
+ * Find similar files using APTED (more accurate but slower) - synchronous
+ * @deprecated Use findSimilarByAPTEDAsync for better performance
  */
-export function findSimilarByAPTED(
+function findSimilarByAPTED(
   repo: RepositoryState,
   fileId: string,
   threshold: number = 0.7,
@@ -231,9 +445,24 @@ export function findSimilarByAPTED(
     const otherFile = repo.files.get(otherId);
     if (!otherFile) continue;
     
-    const similarity = calculateAPTEDSimilarity(file.content, otherFile.content, {
-      renameCost: 0.3
-    });
+    // Use pre-parsed AST if available
+    let similarity: number;
+    if (file.ast && otherFile.ast) {
+      similarity = calculateAPTEDSimilarityFromAST(file.ast, otherFile.ast, {
+        renameCost: 0.3
+      });
+    } else {
+      // Parse synchronously for backward compatibility
+      try {
+        const ast1 = parseTypeScript('file1.ts', file.content);
+        const ast2 = parseTypeScript('file2.ts', otherFile.content);
+        similarity = calculateAPTEDSimilarityFromAST(ast1, ast2, {
+          renameCost: 0.3
+        });
+      } catch {
+        similarity = file.content === otherFile.content ? 1.0 : 0.0;
+      }
+    }
     
     if (similarity >= threshold) {
       results.push({
@@ -245,6 +474,67 @@ export function findSimilarByAPTED(
     }
   }
   
+  return results.sort((a, b) => b.similarity - a.similarity);
+}
+
+/**
+ * Find similar files using APTED (asynchronous)
+ */
+export async function findSimilarByAPTEDAsync(
+  repo: RepositoryState,
+  fileId: string,
+  threshold: number = 0.7,
+  maxComparisons: number = 100
+): Promise<SimilarityResult[]> {
+  const file = repo.files.get(fileId);
+  if (!file) return [];
+  
+  // First, get candidates using MinHash
+  const candidates = findSimilarByMinHash(repo, fileId, threshold * 0.7);
+  const candidateIds = new Set(candidates.map(c => c.file2));
+  
+  // If not enough candidates, add some based on SimHash
+  if (candidateIds.size < maxComparisons / 2) {
+    const simHashCandidates = findSimilarBySimHash(repo, fileId, threshold * 0.7);
+    for (const candidate of simHashCandidates) {
+      candidateIds.add(candidate.file2);
+      if (candidateIds.size >= maxComparisons) break;
+    }
+  }
+  
+  // Calculate precise APTED similarity for candidates in parallel
+  const comparisons = await Promise.all(
+    Array.from(candidateIds).map(async (otherId) => {
+      const otherFile = repo.files.get(otherId);
+      if (!otherFile) return null;
+      
+      // Use pre-parsed AST if available
+      let similarity: number;
+      if (file.ast && otherFile.ast) {
+        similarity = calculateAPTEDSimilarityFromAST(file.ast, otherFile.ast, {
+          renameCost: 0.3
+        });
+      } else {
+        similarity = await calculateAPTEDSimilarityAsync(file.content, otherFile.content, {
+          renameCost: 0.3
+        });
+      }
+      
+      if (similarity >= threshold) {
+        return {
+          file1: fileId,
+          file2: otherId,
+          similarity,
+          method: 'apted' as const
+        };
+      }
+      return null;
+    })
+  );
+  
+  const results: SimilarityResult[] = comparisons
+    .filter((r) => r !== null)
+    .map(r => r!);
   return results.sort((a, b) => b.similarity - a.similarity);
 }
 

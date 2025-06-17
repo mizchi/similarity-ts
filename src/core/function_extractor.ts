@@ -1,7 +1,8 @@
 // Function extraction - Step 1: Simple refactoring without context management
 import { parseTypeScript } from '../parser.ts';
-import { calculateAPTEDSimilarity } from './apted.ts';
+import { calculateAPTEDSimilarityFromAST } from './apted.ts';
 import { traverseAST, createVisitor } from './ast_traversal.ts';
+import { normalizeSemantics } from './semantic_normalizer.ts';
 
 export interface FunctionDefinition {
   name: string;
@@ -222,13 +223,16 @@ export function compareFunctions(
   const sameParamCount = (func1.parameters?.length || 0) === (func2.parameters?.length || 0);
   
   // Normalize bodies for comparison
-  const body1 = normalizeFunctionBody(func1, {
-    replaceThis: options.ignoreThis,
+  const type1 = func1.type === 'constructor' ? 'method' : func1.type;
+  const type2 = func2.type === 'constructor' ? 'method' : func2.type;
+  
+  const body1 = normalizeSemantics(func1.body, type1, func1.parameters || [], {
+    normalizeThis: options.ignoreThis,
     normalizeParams: options.ignoreParamNames
   });
   
-  const body2 = normalizeFunctionBody(func2, {
-    replaceThis: options.ignoreThis,
+  const body2 = normalizeSemantics(func2.body, type2, func2.parameters || [], {
+    normalizeThis: options.ignoreThis,
     normalizeParams: options.ignoreParamNames
   });
   
@@ -281,7 +285,14 @@ function extractScopeVariables(body: string): string[] {
  */
 function calculateBodySimilarity(body1: string, body2: string): number {
   // Use APTED algorithm for more accurate AST-based comparison
-  return calculateAPTEDSimilarity(body1, body2);
+  try {
+    const ast1 = parseTypeScript('body1.ts', body1);
+    const ast2 = parseTypeScript('body2.ts', body2);
+    return calculateAPTEDSimilarityFromAST(ast1, ast2);
+  } catch {
+    // Fallback to simple comparison
+    return body1 === body2 ? 1.0 : 0.0;
+  }
 }
 
 /**

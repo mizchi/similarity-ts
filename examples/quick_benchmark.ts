@@ -1,5 +1,5 @@
 import { SimilarityBenchmark } from '../src/benchmark.ts';
-import { CodeRepository } from '../src/index.ts';
+import { buildRepoAnalyzer } from '../src/index.ts';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
@@ -58,7 +58,7 @@ async function quickBenchmark() {
   // 3. Multi-file operations
   console.log('\n\n--- Multi-File Operations ---');
   
-  const repo = CodeRepository();
+  const repo = buildRepoAnalyzer();
   
   // Add 20 test files
   for (let i = 0; i < 20; i++) {

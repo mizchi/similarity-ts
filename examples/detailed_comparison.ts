@@ -1,4 +1,4 @@
-import { CodeRepository, calculateSimilarity, calculateAPTEDSimilarity } from '../src/index.ts';
+import { buildRepoAnalyzer, calculateSimilarity, calculateAPTEDSimilarity } from '../src/index.ts';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
@@ -6,7 +6,7 @@ async function detailedComparison() {
   console.log('=== Detailed Code Comparison ===\n');
 
   const projectPath = join(new URL('.', import.meta.url).pathname, 'sample_project');
-  const repo = CodeRepository();
+  const repo = buildRepoAnalyzer();
   await repo.loadFiles('src/**/*.ts', projectPath);
 
   // Compare services in detail

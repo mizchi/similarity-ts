@@ -1,148 +1,148 @@
-# デッドコード検出 (Dead Code Elimination)
+# Dead Code Elimination
 
-## 概要
+## Overview
 
-このドキュメントでは、TypeScriptプロジェクトでデッドコードを検出する方法を説明します。
+This document explains how to detect dead code in TypeScript projects.
 
-## ツール: ts-remove-unused (tsr)
+## Tool: ts-remove-unused (tsr)
 
-### インストールと実行
+### Installation and Execution
 
 ```bash
-# npxで直接実行（推奨）
+# Run directly with npx (recommended)
 npx -y tsr [options] [...entrypoints]
 
-# または、旧パッケージ名での実行（非推奨）
-npx -y @line/ts-remove-unused  # -> tsrを使うよう警告が出る
+# Or, run with old package name (deprecated)
+npx -y @line/ts-remove-unused  # -> warns to use tsr
 ```
 
-### 基本的な使い方
+### Basic Usage
 
-1. **ヘルプの確認**
+1. **Check help**
 ```bash
 npx -y tsr --help
 ```
 
-2. **単一エントリーポイントでの検査**
+2. **Check with single entrypoint**
 ```bash
 npx -y tsr 'src/index\.ts$'
 ```
 
-3. **複数エントリーポイントでの検査**
+3. **Check with multiple entrypoints**
 ```bash
 npx -y tsr 'src/index\.ts$' 'src/cli/cli\.ts$'
 ```
 
-4. **テストファイルを含めた検査**
+4. **Check including test files**
 ```bash
 npx -y tsr 'src/index\.ts$' 'src/cli/cli\.ts$' 'test/.*\.ts$' 'src/.*_test\.ts$'
 ```
 
-### オプション
+### Options
 
-- `-w, --write`: 変更を直接ファイルに書き込む
-- `-r, --recursive`: プロジェクトがクリーンになるまで再帰的に検査
-- `-p, --project <file>`: カスタムtsconfig.jsonのパス
-- `--include-d-ts`: .d.tsファイルも検査対象に含める
+- `-w, --write`: Write changes directly to files
+- `-r, --recursive`: Recursively check until project is clean
+- `-p, --project <file>`: Path to custom tsconfig.json
+- `--include-d-ts`: Include .d.ts files in the check
 
-## 実際の分析例
+## Real Analysis Example
 
-### 1. 初回実行
+### 1. Initial Run
 ```bash
 $ npx -y tsr 'src/index\.ts$'
 ```
 
-結果：
-- 67個の未使用エクスポート
-- 15個の未使用ファイル
+Results:
+- 67 unused exports
+- 15 unused files
 
-### 2. CLIを含めた実行
+### 2. Run including CLI
 ```bash
 $ npx -y tsr 'src/index\.ts$' 'src/cli/cli\.ts$'
 ```
 
-結果：
-- 未使用ファイルが14個に減少（CLIで使用されているものを除外）
+Results:
+- Unused files reduced to 14 (excluding those used by CLI)
 
-### 3. テストファイルを含めた実行
+### 3. Run including test files
 ```bash
 $ npx -y tsr 'src/index\.ts$' 'src/cli/cli\.ts$' 'test/.*\.ts$' 'src/.*_test\.ts$'
 ```
 
-結果：
-- 未使用ファイルが4個に減少（テストで使用されているものを除外）
+Results:
+- Unused files reduced to 4 (excluding those used in tests)
 
-## 分析結果の解釈
+## Interpreting Analysis Results
 
-### 未使用エクスポートの種類
+### Types of Unused Exports
 
-1. **型定義** (`oxc_types.ts`)
-   - 多数のAST型がエクスポートされているが未使用
-   - 対応: 実際に使用される型のみをエクスポート
+1. **Type Definitions** (`oxc_types.ts`)
+   - Many AST types are exported but unused
+   - Action: Export only actually used types
 
-2. **内部ユーティリティ関数**
-   - 例: `getNodeLabel`, `getNodeChildren` (apted.ts)
-   - 対応: 内部実装なので`export`を削除
+2. **Internal Utility Functions**
+   - Example: `getNodeLabel`, `getNodeChildren` (apted.ts)
+   - Action: Remove `export` as they are internal implementation
 
-3. **ヘルパー関数**
-   - 例: `collectNodes`, `findNode` (ast_traversal.ts)
-   - 対応: 公開APIとして必要か検討
+3. **Helper Functions**
+   - Example: `collectNodes`, `findNode` (ast_traversal.ts)
+   - Action: Consider if needed as public API
 
-### 未使用ファイルの種類
+### Types of Unused Files
 
-1. **テスト専用ファイル**
-   - `*_test.ts`ファイル
-   - 対応: テストエントリーポイントとして含める
+1. **Test-only Files**
+   - `*_test.ts` files
+   - Action: Include as test entrypoints
 
-2. **重複機能**
-   - 例: `function_body_comparer.ts`（他に統合済み）
-   - 対応: 削除
+2. **Duplicate Functionality**
+   - Example: `function_body_comparer.ts` (integrated elsewhere)
+   - Action: Delete
 
-3. **実験的コード**
-   - 例: `ast_traversal_with_context.ts`
-   - 対応: 削除または`experimental/`へ移動
+3. **Experimental Code**
+   - Example: `ast_traversal_with_context.ts`
+   - Action: Delete or move to `experimental/`
 
-## 推奨ワークフロー
+## Recommended Workflow
 
-1. **まず分析のみ実行**
+1. **First run analysis only**
 ```bash
 npx -y tsr 'src/index\.ts$' 'src/cli/cli\.ts$'
 ```
 
-2. **結果を確認して対応方針を決定**
-- 削除可能なもの
-- 内部実装としてexportを削除するもの
-- 将来のために残すもの
+2. **Review results and decide action plan**
+- Items that can be deleted
+- Items to remove export but keep as internal implementation
+- Items to keep for future use
 
-3. **段階的にクリーンアップ**
-- まず明らかに不要なものを削除
-- 次に内部実装の`export`を削除
-- 最後に型定義を整理
+3. **Clean up incrementally**
+- First delete obviously unnecessary items
+- Then remove `export` from internal implementations
+- Finally organize type definitions
 
-4. **自動修正（慎重に）**
+4. **Automatic fixes (carefully)**
 ```bash
-# バックアップを取ってから実行
+# Take backup before running
 git stash
 npx -y tsr --write 'src/index\.ts$' 'src/cli/cli\.ts$'
-git diff  # 変更内容を確認
+git diff  # Check changes
 ```
 
-## 注意事項
+## Notes
 
-1. **動的インポート**: tsrは静的解析のため、動的インポートは検出できない
-2. **型のみのエクスポート**: `export type`も未使用として検出される
-3. **再エクスポート**: バレルファイル（index.ts）の扱いに注意
+1. **Dynamic imports**: tsr uses static analysis and cannot detect dynamic imports
+2. **Type-only exports**: `export type` is also detected as unused
+3. **Re-exports**: Be careful with barrel files (index.ts)
 
-## このプロジェクトでの実例
+## Example in This Project
 
-1. **診断で発見した未使用コード**
-   - `semantic_normalizer.ts`の未使用インポート
-   - `extractSemanticPatterns`関数（将来使用の可能性ありとしてコメントアウト）
+1. **Unused code found in diagnostics**
+   - Unused imports in `semantic_normalizer.ts`
+   - `extractSemanticPatterns` function (commented out for potential future use)
 
-2. **対応**
-   - 未使用インポートを削除
-   - 将来使用する可能性のあるコードはコメントアウトして保持
+2. **Actions taken**
+   - Removed unused imports
+   - Kept potentially useful code commented out
 
-3. **結果**
-   - コードベースがよりクリーンに
-   - ビルドサイズの削減が期待できる
+3. **Results**
+   - Cleaner codebase
+   - Expected reduction in build size

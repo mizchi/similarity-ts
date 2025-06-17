@@ -113,8 +113,8 @@ function testFeatureExtraction() {
   console.log(`Test: ${features.size > 3 ? 'PASS' : 'FAIL'}\n`);
 }
 
-async function testCodeRepository() {
-  console.log('=== Testing Code Repository ===\n');
+async function testRepositoryFunctions() {
+  console.log('=== Testing Repository Functions ===\n');
   
   let repo = createRepository();
   
@@ -160,4 +160,4 @@ testMinHash();
 testSimHash();
 testTokenExtraction();
 testFeatureExtraction();
-testCodeRepository().catch(console.error);
+testRepositoryFunctions().catch(console.error);

@@ -1,4 +1,4 @@
-import { calculateSimilarity, calculateAPTEDSimilarity, CodeRepository } from '../src/index.ts';
+import { calculateSimilarity, calculateAPTEDSimilarity, buildRepoAnalyzer } from '../src/index.ts';
 import { performance } from 'perf_hooks';
 
 async function measureTime(fn: () => any | Promise<any>): Promise<number> {
@@ -65,7 +65,7 @@ async function runPerformanceTest() {
   // Test multi-file operations
   console.log('\n\n2. Multi-File Operations Performance\n');
   
-  const repo = CodeRepository();
+  const repo = buildRepoAnalyzer();
   const fileCounts = [10, 20, 50];
   
   // Generate repository
@@ -80,7 +80,7 @@ async function runPerformanceTest() {
   
   for (const count of fileCounts) {
     // Create a subset repository
-    const subRepo = CodeRepository();
+    const subRepo = buildRepoAnalyzer();
     for (let i = 0; i < count; i++) {
       const code = generateTestCode(20 + (i % 30));
       await subRepo.addFile(`file${i}.ts`, `file${i}.ts`, code);
@@ -97,7 +97,7 @@ async function runPerformanceTest() {
   console.log('\n\n3. Memory Usage\n');
   
   const memBefore = process.memoryUsage().heapUsed / 1024 / 1024;
-  const bigRepo = CodeRepository();
+  const bigRepo = buildRepoAnalyzer();
   
   for (let i = 0; i < 100; i++) {
     const code = generateTestCode(50);

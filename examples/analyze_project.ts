@@ -1,10 +1,10 @@
-import { CodeRepository } from '../src/index.ts';
+import { buildRepoAnalyzer } from '../src/index.ts';
 import { join } from 'path';
 
 async function analyzeProject() {
   console.log('=== Sample Project Code Similarity Analysis ===\n');
 
-  const repo = CodeRepository();
+  const repo = buildRepoAnalyzer();
   const projectPath = join(new URL('.', import.meta.url).pathname, 'sample_project');
 
   // Load all TypeScript files from the sample project

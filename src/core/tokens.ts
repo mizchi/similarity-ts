@@ -1,14 +1,13 @@
 // Token extraction functions from code_index.ts
-import { parseTypeScript } from '../parser.ts';
+import type { ParseResult } from 'oxc-parser';
 
 /**
- * Extract tokens from TypeScript AST
+ * Extract tokens from pre-parsed AST
  */
-export function extractTokens(code: string): Set<string> {
+export function extractTokensFromAST(ast: ParseResult): Set<string> {
   const tokens = new Set<string>();
 
   try {
-    const ast = parseTypeScript("file.ts", code);
 
     const visit = (node: any) => {
       if (!node || typeof node !== "object") return;
@@ -74,22 +73,21 @@ export function extractTokens(code: string): Set<string> {
 
     visit(ast.program);
   } catch (error) {
-    // If parsing fails, fall back to simple tokenization
-    const simpleTokens = code.match(/\b\w+\b/g) || [];
-    simpleTokens.forEach((token) => tokens.add(token));
+    // No fallback needed for AST-based extraction
+    console.error('Error processing AST:', error);
   }
 
   return tokens;
 }
 
+
 /**
- * Extract weighted features for SimHash
+ * Extract weighted features from pre-parsed AST
  */
-export function extractFeatures(code: string): Map<string, number> {
+export function extractFeaturesFromAST(ast: ParseResult): Map<string, number> {
   const features = new Map<string, number>();
 
   try {
-    const ast = parseTypeScript("file.ts", code);
 
     const visit = (node: any, depth: number = 0) => {
       if (!node || typeof node !== "object") return;
@@ -133,12 +131,10 @@ export function extractFeatures(code: string): Map<string, number> {
 
     visit(ast.program);
   } catch (error) {
-    // Fallback to simple feature extraction
-    const words = code.match(/\b\w+\b/g) || [];
-    for (const word of words) {
-      features.set(word, (features.get(word) || 0) + 1);
-    }
+    // No fallback needed for AST-based extraction
+    console.error('Error processing AST:', error);
   }
 
   return features;
 }
+
