@@ -1,5 +1,6 @@
 // APTED (All Path Tree Edit Distance) algorithm implementation with proper types
 import { astToString } from './ast.ts';
+import { parseTypeScript } from '../parser.ts';
 import { levenshtein } from './levenshtein.ts';
 import type { 
   ASTNode,
@@ -146,7 +147,8 @@ function getSubtreeSize(node: TreeNode): number {
 function computeChildrenAlignment(
   node1Children: TreeNode[],
   node2Children: TreeNode[],
-  costMatrix: Map<string, Map<string, number>>
+  costMatrix: Map<string, Map<string, number>>,
+  options: APTEDOptions = {}
 ): [number, Map<TreeNode, TreeNode | null>] {
   const m = node1Children.length;
   const n = node2Children.length;
@@ -154,12 +156,14 @@ function computeChildrenAlignment(
   // dp[i][j] = minimum cost to align first i children of node1 with first j children of node2
   const dp: number[][] = Array(m + 1).fill(0).map(() => Array(n + 1).fill(0));
   
+  const { deleteCost = 1, insertCost = 1 } = options;
+  
   // Initialize base cases
   for (let i = 1; i <= m; i++) {
-    dp[i][0] = dp[i - 1][0] + getSubtreeSize(node1Children[i - 1]);
+    dp[i][0] = dp[i - 1][0] + deleteCost * getSubtreeSize(node1Children[i - 1]);
   }
   for (let j = 1; j <= n; j++) {
-    dp[0][j] = dp[0][j - 1] + getSubtreeSize(node2Children[j - 1]);
+    dp[0][j] = dp[0][j - 1] + insertCost * getSubtreeSize(node2Children[j - 1]);
   }
   
   // Fill DP table
@@ -170,8 +174,8 @@ function computeChildrenAlignment(
       const editCost = costMatrix.get(child1.id)?.get(child2.id) || 0;
       
       dp[i][j] = Math.min(
-        dp[i - 1][j] + getSubtreeSize(child1), // Delete child1
-        dp[i][j - 1] + getSubtreeSize(child2), // Insert child2
+        dp[i - 1][j] + deleteCost * getSubtreeSize(child1), // Delete child1
+        dp[i][j - 1] + insertCost * getSubtreeSize(child2), // Insert child2
         dp[i - 1][j - 1] + editCost // Match/Edit child1 to child2
       );
     }
@@ -192,15 +196,15 @@ function computeChildrenAlignment(
       const child2 = node2Children[j - 1];
       const editCost = costMatrix.get(child1.id)?.get(child2.id) || 0;
       
-      const deleteCost = dp[i - 1][j] + getSubtreeSize(child1);
-      const insertCost = dp[i][j - 1] + getSubtreeSize(child2);
+      const deleteNodeCost = dp[i - 1][j] + deleteCost * getSubtreeSize(child1);
+      const insertNodeCost = dp[i][j - 1] + insertCost * getSubtreeSize(child2);
       const matchCost = dp[i - 1][j - 1] + editCost;
       
-      if (matchCost <= deleteCost && matchCost <= insertCost) {
+      if (matchCost <= deleteNodeCost && matchCost <= insertNodeCost) {
         alignment.set(child1, child2);
         i--;
         j--;
-      } else if (deleteCost <= insertCost) {
+      } else if (deleteNodeCost <= insertNodeCost) {
         alignment.set(child1, null);
         i--;
       } else {
@@ -265,7 +269,8 @@ export function computeEditDistance(
       const [alignmentCost] = computeChildrenAlignment(
         node1.children,
         node2.children,
-        childCostMatrix
+        childCostMatrix,
+        options
       );
       
       renamePlusCost += alignmentCost;
@@ -288,28 +293,40 @@ export function countNodes(node: TreeNode): number {
 
 /**
  * Calculate APTED similarity from pre-parsed ASTs
+ * @deprecated Use calculateTSED from tsed.ts instead
  */
 export function calculateAPTEDSimilarityFromAST(
   ast1: ParseResult,
   ast2: ParseResult,
   options: APTEDOptions = {}
 ): number {
-  try {
-    const tree1 = oxcToTreeNode(ast1.program);
-    const tree2 = oxcToTreeNode(ast2.program);
+  const tree1 = oxcToTreeNode(ast1.program);
+  const tree2 = oxcToTreeNode(ast2.program);
 
-    const distance = computeEditDistance(tree1, tree2, options);
-    const maxNodes = Math.max(countNodes(tree1), countNodes(tree2));
+  const distance = computeEditDistance(tree1, tree2, options);
+  const maxNodes = Math.max(countNodes(tree1), countNodes(tree2));
 
-    // Normalize to 0-1 range using TSED formula
-    return Math.max(1 - distance / maxNodes, 0);
-  } catch (error) {
-    // console.error('Error in APTED calculation:', error);
-    return 0.0;
-  }
+  // Normalize to 0-1 range using TSED formula
+  return Math.max(1 - distance / maxNodes, 0);
 }
 
 
+
+/**
+ * Compare structures using APTED algorithm with typed AST nodes
+ */
+/**
+ * Calculate APTED similarity from code strings
+ */
+export function calculateAPTEDSimilarity(
+  code1: string,
+  code2: string,
+  options: APTEDOptions = {}
+): number {
+  const ast1 = parseTypeScript('file1.ts', code1);
+  const ast2 = parseTypeScript('file2.ts', code2);
+  return calculateAPTEDSimilarityFromAST(ast1, ast2, options);
+}
 
 /**
  * Compare structures using APTED algorithm with typed AST nodes

@@ -18,9 +18,7 @@ import {
 } from '../core/tokens.ts';
 import { parseTypeScript, parseTypeScriptAsync, parseMultipleAsync } from '../parser.ts';
 import type { ParseResult } from 'oxc-parser';
-import { 
-  calculateAPTEDSimilarityFromAST
-} from '../core/apted.ts';
+import { calculateTSED } from '../core/tsed.ts';
 
 export interface CodeFile {
   id: string;
@@ -101,7 +99,7 @@ async function calculateAPTEDSimilarityAsync(
       parseTypeScriptAsync('file2.ts', code2)
     ]);
 
-    return calculateAPTEDSimilarityFromAST(ast1, ast2, options);
+    return calculateTSED(ast1, ast2, options);
   } catch (error) {
     // Fall back to simple string comparison
     return code1 === code2 ? 1.0 : 0.0;
@@ -448,7 +446,7 @@ function findSimilarByAPTED(
     // Use pre-parsed AST if available
     let similarity: number;
     if (file.ast && otherFile.ast) {
-      similarity = calculateAPTEDSimilarityFromAST(file.ast, otherFile.ast, {
+      similarity = calculateTSED(file.ast, otherFile.ast, {
         renameCost: 0.3
       });
     } else {
@@ -456,7 +454,7 @@ function findSimilarByAPTED(
       try {
         const ast1 = parseTypeScript('file1.ts', file.content);
         const ast2 = parseTypeScript('file2.ts', otherFile.content);
-        similarity = calculateAPTEDSimilarityFromAST(ast1, ast2, {
+        similarity = calculateTSED(ast1, ast2, {
           renameCost: 0.3
         });
       } catch {
@@ -511,7 +509,7 @@ export async function findSimilarByAPTEDAsync(
       // Use pre-parsed AST if available
       let similarity: number;
       if (file.ast && otherFile.ast) {
-        similarity = calculateAPTEDSimilarityFromAST(file.ast, otherFile.ast, {
+        similarity = calculateTSED(file.ast, otherFile.ast, {
           renameCost: 0.3
         });
       } else {

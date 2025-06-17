@@ -9,10 +9,10 @@ export {
 import { astToString } from "./core/ast.ts";
 import { calculateSimilarity as calculateLevenshteinSimilarity, compareStructures } from "./core/ast.ts";
 import {
-  calculateAPTEDSimilarityFromAST,
   compareStructuresAPTED,
   type APTEDOptions,
 } from "./core/apted.ts";
+import { calculateTSED as calculateAPTEDSimilarityFromAST } from "./core/tsed.ts";
 import { parseTypeScript, parseTypeScriptAsync } from "./parser.ts";
 
 // Import repository functionality
@@ -36,6 +36,13 @@ import { loadFilesFromPattern } from "./cli/io.ts";
 // Re-export types and functions
 export type { CodeFile, SimilarityResult, RepositoryState } from "./cli/repo_checker.ts";
 export type { APTEDOptions } from "./core/apted.ts";
+export { 
+  calculateTSED,
+  calculateTSEDWithMetrics,
+  DEFAULT_TSED_OPTIONS,
+  REFACTORING_TSED_OPTIONS,
+  type TSEDOptions
+} from "./core/tsed.ts";
 export type { ASTNode, Program } from "./core/oxc_types.ts";
 export { 
   addFileAsync,
