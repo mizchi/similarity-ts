@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
-import { CodeSimilarity } from '../src/index.ts';
+import { calculateSimilarity, calculateAPTEDSimilarity } from '../src/index.ts';
 
 const FIXTURES_DIR = join(import.meta.dirname, '__fixtures__');
 const SIMILAR_DIR = join(FIXTURES_DIR, 'similar');
@@ -23,11 +23,6 @@ interface TestResult {
 }
 
 function runFixtureTests() {
-  // Create similarity instances
-  const levenshteinSim = CodeSimilarity();
-  const aptedSim = CodeSimilarity({ useAPTED: true });
-  const aptedCustomSim = CodeSimilarity({ useAPTED: true, config: { renameCost: 0.3 } });
-
   const results: TestResult[] = [];
   
   console.log('=== Fixture-based Similarity Tests ===\n');
@@ -48,9 +43,9 @@ function runFixtureTests() {
     const code1 = readFileSync(join(SIMILAR_DIR, file1), 'utf-8');
     const code2 = readFileSync(join(SIMILAR_DIR, file2), 'utf-8');
     
-    const levScore = levenshteinSim.calculateSimilarity(code1, code2);
-    const aptedScore = aptedSim.calculateSimilarity(code1, code2);
-    const aptedCustomScore = aptedCustomSim.calculateSimilarity(code1, code2);
+    const levScore = calculateSimilarity(code1, code2);
+    const aptedScore = calculateAPTEDSimilarity(code1, code2);
+    const aptedCustomScore = calculateAPTEDSimilarity(code1, code2, { renameCost: 0.3 });
     
     const passed = levScore >= SIMILAR_THRESHOLD || 
                    aptedScore >= SIMILAR_THRESHOLD || 
@@ -91,9 +86,9 @@ function runFixtureTests() {
     const code1 = readFileSync(join(DISSIMILAR_DIR, file1), 'utf-8');
     const code2 = readFileSync(join(DISSIMILAR_DIR, file2), 'utf-8');
     
-    const levScore = levenshteinSim.calculateSimilarity(code1, code2);
-    const aptedScore = aptedSim.calculateSimilarity(code1, code2);
-    const aptedCustomScore = aptedCustomSim.calculateSimilarity(code1, code2);
+    const levScore = calculateSimilarity(code1, code2);
+    const aptedScore = calculateAPTEDSimilarity(code1, code2);
+    const aptedCustomScore = calculateAPTEDSimilarity(code1, code2, { renameCost: 0.3 });
     
     const passed = levScore < DISSIMILAR_THRESHOLD || 
                    aptedScore < DISSIMILAR_THRESHOLD || 
@@ -138,9 +133,9 @@ function runFixtureTests() {
     let error = null;
     
     try {
-      levScore = levenshteinSim.calculateSimilarity(code1, code2);
-      aptedScore = aptedSim.calculateSimilarity(code1, code2);
-      aptedCustomScore = aptedCustomSim.calculateSimilarity(code1, code2);
+      levScore = calculateSimilarity(code1, code2);
+      aptedScore = calculateAPTEDSimilarity(code1, code2);
+      aptedCustomScore = calculateAPTEDSimilarity(code1, code2, { renameCost: 0.3 });
     } catch (e) {
       error = e;
     }

@@ -1,13 +1,16 @@
 import { SimilarityBenchmark } from '../src/benchmark.ts';
 import { 
   createRepository,
-  loadFiles,
-  loadFilesFromPattern,
-  addFile,
-  getStatistics,
-  findAllSimilarPairs,
-  readFile
+  loadFilesIntoRepository,
+  findAllSimilarPairs
 } from '../src/index.ts';
+import { 
+  loadFiles as loadFilesCore,
+  addFile,
+  getStatistics
+} from '../src/code_repository.ts';
+import { loadFilesFromPattern } from '../src/io.ts';
+import { readFile } from '../src/io.ts';
 import { join } from 'path';
 
 async function runBenchmarks() {
@@ -21,9 +24,9 @@ async function runBenchmarks() {
   console.log('\n\n=== Real Project Benchmark ===\n');
   
   const projectPath = join(import.meta.dirname, 'sample_project');
-  const repo = createRepository();
+  let repo = createRepository();
   const files = await loadFilesFromPattern('src/**/*.ts', projectPath);
-  loadFiles(repo, files);
+  loadFilesCore(repo, files);
   
   // Load two similar services for comparison
   const userServicePath = join(projectPath, 'src/services/user_service.ts');

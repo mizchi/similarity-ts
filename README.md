@@ -57,40 +57,35 @@ npx ts-similarity ./src -t 0.9 -j -o similarity-report.json
 ### Basic Usage (Levenshtein)
 
 ```typescript
-import { CodeSimilarity } from "./src/index.ts";
-
-const similarity = new CodeSimilarity();
+import { calculateSimilarity } from "./src/index.ts";
 
 const code1 = `function add(a: number, b: number) { return a + b; }`;
 const code2 = `function sum(x: number, y: number) { return x + y; }`;
 
-const score = similarity.calculateSimilarity(code1, code2);
+const score = calculateSimilarity(code1, code2);
 console.log(`Similarity: ${(score * 100).toFixed(1)}%`);
 ```
 
 ### Using APTED Algorithm
 
 ```typescript
-import { CodeSimilarity } from "./src/index.ts";
+import { calculateAPTEDSimilarity } from "./src/index.ts";
 
 // Use APTED algorithm (recommended for structural comparison)
-const similarity = new CodeSimilarity({ useAPTED: true });
-
-const score = similarity.calculateSimilarity(code1, code2);
+const score = calculateAPTEDSimilarity(code1, code2);
 console.log(`APTED Similarity: ${(score * 100).toFixed(1)}%`);
 ```
 
 **Note**: APTED now uses `renameCost: 0.3` by default for better handling of identifier changes. You can override this:
 
 ```typescript
+import { calculateAPTEDSimilarity } from "./src/index.ts";
+
 // Custom APTED configuration
-const similarity = new CodeSimilarity({
-  useAPTED: true,
-  config: {
-    deleteCost: 1.0,
-    insertCost: 1.0,
-    renameCost: 0.5, // Override default rename cost
-  },
+const score = calculateAPTEDSimilarity(code1, code2, {
+  deleteCost: 1.0,
+  insertCost: 1.0,
+  renameCost: 0.5, // Override default rename cost
 });
 ```
 
@@ -109,8 +104,9 @@ function computePlayerRating(player: Player, extraPoints: number): number {
   return player.baseScore + extraPoints;
 }`;
 
-const similarity = new CodeSimilarity({ useAPTED: true });
-console.log(similarity.calculateSimilarity(code1, code2)); // ~88.8%
+import { calculateAPTEDSimilarity } from "./src/index.ts";
+
+console.log(calculateAPTEDSimilarity(code1, code2)); // ~88.8%
 ```
 
 ### Example 2: Comparing Different Implementations
@@ -140,7 +136,7 @@ const createCalculator = () => {
   };
 };`;
 
-console.log(similarity.calculateSimilarity(code1, code2)); // ~45% (different paradigms)
+console.log(calculateAPTEDSimilarity(code1, code2)); // ~45% (different paradigms)
 ```
 
 ## Examples
@@ -159,17 +155,45 @@ pnpm run test
 
 ## API
 
-### `calculateSimilarity(code1, code2)`
+### Basic Functions
 
-Returns a similarity score between 0 and 1.
+#### `calculateSimilarity(code1: string, code2: string): number`
 
-### `getDetailedReport(code1, code2)`
+Calculate similarity using Levenshtein algorithm. Returns a score between 0 and 1.
 
-Returns detailed information including similarity score and AST structures.
+#### `calculateAPTEDSimilarity(code1: string, code2: string, config?: APTEDConfig): number`
 
-### `parse(code, filename?)`
+Calculate similarity using APTED algorithm. Better for structural comparison and handling renamed identifiers.
+
+#### `getDetailedReport(code1: string, code2: string, options?: SimilarityOptions): DetailedReport`
+
+Returns detailed information including similarity score, AST structures, and algorithm used.
+
+#### `parse(code: string, filename?: string): AST`
 
 Parse TypeScript code and return the AST.
+
+### Repository Functions
+
+#### `createRepository(): Repository`
+
+Create a new empty code repository.
+
+#### `loadFilesIntoRepository(repo: Repository, pattern: string): Promise<Repository>`
+
+Load files from a glob pattern into the repository.
+
+#### `findSimilarFiles(repo: Repository, filePath: string, threshold: number, method?: 'minhash' | 'simhash'): SimilarityResult[]`
+
+Find files similar to a given file.
+
+#### `findAllSimilarPairs(repo: Repository, threshold: number, method?: 'minhash' | 'simhash'): SimilarityResult[]`
+
+Find all pairs of similar files in the repository.
+
+#### `findCodeClones(repo: Repository, threshold?: number): CodeFile[][]`
+
+Find groups of code clones (highly similar files).
 
 ## How it Works
 
@@ -217,18 +241,17 @@ Based on our test suite, here's what different algorithms detect:
 For analyzing similarity across multiple files in a project, use the `CodeRepository` class:
 
 ```typescript
-import { CodeRepository } from "./src/index.ts";
+import { createRepository, loadFilesIntoRepository, findSimilarFiles, findCodeClones } from "./src/index.ts";
 
-const repo = new CodeRepository();
-
-// Load files from a directory
-await repo.loadFiles("src/**/*.ts");
+// Create a repository and load files
+let repo = createRepository();
+repo = await loadFilesIntoRepository(repo, "src/**/*.ts");
 
 // Find similar files
-const similar = repo.findSimilarByMinHash("src/index.ts", 0.7);
+const similar = findSimilarFiles(repo, "src/index.ts", 0.7, 'minhash');
 
 // Find all code clones
-const clones = repo.findClones(0.9);
+const clones = findCodeClones(repo, 0.9);
 ```
 
 ### Indexing Algorithms
@@ -253,14 +276,16 @@ const clones = repo.findClones(0.9);
 ### Example: Finding Code Clones
 
 ```typescript
-const repo = new CodeRepository();
-await repo.loadFiles("**/*.ts");
+import { createRepository, loadFilesIntoRepository, findAllSimilarPairs, findCodeClones } from "./src/index.ts";
+
+let repo = createRepository();
+repo = await loadFilesIntoRepository(repo, "**/*.ts");
 
 // Find all similar pairs
-const pairs = repo.findAllSimilarPairs(0.8);
+const pairs = findAllSimilarPairs(repo, 0.8);
 
 // Group clones
-const cloneGroups = repo.findClones(0.9);
+const cloneGroups = findCodeClones(repo, 0.9);
 ```
 
 ## Performance
