@@ -6,12 +6,12 @@ import {
   calculateSimilarity as calculateSimilarityCore,
   compareStructures as compareStructuresCore,
   astToString
-} from './core/ast_typed.ts';
+} from './core/ast.ts';
 import {
   calculateSimilarityAPTED as calculateAPTEDCore,
   compareStructuresAPTED as compareStructuresAPTEDCore,
   type APTEDOptions
-} from './core/apted_typed.ts';
+} from './core/apted.ts';
 import { parseTypeScript } from './parser.ts';
 
 // Import repository functionality
@@ -30,7 +30,7 @@ import { loadFilesFromPattern } from './cli/io.ts';
 
 // Re-export types
 export type { CodeFile, SimilarityResult } from './cli/code_repository.ts';
-export type { APTEDOptions as APTEDConfig } from './core/apted_typed.ts';
+export type { APTEDOptions as APTEDConfig } from './core/apted.ts';
 export type { ASTNode, Program } from './core/oxc_types.ts';
 
 // Type definitions

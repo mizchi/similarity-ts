@@ -13,7 +13,7 @@ import {
   SimHashConfig
 } from '../core/hash.ts';
 import { extractTokens, extractFeatures } from '../core/tokens.ts';
-import { calculateSimilarityAPTED } from '../core/apted_typed.ts';
+import { calculateSimilarityAPTED } from '../core/apted.ts';
 
 export interface CodeFile {
   id: string;

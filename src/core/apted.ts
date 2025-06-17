@@ -1,7 +1,23 @@
-// APTED (All Path Tree Edit Distance) algorithm implementation
+// APTED (All Path Tree Edit Distance) algorithm implementation with proper types
 import { astToString } from './ast.ts';
 import { parseTypeScript } from '../parser.ts';
 import { levenshtein } from './levenshtein.ts';
+import type { 
+  ASTNode,
+  Program,
+  Expression,
+  Statement,
+  Declaration,
+  FunctionDeclaration,
+  ClassDeclaration,
+  VariableDeclarator,
+  IdentifierReference,
+  BindingIdentifier,
+  NumericLiteral,
+  StringLiteral,
+  BooleanLiteral
+} from './oxc_types.ts';
+import { isIdentifier, isFunctionDeclaration, isClassDeclaration, isVariableDeclarator } from './oxc_types.ts';
 
 export interface TreeNode {
   label: string;
@@ -19,56 +35,79 @@ export interface EditOperation {
 
 export interface APTEDOptions {
   renameCost?: number;
+  deleteCost?: number;
+  insertCost?: number;
 }
 
 /**
- * Get label from AST node
+ * Get label from AST node with proper type checking
  */
-export function getNodeLabel(node: any): string {
+export function getNodeLabel(node: ASTNode | any): string {
   if (!node || typeof node !== 'object') {
     return String(node);
   }
 
-  if (node.type) {
-    switch (node.type) {
-      case 'Identifier':
-        return node.name || 'Identifier';
-      case 'Literal':
-        return String(node.value);
-      case 'StringLiteral':
-        return `"${node.value}"`;
-      case 'NumericLiteral':
-        return String(node.value);
-      case 'BooleanLiteral':
-        return String(node.value);
-      case 'FunctionDeclaration':
-      case 'FunctionExpression':
-        return node.id?.name || 'Function';
-      case 'VariableDeclarator':
-        return node.id?.name || 'Variable';
-      case 'ClassDeclaration':
-        return node.id?.name || 'Class';
-      case 'MethodDefinition':
-        return node.key?.name || 'Method';
-      default:
-        return node.type;
-    }
+  // Type-specific handling
+  if (isIdentifier(node)) {
+    return node.name || 'Identifier';
   }
 
-  return 'Unknown';
+  if (isFunctionDeclaration(node)) {
+    return node.id?.name || 'Function';
+  }
+
+  if (isClassDeclaration(node)) {
+    return node.id?.name || 'Class';
+  }
+
+  if (isVariableDeclarator(node)) {
+    return node.id && isIdentifier(node.id) ? node.id.name : 'Variable';
+  }
+
+  // Handle literals
+  switch (node.type) {
+    case 'StringLiteral':
+      return `"${(node as StringLiteral).value}"`;
+    case 'NumericLiteral':
+      return String((node as NumericLiteral).value);
+    case 'BooleanLiteral':
+      return String((node as BooleanLiteral).value);
+    case 'NullLiteral':
+      return 'null';
+    case 'MethodDefinition':
+      return node.key?.name || 'Method';
+    case 'FunctionExpression':
+    case 'ArrowFunctionExpression':
+      return node.id?.name || 'Function';
+    case 'ClassExpression':
+      return node.id?.name || 'Class';
+    default:
+      return node.type || 'Unknown';
+  }
 }
 
 /**
- * Get children from AST node
+ * Get children from AST node with proper type handling
  */
-export function getNodeChildren(node: any): any[] {
+export function getNodeChildren(node: ASTNode | any): (ASTNode | any)[] {
   if (!node || typeof node !== 'object') {
     return [];
   }
 
-  const children: any[] = [];
+  const children: (ASTNode | any)[] = [];
   const skipKeys = new Set(['type', 'range', 'loc', 'span', 'start', 'end']);
 
+  // Special handling for Program nodes
+  if (node.type === 'Program') {
+    const program = node as Program;
+    children.push(...program.body);
+    if (program.hashbang) {
+      children.push(program.hashbang);
+    }
+    return children;
+  }
+
+  // Generic traversal for other node types
   for (const [key, value] of Object.entries(node)) {
     if (skipKeys.has(key)) continue;
 
@@ -85,7 +124,7 @@ export function getNodeChildren(node: any): any[] {
 /**
  * Convert AST node to TreeNode structure
  */
-export function oxcToTreeNode(node: any, idCounter = { value: 0 }): TreeNode {
+export function oxcToTreeNode(node: ASTNode | any, idCounter = { value: 0 }): TreeNode {
   const label = getNodeLabel(node);
   const value = node.type || String(node);
   const children = getNodeChildren(node).map(child => oxcToTreeNode(child, idCounter));
@@ -97,134 +136,177 @@ export function oxcToTreeNode(node: any, idCounter = { value: 0 }): TreeNode {
 /**
  * Get node identifier
  */
-export function getNodeId(node: TreeNode, index: number): string {
-  return node.id || `${node.label}_${index}`;
+export function getNodeId(node: TreeNode): string {
+  return node.id;
 }
 
 /**
- * Calculate subtree size
+ * Get subtree size (number of nodes in subtree)
  */
 export function getSubtreeSize(node: TreeNode): number {
   if (node.subtreeSize !== undefined) {
     return node.subtreeSize;
   }
-
+  
   let size = 1;
   for (const child of node.children) {
     size += getSubtreeSize(child);
   }
-
+  
   node.subtreeSize = size;
   return size;
 }
 
 /**
- * Compute optimal alignment cost between children
+ * Compute optimal alignment between children of two nodes
  */
 export function computeChildrenAlignment(
-  children1: TreeNode[],
-  children2: TreeNode[],
-  renameCost: number,
-  memoizedResults: Map<string, number>
-): number {
-  const m = children1.length;
-  const n = children2.length;
-
-  if (m === 0) return n;
-  if (n === 0) return m;
-
-  const dp: number[][] = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
-
-  for (let i = 0; i <= m; i++) dp[i][0] = i;
-  for (let j = 0; j <= n; j++) dp[0][j] = j;
-
+  node1Children: TreeNode[],
+  node2Children: TreeNode[],
+  costMatrix: Map<string, Map<string, number>>
+): [number, Map<TreeNode, TreeNode | null>] {
+  const m = node1Children.length;
+  const n = node2Children.length;
+  
+  // dp[i][j] = minimum cost to align first i children of node1 with first j children of node2
+  const dp: number[][] = Array(m + 1).fill(0).map(() => Array(n + 1).fill(0));
+  
+  // Initialize base cases
+  for (let i = 1; i <= m; i++) {
+    dp[i][0] = dp[i - 1][0] + getSubtreeSize(node1Children[i - 1]);
+  }
+  for (let j = 1; j <= n; j++) {
+    dp[0][j] = dp[0][j - 1] + getSubtreeSize(node2Children[j - 1]);
+  }
+  
+  // Fill DP table
   for (let i = 1; i <= m; i++) {
     for (let j = 1; j <= n; j++) {
-      const deleteCost = dp[i - 1][j] + 1;
-      const insertCost = dp[i][j - 1] + 1;
-
-      const child1 = children1[i - 1];
-      const child2 = children2[j - 1];
-      const editCost = computeEditDistance(child1, child2, renameCost, memoizedResults);
-      const replaceCost = dp[i - 1][j - 1] + editCost;
-
-      dp[i][j] = Math.min(deleteCost, insertCost, replaceCost);
+      const child1 = node1Children[i - 1];
+      const child2 = node2Children[j - 1];
+      const editCost = costMatrix.get(child1.id)?.get(child2.id) || 0;
+      
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + getSubtreeSize(child1), // Delete child1
+        dp[i][j - 1] + getSubtreeSize(child2), // Insert child2
+        dp[i - 1][j - 1] + editCost // Match/Edit child1 to child2
+      );
     }
   }
-
-  return dp[m][n];
+  
+  // Backtrack to find alignment
+  const alignment = new Map<TreeNode, TreeNode | null>();
+  let i = m, j = n;
+  
+  while (i > 0 || j > 0) {
+    if (i === 0) {
+      j--;
+    } else if (j === 0) {
+      alignment.set(node1Children[i - 1], null);
+      i--;
+    } else {
+      const child1 = node1Children[i - 1];
+      const child2 = node2Children[j - 1];
+      const editCost = costMatrix.get(child1.id)?.get(child2.id) || 0;
+      
+      const deleteCost = dp[i - 1][j] + getSubtreeSize(child1);
+      const insertCost = dp[i][j - 1] + getSubtreeSize(child2);
+      const matchCost = dp[i - 1][j - 1] + editCost;
+      
+      if (matchCost <= deleteCost && matchCost <= insertCost) {
+        alignment.set(child1, child2);
+        i--;
+        j--;
+      } else if (deleteCost <= insertCost) {
+        alignment.set(child1, null);
+        i--;
+      } else {
+        j--;
+      }
+    }
+  }
+  
+  return [dp[m][n], alignment];
 }
 
 /**
- * Compute tree edit distance
+ * Compute edit distance between two trees
  */
 export function computeEditDistance(
   tree1: TreeNode,
   tree2: TreeNode,
-  renameCost: number,
-  memoizedResults: Map<string, number>
+  options: APTEDOptions = {}
 ): number {
-  const key = `${tree1.id}:${tree2.id}`;
-  if (memoizedResults.has(key)) {
-    return memoizedResults.get(key)!;
+  const { renameCost = 1, deleteCost = 1, insertCost = 1 } = options;
+  
+  // Memoization for subtree edit distances
+  const memo = new Map<string, Map<string, number>>();
+  
+  function getOrCompute(node1: TreeNode, node2: TreeNode): number {
+    if (!memo.has(node1.id)) {
+      memo.set(node1.id, new Map());
+    }
+    
+    const node1Memo = memo.get(node1.id)!;
+    if (node1Memo.has(node2.id)) {
+      return node1Memo.get(node2.id)!;
+    }
+    
+    // Base cases
+    if (node1.children.length === 0 && node2.children.length === 0) {
+      // Both are leaves
+      const cost = node1.label === node2.label ? 0 : renameCost;
+      node1Memo.set(node2.id, cost);
+      return cost;
+    }
+    
+    // Calculate costs for all three operations
+    const deleteAllCost = deleteCost * getSubtreeSize(node1);
+    const insertAllCost = insertCost * getSubtreeSize(node2);
+    
+    // Calculate rename + optimal children alignment
+    let renamePlusCost = node1.label === node2.label ? 0 : renameCost;
+    
+    if (node1.children.length > 0 || node2.children.length > 0) {
+      // First compute all pairwise costs between children
+      const childCostMatrix = new Map<string, Map<string, number>>();
+      for (const child1 of node1.children) {
+        childCostMatrix.set(child1.id, new Map());
+        for (const child2 of node2.children) {
+          const cost = getOrCompute(child1, child2);
+          childCostMatrix.get(child1.id)!.set(child2.id, cost);
+        }
+      }
+      
+      // Find optimal alignment
+      const [alignmentCost] = computeChildrenAlignment(
+        node1.children,
+        node2.children,
+        childCostMatrix
+      );
+      
+      renamePlusCost += alignmentCost;
+    }
+    
+    const minCost = Math.min(deleteAllCost, insertAllCost, renamePlusCost);
+    node1Memo.set(node2.id, minCost);
+    return minCost;
   }
-
-  let cost: number;
-
-  if (tree1.children.length === 0 && tree2.children.length === 0) {
-    cost = tree1.label === tree2.label ? 0 : renameCost;
-  } else if (tree1.children.length === 0) {
-    cost = getSubtreeSize(tree2);
-  } else if (tree2.children.length === 0) {
-    cost = getSubtreeSize(tree1);
-  } else {
-    const labelCost = tree1.label === tree2.label ? 0 : renameCost;
-    const childrenCost = computeChildrenAlignment(
-      tree1.children,
-      tree2.children,
-      renameCost,
-      memoizedResults
-    );
-    cost = labelCost + childrenCost;
-  }
-
-  memoizedResults.set(key, cost);
-  return cost;
+  
+  return getOrCompute(tree1, tree2);
 }
 
 /**
  * Count total nodes in tree
  */
-export function countNodes(tree: TreeNode): number {
-  let count = 1;
-  for (const child of tree.children) {
-    count += countNodes(child);
-  }
-  return count;
+export function countNodes(node: TreeNode): number {
+  return getSubtreeSize(node);
 }
 
 /**
- * Calculate TSED (Tree Structure Edit Distance) similarity
+ * Calculate APTED similarity between two code strings
  */
 export function calculateAPTEDSimilarity(
-  tree1: TreeNode,
-  tree2: TreeNode,
-  options: APTEDOptions = {}
-): number {
-  const renameCost = options.renameCost ?? 1.0;
-  const memoizedResults = new Map<string, number>();
-
-  const distance = computeEditDistance(tree1, tree2, renameCost, memoizedResults);
-  const maxNodes = Math.max(countNodes(tree1), countNodes(tree2));
-
-  if (maxNodes === 0) return 1.0;
-  return Math.max(0, 1 - (distance / maxNodes));
-}
-
-/**
- * Calculate similarity using APTED algorithm
- */
-export function calculateSimilarityAPTED(
   code1: string,
   code2: string,
   options: APTEDOptions = {}
@@ -236,52 +318,67 @@ export function calculateSimilarityAPTED(
     const tree1 = oxcToTreeNode(ast1.program);
     const tree2 = oxcToTreeNode(ast2.program);
 
-    return calculateAPTEDSimilarity(tree1, tree2, options);
+    const distance = computeEditDistance(tree1, tree2, options);
+    const maxNodes = Math.max(countNodes(tree1), countNodes(tree2));
+
+    // Normalize to 0-1 range using TSED formula
+    return Math.max(1 - distance / maxNodes, 0);
   } catch (error) {
-    return 0;
+    console.error('Error in APTED calculation:', error);
+    // Fall back to simple string comparison
+    return code1 === code2 ? 1.0 : 0.0;
   }
 }
 
 /**
- * Compare structures using both Levenshtein and APTED
+ * Calculate similarity using APTED algorithm
+ */
+export function calculateSimilarityAPTED(
+  code1: string,
+  code2: string,
+  config?: Partial<APTEDOptions>
+): number {
+  const defaultConfig: APTEDOptions = {
+    renameCost: 0.3,
+    deleteCost: 1.0,
+    insertCost: 1.0,
+    ...config
+  };
+  
+  return calculateAPTEDSimilarity(code1, code2, defaultConfig);
+}
+
+/**
+ * Compare structures using APTED algorithm with typed AST nodes
  */
 export function compareStructuresAPTED(
-  ast1: any,
-  ast2: any,
+  ast1: Program,
+  ast2: Program,
   options: APTEDOptions = {}
 ): {
   similarity: number;
-  distance: number;
-  nodeCount: number;
   levenshteinSimilarity: number;
+  distance: number;
+  maxNodes: number;
 } {
-  const tree1 = oxcToTreeNode(ast1);
-  const tree2 = oxcToTreeNode(ast2);
-
-  const memoizedResults = new Map<string, number>();
-  const distance = computeEditDistance(
-    tree1,
-    tree2,
-    options.renameCost ?? 1.0,
-    memoizedResults
-  );
-
-  const nodeCount1 = countNodes(tree1);
-  const nodeCount2 = countNodes(tree2);
-  const maxNodes = Math.max(nodeCount1, nodeCount2);
-  const similarity = maxNodes === 0 ? 1.0 : Math.max(0, 1 - (distance / maxNodes));
-
-  // Also calculate Levenshtein similarity for comparison
   const str1 = astToString(ast1);
   const str2 = astToString(ast2);
+  
   const levDistance = levenshtein(str1, str2);
   const maxLength = Math.max(str1.length, str2.length);
   const levenshteinSimilarity = maxLength === 0 ? 1.0 : 1 - (levDistance / maxLength);
-
+  
+  const tree1 = oxcToTreeNode(ast1);
+  const tree2 = oxcToTreeNode(ast2);
+  
+  const distance = computeEditDistance(tree1, tree2, options);
+  const maxNodes = Math.max(countNodes(tree1), countNodes(tree2));
+  const similarity = Math.max(1 - distance / maxNodes, 0);
+  
   return {
     similarity,
+    levenshteinSimilarity,
     distance,
-    nodeCount: maxNodes,
-    levenshteinSimilarity
+    maxNodes
   };
 }

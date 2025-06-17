@@ -1,11 +1,13 @@
-// AST-related pure functions
+// AST-related pure functions with proper oxc-parser types
 import { parseTypeScript } from '../parser.ts';
 import { levenshtein } from './levenshtein.ts';
+import type { ASTNode, Program } from './oxc_types.ts';
+import type { ParseResult } from 'oxc-parser';
 
 /**
- * Extract structure from AST node
+ * Extract structure from AST node with proper type handling
  */
-export function extractStructure(node: any): any {
+export function extractStructure(node: ASTNode | any): any {
   if (!node || typeof node !== 'object') {
     return node;
   }
@@ -35,7 +37,12 @@ export function extractStructure(node: any): any {
 /**
  * Convert AST to string representation
  */
-export function astToString(ast: any): string {
+export function astToString(ast: ParseResult | Program | ASTNode): string {
+  // Handle ParseResult from oxc-parser
+  if ('program' in ast && !('type' in ast)) {
+    return JSON.stringify(extractStructure(ast.program), null, 2);
+  }
+  // Handle direct AST nodes
   return JSON.stringify(extractStructure(ast), null, 2);
 }
 
@@ -53,20 +60,22 @@ export function calculateSimilarity(code1: string, code2: string): number {
     const distance = levenshtein(str1, str2);
     const maxLength = Math.max(str1.length, str2.length);
 
-    if (maxLength === 0) return 1.0;
-    return 1 - (distance / maxLength);
+    return maxLength === 0 ? 1.0 : 1 - (distance / maxLength);
   } catch (error) {
-    return 0;
+    // If parsing fails, fall back to simple string comparison
+    return code1 === code2 ? 1.0 : 0.0;
   }
 }
 
 /**
  * Compare structures and return similarity metrics
  */
-export function compareStructures(ast1: any, ast2: any): {
+export function compareStructures(ast1: ParseResult, ast2: ParseResult): {
   similarity: number;
   distance: number;
   maxLength: number;
+  structure1: string;
+  structure2: string;
 } {
   const str1 = astToString(ast1);
   const str2 = astToString(ast2);
@@ -75,5 +84,11 @@ export function compareStructures(ast1: any, ast2: any): {
   const maxLength = Math.max(str1.length, str2.length);
   const similarity = maxLength === 0 ? 1.0 : 1 - (distance / maxLength);
 
-  return { similarity, distance, maxLength };
+  return { 
+    similarity, 
+    distance, 
+    maxLength,
+    structure1: str1,
+    structure2: str2
+  };
 }
