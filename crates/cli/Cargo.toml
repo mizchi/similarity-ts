@@ -11,5 +11,7 @@ path = "src/main.rs"
 ts-similarity-core = { path = "../core" }
 clap = { version = "4.0", features = ["derive"] }
 anyhow = "1.0"
+walkdir = "2.5"
+ignore = "0.4"
 
 [dev-dependencies]

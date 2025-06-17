@@ -3,8 +3,11 @@ use std::fs;
 use std::path::Path;
 use ts_similarity_core::{
     calculate_tsed_from_code, find_similar_functions_across_files, find_similar_functions_in_file,
-    TSEDOptions,
+    FunctionType, TSEDOptions,
 };
+
+mod check;
+use check::check_directory;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -15,7 +18,29 @@ struct Args {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-    /// Compare two files (default behavior)
+    /// Check for duplicates in a directory (default behavior)
+    Check {
+        /// Directory to check
+        directory: String,
+
+        /// Similarity threshold (0.0 to 1.0)
+        #[arg(short, long, default_value_t = 0.8)]
+        threshold: f64,
+
+        /// Rename cost (default: 0.3)
+        #[arg(long, default_value_t = 0.3)]
+        rename_cost: f64,
+
+        /// Check across files (default: false, only check within files)
+        #[arg(long)]
+        cross_file: bool,
+
+        /// File extensions to include (default: ts,tsx,js,jsx)
+        #[arg(long, value_delimiter = ',')]
+        extensions: Option<Vec<String>>,
+    },
+
+    /// Compare two files
     Compare {
         /// First TypeScript file
         file1: String,
@@ -69,6 +94,9 @@ fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
     match args.command {
+        Some(Commands::Check { directory, threshold, rename_cost, cross_file, extensions }) => {
+            check_directory(directory, threshold, rename_cost, cross_file, extensions)?;
+        }
         Some(Commands::Compare { file1, file2, rename_cost, delete_cost, insert_cost }) => {
             compare_files(file1, file2, rename_cost, delete_cost, insert_cost)?;
         }
@@ -79,16 +107,14 @@ fn main() -> anyhow::Result<()> {
             find_similar_across_files(files, threshold, rename_cost)?;
         }
         None => {
-            // Legacy behavior: expect two arguments
+            // Default behavior: check current directory
             let args: Vec<String> = std::env::args().collect();
-            if args.len() >= 3 {
-                compare_files(args[1].clone(), args[2].clone(), 0.3, 1.0, 1.0)?;
+            if args.len() >= 2 {
+                // If a directory is provided, check it
+                check_directory(args[1].clone(), 0.8, 0.3, false, None)?;
             } else {
-                eprintln!("Usage: {} <file1> <file2>", args[0]);
-                eprintln!("   or: {} compare <file1> <file2>", args[0]);
-                eprintln!("   or: {} functions <file>", args[0]);
-                eprintln!("   or: {} cross-file <file1> <file2> ...", args[0]);
-                std::process::exit(1);
+                // Otherwise check current directory
+                check_directory(".".to_string(), 0.8, 0.3, false, None)?;
             }
         }
     }
@@ -145,19 +171,19 @@ fn find_similar_functions(file: String, threshold: f64, rename_cost: f64) -> any
                     println!(
                         "\n{} {} (lines {}-{}) <-> {} {} (lines {}-{})",
                         match func1.function_type {
-                            ts_similarity_core::FunctionType::Function => "function",
-                            ts_similarity_core::FunctionType::Method => "method",
-                            ts_similarity_core::FunctionType::Arrow => "arrow",
-                            ts_similarity_core::FunctionType::Constructor => "constructor",
+                            FunctionType::Function => "function",
+                            FunctionType::Method => "method",
+                            FunctionType::Arrow => "arrow",
+                            FunctionType::Constructor => "constructor",
                         },
                         func1.name,
                         func1.start_line,
                         func1.end_line,
                         match func2.function_type {
-                            ts_similarity_core::FunctionType::Function => "function",
-                            ts_similarity_core::FunctionType::Method => "method",
-                            ts_similarity_core::FunctionType::Arrow => "arrow",
-                            ts_similarity_core::FunctionType::Constructor => "constructor",
+                            FunctionType::Function => "function",
+                            FunctionType::Method => "method",
+                            FunctionType::Arrow => "arrow",
+                            FunctionType::Constructor => "constructor",
                         },
                         func2.name,
                         func2.start_line,

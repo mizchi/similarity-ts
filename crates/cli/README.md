@@ -1,8 +1,20 @@
 # ts-similarity CLI (Rust Version)
 
-A command-line tool for calculating TypeScript code similarity.
+A command-line tool for calculating TypeScript code similarity and detecting duplicate functions.
 
 ## Installation
+
+### Local Installation (Recommended)
+
+```bash
+# Install globally from the repository root
+cargo install --path ./crates/cli
+
+# Now you can use it anywhere
+ts-similarity check src
+```
+
+### Build Only
 
 ```bash
 # Build from the repository root
@@ -14,14 +26,39 @@ cargo build --release
 
 ## Usage
 
-### Basic Usage (Compare Two Files)
+### Default Behavior: Check Directory for Duplicates
+
+```bash
+# Check current directory
+ts-similarity
+
+# Check specific directory
+ts-similarity src
+
+# Or use the check subcommand explicitly
+ts-similarity check src
+
+# With custom threshold (default: 80%)
+ts-similarity check src -t 0.9
+
+# Check across files (not just within files)
+ts-similarity check src --cross-file
+
+# Specify file extensions
+ts-similarity check src --extensions ts,tsx
+```
+
+### Compare Two Files
 
 ```bash
 # Compare with default parameters
-./target/release/ts-similarity file1.ts file2.ts
+ts-similarity compare file1.ts file2.ts
 
-# Or use the compare subcommand
-./target/release/ts-similarity compare file1.ts file2.ts
+# With custom costs
+ts-similarity compare file1.ts file2.ts \
+  --rename-cost 0.3 \
+  --delete-cost 1.0 \
+  --insert-cost 1.0
 ```
 
 ### Advanced Parameters
@@ -57,6 +94,28 @@ cargo build --release
 ```
 
 ## Subcommands
+
+### `check` - Check Directory for Duplicates (Default)
+
+Recursively checks a directory for duplicate functions, respecting .gitignore files.
+
+**Options:**
+- `-t, --threshold` (default: 0.8) - Similarity threshold (0.0-1.0)
+- `--rename-cost` (default: 0.3) - Cost for renaming nodes
+- `--cross-file` - Check for duplicates across files (not just within files)
+- `--extensions` - Comma-separated list of file extensions (default: ts,tsx,js,jsx)
+
+**Example Output:**
+```
+Checking 25 files for duplicates...
+
+Duplicates in src/utils/array.ts:
+------------------------------------------------------------
+  function sortArray (lines 5-12) <-> function orderArray (lines 15-22)
+  Similarity: 85.50%
+
+Total duplicate pairs found: 3
+```
 
 ### `compare` - Compare Entire Files
 
