@@ -1,0 +1,20 @@
+{
+  "description": "Performance test fixtures of various sizes",
+  "categories": {
+    "small": {
+      "description": "Small files (10-50 lines)",
+      "averageSize": "~30 lines",
+      "files": 5
+    },
+    "medium": {
+      "description": "Medium files (100-500 lines)",
+      "averageSize": "~300 lines",
+      "files": 3
+    },
+    "large": {
+      "description": "Large files (1000+ lines)",
+      "averageSize": "~1500 lines",
+      "files": 2
+    }
+  }
+}

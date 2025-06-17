@@ -8,9 +8,9 @@ import {
   createSimHashConfig,
   generateSimHash,
   calculateSimHashSimilarity,
-  LSHState,
-  MinHashConfig,
-  SimHashConfig
+  type LSHState,
+  type MinHashConfig,
+  type SimHashConfig
 } from '../core/hash.ts';
 import { 
   extractTokensFromAST,

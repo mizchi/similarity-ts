@@ -1,0 +1,19 @@
+{
+  "description": "Structural duplication patterns found in the codebase",
+  "testCases": [
+    {
+      "name": "visitNode pattern variations",
+      "files": [
+        "visitnode_pattern_1.ts",
+        "visitnode_pattern_2.ts",
+        "visitnode_pattern_3.ts"
+      ],
+      "expectedSimilarity": {
+        "1_vs_2": 0.75,
+        "1_vs_3": 0.70,
+        "2_vs_3": 0.65
+      },
+      "notes": "Similar AST traversal patterns with different purposes"
+    }
+  ]
+}

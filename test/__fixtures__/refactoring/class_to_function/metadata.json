@@ -1,0 +1,31 @@
+{
+  "description": "Class to function refactoring patterns",
+  "testCases": [
+    {
+      "name": "UserService refactoring",
+      "files": {
+        "before": "user_service_class.ts",
+        "after": "user_service_functions.ts"
+      },
+      "expectedSimilarity": {
+        "addUser": 0.85,
+        "removeUser": 0.85,
+        "getUser": 0.90,
+        "getAllUsers": 0.90
+      },
+      "notes": "Methods converted to functions with state parameter"
+    },
+    {
+      "name": "Calculator refactoring",
+      "files": {
+        "before": "calculator_class.ts",
+        "after": "calculator_functions.ts"
+      },
+      "expectedSimilarity": {
+        "add": 0.80,
+        "subtract": 0.80
+      },
+      "notes": "Stateful class converted to functional with state parameter"
+    }
+  ]
+}
