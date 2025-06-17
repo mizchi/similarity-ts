@@ -1,5 +1,13 @@
-import { CodeSimilarity } from './index.ts';
-import { CodeRepository } from './code_repository.ts';
+import { 
+  calculateSimilarity,
+  calculateSimilarityAPTED,
+  createRepository,
+  addFile,
+  findSimilarByMinHash,
+  findSimilarBySimHash,
+  findSimilarByAPTED,
+  type RepositoryState
+} from './index.ts';
 import { performance } from 'perf_hooks';
 
 export interface BenchmarkResult {
@@ -19,13 +27,6 @@ export interface ComparisonBenchmark {
 }
 
 export class SimilarityBenchmark {
-  private levenshteinSim = new CodeSimilarity();
-  private aptedSim = new CodeSimilarity({ useAPTED: true });
-  private aptedCustomSim = new CodeSimilarity({ 
-    useAPTED: true, 
-    config: { renameCost: 0.3 } 
-  });
-
   /**
    * Run benchmark for a specific algorithm
    */
@@ -79,7 +80,7 @@ export class SimilarityBenchmark {
     // Levenshtein
     const levResult = await this.runBenchmark(
       'Levenshtein',
-      () => this.levenshteinSim.calculateSimilarity(code1, code2),
+      () => calculateSimilarity(code1, code2),
       50,
       5
     );
@@ -88,18 +89,18 @@ export class SimilarityBenchmark {
     // APTED (default)
     const aptedResult = await this.runBenchmark(
       'APTED (default)',
-      () => this.aptedSim.calculateSimilarity(code1, code2),
-      100,
-      10
+      () => calculateSimilarityAPTED(code1, code2),
+      20,
+      5
     );
     results.push({ algorithm: 'APTED (default)', fileSize, result: aptedResult });
 
     // APTED (custom)
     const aptedCustomResult = await this.runBenchmark(
       'APTED (rename=0.3)',
-      () => this.aptedCustomSim.calculateSimilarity(code1, code2),
-      100,
-      10
+      () => calculateSimilarityAPTED(code1, code2, { renameCost: 0.3 }),
+      20,
+      5
     );
     results.push({ algorithm: 'APTED (rename=0.3)', fileSize, result: aptedCustomResult });
 
@@ -109,28 +110,28 @@ export class SimilarityBenchmark {
   /**
    * Benchmark multi-file operations
    */
-  async benchmarkMultiFile(repo: CodeRepository, targetFile: string): Promise<{
+  async benchmarkMultiFile(repo: RepositoryState, targetFile: string): Promise<{
     minHash: BenchmarkResult;
     simHash: BenchmarkResult;
     apted: BenchmarkResult;
   }> {
     const minHashResult = await this.runBenchmark(
       'MinHash/LSH',
-      () => repo.findSimilarByMinHash(targetFile, 0.5),
+      () => findSimilarByMinHash(repo, targetFile, 0.5),
       100,
       10
     );
 
     const simHashResult = await this.runBenchmark(
       'SimHash',
-      () => repo.findSimilarBySimHash(targetFile, 0.5),
+      () => findSimilarBySimHash(repo, targetFile, 0.5),
       100,
       10
     );
 
     const aptedResult = await this.runBenchmark(
       'APTED (top 10)',
-      () => repo.findSimilarByAPTED(targetFile, 0.5, 10),
+      () => findSimilarByAPTED(repo, targetFile, 0.5, 10),
       20,
       5
     );
@@ -249,12 +250,12 @@ export class SimilarityBenchmark {
 
     // Test multi-file operations
     console.log('\n\n--- Multi-File Operations ---');
-    const repo = new CodeRepository();
+    const repo = createRepository();
     
     // Add test files
     for (let i = 0; i < 50; i++) {
       const code = this.generateCodeSample(i % 3 === 0 ? 'small' : i % 3 === 1 ? 'medium' : 'large');
-      repo.addFile(`file${i}.ts`, `file${i}.ts`, code);
+      addFile(repo, `file${i}.ts`, `file${i}.ts`, code);
     }
     
     console.log(`Repository contains ${50} files`);

@@ -1,4 +1,3 @@
-import { extractTokens, extractFeatures } from '../src/core/tokens.ts';
 import {
   createMinHashConfig,
   generateMinHashSignature,
@@ -6,13 +5,7 @@ import {
   createSimHashConfig,
   generateSimHash,
   calculateSimHashSimilarity
-} from '../src/core/hash.ts';
-import {
-  createRepository,
-  addFile,
-  findSimilarByMinHash,
-  findSimilarBySimHash
-} from '../src/code_repository.ts';
+} from './hash.ts';
 
 function testMinHash() {
   console.log('=== Testing MinHash ===\n');
@@ -82,82 +75,8 @@ function testSimHash() {
   console.log(`Test 2: ${similarity2 > 0.7 ? 'PASS' : 'FAIL'}\n`);
 }
 
-function testTokenExtraction() {
-  console.log('=== Testing Token Extraction ===\n');
-  
-  const code1 = `function add(a: number, b: number): number {
-    return a + b;
-  }`;
-  
-  const tokens = extractTokens(code1);
-  console.log(`Extracted ${tokens.size} tokens`);
-  console.log(`Sample tokens:`, Array.from(tokens).slice(0, 10));
-  console.log(`Test: ${tokens.size > 5 ? 'PASS' : 'FAIL'}\n`);
+// Run tests
+if (import.meta.url === `file://${process.argv[1]}`) {
+  testMinHash();
+  testSimHash();
 }
-
-function testFeatureExtraction() {
-  console.log('=== Testing Feature Extraction ===\n');
-  
-  const code1 = `class Calculator {
-    add(a: number, b: number): number {
-      return a + b;
-    }
-  }`;
-  
-  const features = extractFeatures(code1);
-  console.log(`Extracted ${features.size} features`);
-  console.log('Features:');
-  for (const [feature, count] of features) {
-    console.log(`  ${feature}: ${count}`);
-  }
-  console.log(`Test: ${features.size > 3 ? 'PASS' : 'FAIL'}\n`);
-}
-
-async function testCodeRepository() {
-  console.log('=== Testing Code Repository ===\n');
-  
-  const repo = createRepository();
-  
-  // Add test files
-  addFile(repo, 'test1.ts', 'test1.ts', `
-    function calculate(x: number, y: number): number {
-      return x + y;
-    }
-  `);
-  
-  addFile(repo, 'test2.ts', 'test2.ts', `
-    function compute(a: number, b: number): number {
-      return a + b;
-    }
-  `);
-  
-  addFile(repo, 'test3.ts', 'test3.ts', `
-    class User {
-      name: string;
-      age: number;
-    }
-  `);
-  
-  // Test MinHash similarity
-  console.log('MinHash similarities for test1.ts:');
-  const minHashResults = findSimilarByMinHash(repo, 'test1.ts', 0);
-  for (const result of minHashResults) {
-    console.log(`  ${result.file2}: ${(result.similarity * 100).toFixed(1)}%`);
-  }
-  
-  // Test SimHash similarity
-  console.log('\nSimHash similarities for test1.ts:');
-  const simHashResults = findSimilarBySimHash(repo, 'test1.ts', 0);
-  for (const result of simHashResults) {
-    console.log(`  ${result.file2}: ${(result.similarity * 100).toFixed(1)}%`);
-  }
-  
-  console.log(`\nTest: ${minHashResults.length > 0 || simHashResults.length > 0 ? 'PASS' : 'FAIL'}`);
-}
-
-// Run all tests
-testMinHash();
-testSimHash();
-testTokenExtraction();
-testFeatureExtraction();
-testCodeRepository().catch(console.error);

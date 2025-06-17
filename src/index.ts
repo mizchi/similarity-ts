@@ -1,138 +1,149 @@
-// Import functional implementations
+// Main exports for TypeScript Code Similarity
+export { parseTypeScript as parse } from './parser.ts';
+
+// Import necessary functions for CodeSimilarity
+import { 
+  calculateSimilarity as calculateSimilarityCore,
+  compareStructures as compareStructuresCore
+} from './core/ast.ts';
 import {
-  calculateSimilarity,
-  compareStructures,
-  parseTypeScript,
   calculateSimilarityAPTED,
-  calculateSimilarityWithOptions,
-  getDetailedReport,
-  createCodeRepository,
-  type APTEDConfig,
-  type RepositoryState,
-  type MinHashConfig,
-  type SimHashConfig,
-  type LSHState
-} from './index_functional.ts';
+  compareStructuresAPTED as compareStructuresAPTEDCore,
+  type APTEDOptions
+} from './core/apted.ts';
+import { parseTypeScript } from './parser.ts';
 
-// Re-export functional API
-export {
-  calculateSimilarity,
-  compareStructures,
-  parseTypeScript,
-  calculateSimilarityAPTED,
-  createCodeRepository,
-  type APTEDConfig,
+// Import functions for CodeRepository
+import {
+  type CodeFile,
+  type SimilarityResult,
   type RepositoryState,
-  type MinHashConfig,
-  type SimHashConfig,
-  type LSHState
-};
+  createRepository,
+  loadFiles as loadFilesRepo,
+  findSimilarByMinHash,
+  findAllSimilarPairs as findAllSimilarPairsRepo,
+  findClones as findClonesRepo
+} from './code_repository.ts';
+import { loadFilesFromPattern } from './io.ts';
 
-// Re-export all functions from index_functional for direct access
-export * from './index_functional.ts';
+// Re-export types
+export type { CodeFile, SimilarityResult } from './code_repository.ts';
+export type APTEDConfig = APTEDOptions;
 
 /**
- * Main API for calculating code similarity using oxc-parser
- * This is a compatibility wrapper around the functional API
+ * Options for CodeSimilarity
  */
-export class CodeSimilarity {
-  private config?: Partial<APTEDConfig>;
-  private useAPTED: boolean;
-
-  constructor(options?: { useAPTED?: boolean; config?: Partial<APTEDConfig> }) {
-    this.useAPTED = options?.useAPTED ?? false;
-    this.config = options?.config;
-  }
-
-  /**
-   * Calculate similarity between two code snippets
-   * @param code1 First code snippet
-   * @param code2 Second code snippet
-   * @returns Similarity score between 0 and 1
-   */
-  calculateSimilarity(code1: string, code2: string): number {
-    return calculateSimilarityWithOptions(code1, code2, {
-      useAPTED: this.useAPTED,
-      config: this.config
-    });
-  }
-
-  /**
-   * Get detailed similarity report
-   */
-  getDetailedReport(code1: string, code2: string) {
-    return getDetailedReport(code1, code2, {
-      useAPTED: this.useAPTED,
-      config: this.config
-    });
-  }
-
-  /**
-   * Parse TypeScript code and return AST
-   */
-  parse(code: string, filename = 'code.ts') {
-    return parseTypeScript(filename, code);
-  }
+export interface CodeSimilarityOptions {
+  useAPTED?: boolean;
+  config?: Partial<APTEDConfig>;
 }
 
 /**
- * CodeRepository class wrapper around functional API
+ * CodeSimilarity - factory function to create similarity calculator
  */
-export class CodeRepository {
-  private state: RepositoryState;
+export function CodeSimilarity(options: CodeSimilarityOptions = {}) {
+  return {
+    /**
+     * Calculate similarity between two code snippets
+     * Returns a score between 0 and 1
+     */
+    calculateSimilarity(code1: string, code2: string): number {
+      if (options.useAPTED) {
+        return calculateSimilarityAPTED(code1, code2, options.config);
+      }
+      return calculateSimilarityCore(code1, code2);
+    },
 
-  constructor(
-    minHashSize: number = 128,
-    lshBands: number = 16,
-    simHashBits: number = 64
-  ) {
-    this.state = createCodeRepository(minHashSize, lshBands, simHashBits);
-  }
+    /**
+     * Get detailed report including similarity score and AST structures
+     */
+    getDetailedReport(code1: string, code2: string) {
+      const ast1 = parseTypeScript("file1.ts", code1);
+      const ast2 = parseTypeScript("file2.ts", code2);
+      
+      let similarity: number;
+      let result: any;
+      
+      if (options.useAPTED) {
+        result = compareStructuresAPTEDCore(ast1.program, ast2.program, {
+          renameCost: 0.3,
+          ...options.config
+        });
+        similarity = result.similarity;
+      } else {
+        result = compareStructuresCore(ast1, ast2);
+        similarity = result.similarity;
+      }
+      
+      return {
+        similarity,
+        structure1: result.structure1 || '',
+        structure2: result.structure2 || '',
+        code1Length: code1.length,
+        code2Length: code2.length,
+        algorithm: options.useAPTED ? 'APTED' : 'Levenshtein',
+      };
+    },
 
-  async loadFiles(pattern: string, basePath?: string) {
-    const { loadFiles } = await import('./code_repository_functional.ts');
-    return loadFiles(this.state, pattern, basePath);
-  }
-
-  async addFile(id: string, path: string, content: string) {
-    const { addFile } = await import('./code_repository_functional.ts');
-    return addFile(this.state, id, path, content);
-  }
-
-  async findSimilarByMinHash(fileId: string, threshold?: number) {
-    const { findSimilarByMinHash } = await import('./code_repository_functional.ts');
-    return findSimilarByMinHash(this.state, fileId, threshold);
-  }
-
-  async findSimilarBySimHash(fileId: string, threshold?: number) {
-    const { findSimilarBySimHash } = await import('./code_repository_functional.ts');
-    return findSimilarBySimHash(this.state, fileId, threshold);
-  }
-
-  async findSimilarByAPTED(fileId: string, threshold?: number, maxComparisons?: number) {
-    const { findSimilarByAPTED } = await import('./code_repository_functional.ts');
-    return findSimilarByAPTED(this.state, fileId, threshold, maxComparisons);
-  }
-
-  async findAllSimilarPairs(threshold?: number, method?: 'minhash' | 'simhash') {
-    const { findAllSimilarPairs } = await import('./code_repository_functional.ts');
-    return findAllSimilarPairs(this.state, threshold, method);
-  }
-
-  async findClones(threshold?: number) {
-    const { findClones } = await import('./code_repository_functional.ts');
-    return findClones(this.state, threshold);
-  }
-
-  async getStatistics() {
-    const { getStatistics } = await import('./code_repository_functional.ts');
-    return getStatistics(this.state);
-  }
+    /**
+     * Parse TypeScript code and return the AST
+     */
+    parse(code: string, filename?: string) {
+      return parseTypeScript(filename || 'file.ts', code);
+    }
+  };
 }
 
-// Legacy exports for backward compatibility
-export { extractTokens, extractFeatures } from './code_index_functional.ts';
-export { MinHash, LSH, SimHash } from './code_index.ts';
+/**
+ * CodeRepository - factory function to create repository manager
+ */
+export function CodeRepository() {
+  let state = createRepository();
 
-// Export default instance for convenience
-export default CodeSimilarity;
+  return {
+    /**
+     * Load files from a directory pattern
+     */
+    async loadFiles(pattern: string): Promise<void> {
+      const files = await loadFilesFromPattern(pattern);
+      loadFilesRepo(state, files);
+    },
+
+    /**
+     * Find similar files using MinHash algorithm
+     */
+    findSimilarByMinHash(filePath: string, threshold: number): SimilarityResult[] {
+      return findSimilarByMinHash(state, filePath, threshold);
+    },
+
+    /**
+     * Find all similar pairs in the repository
+     */
+    findAllSimilarPairs(threshold: number): SimilarityResult[] {
+      return findAllSimilarPairsRepo(state, threshold);
+    },
+
+    /**
+     * Find code clones (groups of similar files)
+     */
+    findClones(threshold: number): CodeFile[][] {
+      const cloneMap = findClonesRepo(state, threshold);
+      const cloneGroups: CodeFile[][] = [];
+      
+      for (const [_, fileIds] of cloneMap) {
+        const group: CodeFile[] = [];
+        for (const fileId of fileIds) {
+          const file = state.files.get(fileId);
+          if (file) {
+            group.push(file);
+          }
+        }
+        if (group.length > 1) {
+          cloneGroups.push(group);
+        }
+      }
+      
+      return cloneGroups;
+    }
+  };
+}

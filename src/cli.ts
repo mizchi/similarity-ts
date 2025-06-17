@@ -5,10 +5,9 @@ import { readFileSync } from 'fs';
 import { join, relative } from 'path';
 import { glob } from 'glob';
 import chalk from 'chalk';
-import { parseTypeScript } from './oxc_similarity.ts';
-import { createRepository, addFile, findAllSimilarPairs } from './code_repository_functional.ts';
-import { calculateSimilarityAPTED } from './oxc_similarity.ts';
-import { oxcToTreeNode, computeEditDistance } from './oxc_apted_functional.ts';
+import { parseTypeScript } from './parser.ts';
+import { createRepository, addFile, findAllSimilarPairs } from './code_repository.ts';
+import { calculateSimilarityAPTED, oxcToTreeNode, computeEditDistance, countNodes } from './core/apted.ts';
 
 interface FunctionInfo {
   name: string;
@@ -147,7 +146,8 @@ function compareFunctions(func1: FunctionInfo, func2: FunctionInfo, noSizePenalt
     const tree2 = oxcToTreeNode(func2.ast);
     
     // Calculate edit distance (default renameCost: 0.3)
-    const distance = computeEditDistance(tree1, tree2);
+    const memoizedResults = new Map<string, number>();
+    const distance = computeEditDistance(tree1, tree2, 0.3, memoizedResults);
     
     // Calculate TSED similarity (normalized by node count)
     const maxNodes = Math.max(countNodes(tree1), countNodes(tree2));
@@ -175,18 +175,6 @@ function compareFunctions(func1: FunctionInfo, func2: FunctionInfo, noSizePenalt
   }
 }
 
-/**
- * Count nodes in tree
- */
-function countNodes(node: any): number {
-  let count = 1;
-  if (node.children && Array.isArray(node.children)) {
-    for (const child of node.children) {
-      count += countNodes(child);
-    }
-  }
-  return count;
-}
 
 /**
  * Main CLI function

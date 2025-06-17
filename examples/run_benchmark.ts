@@ -1,6 +1,13 @@
 import { SimilarityBenchmark } from '../src/benchmark.ts';
-import { CodeRepository } from '../src/code_repository.ts';
-import { readFileSync } from 'fs';
+import { 
+  createRepository,
+  loadFiles,
+  loadFilesFromPattern,
+  addFile,
+  getStatistics,
+  findAllSimilarPairs,
+  readFile
+} from '../src/index.ts';
 import { join } from 'path';
 
 async function runBenchmarks() {
@@ -14,15 +21,16 @@ async function runBenchmarks() {
   console.log('\n\n=== Real Project Benchmark ===\n');
   
   const projectPath = join(import.meta.dirname, 'sample_project');
-  const repo = new CodeRepository();
-  await repo.loadFiles('src/**/*.ts', projectPath);
+  const repo = createRepository();
+  const files = await loadFilesFromPattern('src/**/*.ts', projectPath);
+  loadFiles(repo, files);
   
   // Load two similar services for comparison
   const userServicePath = join(projectPath, 'src/services/user_service.ts');
   const productServicePath = join(projectPath, 'src/services/product_service.ts');
   
-  const userServiceCode = readFileSync(userServicePath, 'utf-8');
-  const productServiceCode = readFileSync(productServicePath, 'utf-8');
+  const userServiceCode = readFile(userServicePath);
+  const productServiceCode = readFile(productServicePath);
   
   console.log('Benchmarking UserService vs ProductService comparison:');
   console.log(`File sizes: ${userServiceCode.length} and ${productServiceCode.length} characters`);
@@ -36,7 +44,7 @@ async function runBenchmarks() {
 
   // 3. Benchmark repository-wide operations
   console.log('\n--- Repository-wide Operations ---');
-  console.log(`Repository contains ${repo.getStatistics().totalFiles} files\n`);
+  console.log(`Repository contains ${getStatistics(repo).totalFiles} files\n`);
   
   const multiFileResults = await benchmark.benchmarkMultiFile(
     repo,
@@ -56,22 +64,22 @@ async function runBenchmarks() {
   const scalabilityResults: any[] = [];
   
   for (const count of fileCounts) {
-    const testRepo = new CodeRepository();
+    const testRepo = createRepository();
     
     // Generate test files
     for (let i = 0; i < count; i++) {
       const size = i % 3 === 0 ? 'small' : i % 3 === 1 ? 'medium' : 'large';
       const code = benchmark.generateCodeSample(size);
-      testRepo.addFile(`test${i}.ts`, `test${i}.ts`, code);
+      addFile(testRepo, `test${i}.ts`, `test${i}.ts`, code);
     }
     
     // Benchmark operations
     const start = performance.now();
-    testRepo.findAllSimilarPairs(0.7, 'minhash');
+    findAllSimilarPairs(testRepo, 0.7, 'minhash');
     const minHashTime = performance.now() - start;
     
     const start2 = performance.now();
-    testRepo.findAllSimilarPairs(0.7, 'simhash');
+    findAllSimilarPairs(testRepo, 0.7, 'simhash');
     const simHashTime = performance.now() - start2;
     
     scalabilityResults.push({
@@ -86,13 +94,13 @@ async function runBenchmarks() {
   // 5. Memory usage estimation
   console.log('\n\n=== Memory Usage ===\n');
   
-  const memoryRepo = new CodeRepository();
+  const memoryRepo = createRepository();
   const initialMemory = process.memoryUsage().heapUsed / 1024 / 1024;
   
   // Add 100 medium-sized files
   for (let i = 0; i < 100; i++) {
     const code = benchmark.generateCodeSample('medium');
-    memoryRepo.addFile(`mem${i}.ts`, `mem${i}.ts`, code);
+    addFile(memoryRepo, `mem${i}.ts`, `mem${i}.ts`, code);
   }
   
   const finalMemory = process.memoryUsage().heapUsed / 1024 / 1024;

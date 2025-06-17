@@ -2,10 +2,11 @@
  * Test the CLI functionality
  */
 import { spawn } from 'child_process';
-import { join } from 'path';
+import { join, dirname } from 'path';
 
-const cliPath = join(process.cwd(), 'src/cli.ts');
-const targetDir = join(process.cwd(), 'examples/sample_project/src');
+const __dirname = dirname(new URL(import.meta.url).pathname);
+const cliPath = join(__dirname, '../src/cli.ts');
+const targetDir = join(__dirname, 'sample_project/src');
 
 console.log('🔍 Testing TypeScript Function Similarity CLI\n');
 console.log(`CLI Path: ${cliPath}`);

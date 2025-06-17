@@ -18,6 +18,7 @@ Calculate code similarity
 
 - file: snake_case
 - add `.ts` extensions to import. eg. `import {} from "./x.ts"` for deno compatibility.
+- Never use class. Use Function
 
 ## Directory Patterns
 

@@ -23,12 +23,10 @@ interface TestResult {
 }
 
 function runFixtureTests() {
-  const levenshteinSim = new CodeSimilarity();
-  const aptedSim = new CodeSimilarity({ useAPTED: true });
-  const aptedCustomSim = new CodeSimilarity({ 
-    useAPTED: true,
-    config: { renameCost: 0.3 }
-  });
+  // Create similarity instances
+  const levenshteinSim = CodeSimilarity();
+  const aptedSim = CodeSimilarity({ useAPTED: true });
+  const aptedCustomSim = CodeSimilarity({ useAPTED: true, config: { renameCost: 0.3 } });
 
   const results: TestResult[] = [];
   
