@@ -25,21 +25,25 @@ ts-similarity <directory> [options]
 ## Examples
 
 ### Basic usage - find similar functions in src directory:
+
 ```bash
 ts-similarity ./src
 ```
 
 ### Custom pattern and threshold:
+
 ```bash
 ts-similarity ./src -p "**/*.ts" -t 0.8
 ```
 
 ### JSON output to file:
+
 ```bash
 ts-similarity ./src -j -o results.json
 ```
 
 ### Only scan specific subdirectories:
+
 ```bash
 ts-similarity ./src -p "services/**/*.ts" -t 0.9
 ```
@@ -55,6 +59,7 @@ The CLI provides color-coded output for different similarity levels:
 ## How it Works
 
 1. **Function Extraction**: The tool parses all TypeScript files and extracts:
+
    - Function declarations
    - Function expressions
    - Arrow functions
@@ -94,6 +99,7 @@ When using the `-j` flag, the output is formatted as:
 ## Performance
 
 The tool is optimized for large codebases:
+
 - Uses parallel processing for function extraction
 - Implements efficient similarity algorithms (MinHash/LSH)
 - Shows progress indicators for long-running operations

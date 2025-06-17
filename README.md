@@ -241,14 +241,19 @@ Based on our test suite, here's what different algorithms detect:
 For analyzing similarity across multiple files in a project, use the `CodeRepository` class:
 
 ```typescript
-import { createRepository, loadFilesIntoRepository, findSimilarFiles, findCodeClones } from "./src/index.ts";
+import {
+  createRepository,
+  loadFilesIntoRepository,
+  findSimilarFiles,
+  findCodeClones,
+} from "./src/index.ts";
 
 // Create a repository and load files
 let repo = createRepository();
 repo = await loadFilesIntoRepository(repo, "src/**/*.ts");
 
 // Find similar files
-const similar = findSimilarFiles(repo, "src/index.ts", 0.7, 'minhash');
+const similar = findSimilarFiles(repo, "src/index.ts", 0.7, "minhash");
 
 // Find all code clones
 const clones = findCodeClones(repo, 0.9);
@@ -276,7 +281,12 @@ const clones = findCodeClones(repo, 0.9);
 ### Example: Finding Code Clones
 
 ```typescript
-import { createRepository, loadFilesIntoRepository, findAllSimilarPairs, findCodeClones } from "./src/index.ts";
+import {
+  createRepository,
+  loadFilesIntoRepository,
+  findAllSimilarPairs,
+  findCodeClones,
+} from "./src/index.ts";
 
 let repo = createRepository();
 repo = await loadFilesIntoRepository(repo, "**/*.ts");

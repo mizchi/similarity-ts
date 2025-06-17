@@ -9,10 +9,11 @@
 3つのファイルで同じようなAST走査パターンが実装されています：
 
 - `src/core/function_extractor.ts` - 4450文字のvisitNode関数
-- `src/core/function_body_comparer.ts` - 1131文字のvisitNode関数  
+- `src/core/function_body_comparer.ts` - 1131文字のvisitNode関数
 - `src/core/semantic_normalizer.ts` - 1474文字のvisitNode関数
 
 類似度：
+
 - function_extractor.ts vs function_body_comparer.ts: 74.8%
 - function_extractor.ts vs semantic_normalizer.ts: 68.5%
 - function_body_comparer.ts vs semantic_normalizer.ts: 55.8%
@@ -37,7 +38,7 @@ export interface TraversalState {
 export interface NodeVisitor<T extends TraversalState = TraversalState> {
   enter?: (node: any, state: T) => void;
   leave?: (node: any, state: T) => void;
-  
+
   // Specific node handlers
   FunctionDeclaration?: (node: any, state: T) => void;
   FunctionExpression?: (node: any, state: T) => void;
@@ -53,11 +54,12 @@ export interface NodeVisitor<T extends TraversalState = TraversalState> {
 export function traverseAST<T extends TraversalState>(
   node: any,
   visitor: NodeVisitor<T>,
-  state: T
-): void
+  state: T,
+): void;
 ```
 
 #### 利点
+
 - DRY原則の遵守
 - 一貫性のあるAST走査
 - 型安全性の向上
@@ -82,19 +84,23 @@ export function extractFunctions(code: string): FunctionDefinition[] {
     functions: [],
     className: undefined,
     code,
-    lines: code.split('\n')
+    lines: code.split("\n"),
   };
-  
-  traverseAST(ast.program, {
-    FunctionDeclaration(node, state) {
-      // 関数抽出ロジック
+
+  traverseAST(
+    ast.program,
+    {
+      FunctionDeclaration(node, state) {
+        // 関数抽出ロジック
+      },
+      ClassDeclaration(node, state) {
+        state.className = node.id?.name;
+      },
+      // 他のハンドラー
     },
-    ClassDeclaration(node, state) {
-      state.className = node.id?.name;
-    },
-    // 他のハンドラー
-  }, state);
-  
+    state,
+  );
+
   return state.functions;
 }
 ```
@@ -116,6 +122,7 @@ export function extractFunctions(code: string): FunctionDefinition[] {
 ### Phase 4: その他の重複の解決
 
 1. `extractFunctions`の重複
+
    - cli.tsの実装を確認し、必要に応じて統合
 
 2. `calculateSimilarity`の重複
@@ -140,11 +147,13 @@ export function extractFunctions(code: string): FunctionDefinition[] {
 ## リスクと対策
 
 ### リスク
+
 1. 既存機能への影響
 2. パフォーマンスの低下
 3. 型安全性の低下
 
 ### 対策
+
 1. 包括的なテストスイートの実行
 2. ベンチマークテストの実施
 3. TypeScriptの型を活用した安全な実装

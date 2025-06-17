@@ -5,15 +5,12 @@ export class Validator {
   }
 
   static isStrongPassword(password: string): boolean {
-    return password.length >= 8 &&
-           /[A-Z]/.test(password) &&
-           /[a-z]/.test(password) &&
-           /[0-9]/.test(password);
+    return password.length >= 8 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /[0-9]/.test(password);
   }
 
   static isValidPhoneNumber(phone: string): boolean {
     const phoneRegex = /^\+?[\d\s-()]+$/;
-    return phoneRegex.test(phone) && phone.replace(/\D/g, '').length >= 10;
+    return phoneRegex.test(phone) && phone.replace(/\D/g, "").length >= 10;
   }
 
   static isValidUrl(url: string): boolean {
@@ -26,6 +23,6 @@ export class Validator {
   }
 
   static sanitizeInput(input: string): string {
-    return input.trim().replace(/[<>]/g, '');
+    return input.trim().replace(/[<>]/g, "");
   }
 }

@@ -11,7 +11,7 @@ interface NodeHandlers<T> {
   // Lifecycle hooks
   enter?: NodeHandler<T>;
   leave?: NodeHandler<T>;
-  
+
   // Node type specific handlers
   FunctionDeclaration?: NodeHandler<T>;
   FunctionExpression?: NodeHandler<T>;
@@ -26,7 +26,7 @@ interface NodeHandlers<T> {
   ThisExpression?: NodeHandler<T>;
   Identifier?: NodeHandler<T>;
   BlockStatement?: NodeHandler<T>;
-  
+
   // Generic handler for any node type
   [nodeType: string]: NodeHandler<T> | undefined;
 }
@@ -38,40 +38,35 @@ interface NodeHandlers<T> {
  * @param state - State object passed to all handlers
  * @param parent - Parent node (optional)
  */
-export function traverseAST<T>(
-  node: any,
-  handlers: NodeHandlers<T>,
-  state: T,
-  parent?: any
-): void {
-  if (!node || typeof node !== 'object') return;
-  
+export function traverseAST<T>(node: any, handlers: NodeHandlers<T>, state: T, parent?: any): void {
+  if (!node || typeof node !== "object") return;
+
   // Call enter lifecycle hook
   handlers.enter?.(node, state, parent);
-  
+
   // Call node type specific handler
-  if (node.type && typeof node.type === 'string') {
+  if (node.type && typeof node.type === "string") {
     const handler = handlers[node.type];
     if (handler) {
       handler(node, state, parent);
     }
   }
-  
+
   // Traverse children
   for (const key in node) {
     // Skip circular references and internal properties
-    if (key === 'parent' || key === 'scope' || key === '_parent') continue;
-    
+    if (key === "parent" || key === "scope" || key === "_parent") continue;
+
     const value = node[key];
     if (Array.isArray(value)) {
       // Traverse array elements
-      value.forEach(child => traverseAST(child, handlers, state, node));
-    } else if (value && typeof value === 'object') {
+      value.forEach((child) => traverseAST(child, handlers, state, node));
+    } else if (value && typeof value === "object") {
       // Traverse object properties
       traverseAST(value, handlers, state, node);
     }
   }
-  
+
   // Call leave lifecycle hook
   handlers.leave?.(node, state, parent);
 }
@@ -82,4 +77,3 @@ export function traverseAST<T>(
 export function createVisitor<T>(handlers: NodeHandlers<T>): NodeHandlers<T> {
   return handlers;
 }
-

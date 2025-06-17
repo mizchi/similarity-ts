@@ -16,7 +16,7 @@ export const parseTypeScriptAsync = oxc.parseAsync;
  * Parse multiple TypeScript files in parallel
  */
 export async function parseMultipleAsync(
-  files: Array<{ filename: string; code: string }>
+  files: Array<{ filename: string; code: string }>,
 ): Promise<Array<{ filename: string; ast: oxc.ParseResult; error?: Error }>> {
   const promises = files.map(async ({ filename, code }) => {
     try {
@@ -26,6 +26,6 @@ export async function parseMultipleAsync(
       return { filename, ast: null as any, error: error as Error };
     }
   });
-  
+
   return Promise.all(promises);
 }

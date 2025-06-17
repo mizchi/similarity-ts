@@ -1,0 +1,7 @@
+{
+  "rules": {
+    "no-console": "off",
+    "typescript/no-explicit-any": "off"
+  },
+  "ignorePatterns": ["node_modules", "dist", "build", "coverage", "*.min.js", "target", "test/__fixtures__"]
+}

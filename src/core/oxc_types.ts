@@ -13,32 +13,27 @@ import type {
   NumericLiteral,
   StringLiteral,
   BooleanLiteral,
-  Directive
-} from '@oxc-project/types';
+  Directive,
+} from "@oxc-project/types";
 
 // Re-export types
-export type {
-  Program,
-  NumericLiteral,
-  StringLiteral,
-  BooleanLiteral
-};
+export type { Program, NumericLiteral, StringLiteral, BooleanLiteral };
 
 // Type guards
 export function isIdentifier(node: any): node is IdentifierReference | BindingIdentifier {
-  return node?.type === 'Identifier';
+  return node?.type === "Identifier";
 }
 
 export function isFunctionDeclaration(node: any): node is Function {
-  return node?.type === 'FunctionDeclaration';
+  return node?.type === "FunctionDeclaration";
 }
 
 export function isClassDeclaration(node: any): node is Class {
-  return node?.type === 'ClassDeclaration';
+  return node?.type === "ClassDeclaration";
 }
 
 export function isVariableDeclarator(node: any): node is VariableDeclarator {
-  return node?.type === 'VariableDeclarator';
+  return node?.type === "VariableDeclarator";
 }
 
 // Union type for all AST nodes

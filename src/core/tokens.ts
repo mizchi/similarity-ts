@@ -1,5 +1,23 @@
 // Token extraction functions from code_index.ts
-import type { ParseResult } from 'oxc-parser';
+import type { ParseResult } from "oxc-parser";
+
+/**
+ * Extract tokens from code string (legacy compatibility)
+ */
+export function extractTokens(code: string): Set<string> {
+  // Simple tokenization for backward compatibility
+  const tokens = new Set<string>();
+  const words = code.match(/\b\w+\b/g) || [];
+  words.forEach((word) => tokens.add(word));
+  return tokens;
+}
+
+/**
+ * Extract features from code (legacy compatibility)
+ */
+export function extractFeatures(code: string): string[] {
+  return Array.from(extractTokens(code));
+}
 
 /**
  * Extract tokens from pre-parsed AST
@@ -8,7 +26,6 @@ export function extractTokensFromAST(ast: ParseResult): Set<string> {
   const tokens = new Set<string>();
 
   try {
-
     const visit = (node: any) => {
       if (!node || typeof node !== "object") return;
 
@@ -33,11 +50,7 @@ export function extractTokensFromAST(ast: ParseResult): Set<string> {
       }
 
       // Extract function names
-      if (
-        (node.type === "FunctionDeclaration" ||
-          node.type === "FunctionExpression") &&
-        node.id?.name
-      ) {
+      if ((node.type === "FunctionDeclaration" || node.type === "FunctionExpression") && node.id?.name) {
         tokens.add(`fn:${node.id.name}`);
       }
 
@@ -74,12 +87,11 @@ export function extractTokensFromAST(ast: ParseResult): Set<string> {
     visit(ast.program);
   } catch (error) {
     // No fallback needed for AST-based extraction
-    console.error('Error processing AST:', error);
+    console.error("Error processing AST:", error);
   }
 
   return tokens;
 }
-
 
 /**
  * Extract weighted features from pre-parsed AST
@@ -88,7 +100,6 @@ export function extractFeaturesFromAST(ast: ParseResult): Map<string, number> {
   const features = new Map<string, number>();
 
   try {
-
     const visit = (node: any, depth: number = 0) => {
       if (!node || typeof node !== "object") return;
 
@@ -132,9 +143,8 @@ export function extractFeaturesFromAST(ast: ParseResult): Map<string, number> {
     visit(ast.program);
   } catch (error) {
     // No fallback needed for AST-based extraction
-    console.error('Error processing AST:', error);
+    console.error("Error processing AST:", error);
   }
 
   return features;
 }
-

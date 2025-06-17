@@ -108,7 +108,7 @@ const similarity = new CodeSimilarity({
 const repo = new CodeRepository(
   128, // minHashSize
   16, // lshBands
-  64 // simHashBits
+  64, // simHashBits
 );
 ```
 

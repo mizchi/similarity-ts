@@ -1,7 +1,7 @@
-import { extractFunctions, compareFunctions } from '../src/core/function_extractor.ts';
-import { calculateAPTEDSimilarity } from '../src/core/apted.ts';
+import { extractFunctions, compareFunctions } from "../src/core/function_extractor.ts";
+import { calculateAPTEDSimilarity } from "../src/core/apted.ts";
 
-console.log('=== Method vs Function Comparison ===\n');
+console.log("=== Method vs Function Comparison ===\n");
 
 const code = `
 // クラスベースの実装
@@ -53,31 +53,31 @@ const functions = extractFunctions(code);
 console.log(`Found ${functions.length} functions:\n`);
 
 functions.forEach((func, i) => {
-  console.log(`${i + 1}. ${func.type === 'method' ? `${func.className}.` : ''}${func.name} (${func.type})`);
-  console.log(`   Parameters: [${func.parameters.join(', ')}]`);
+  console.log(`${i + 1}. ${func.type === "method" ? `${func.className}.` : ""}${func.name} (${func.type})`);
+  console.log(`   Parameters: [${func.parameters.join(", ")}]`);
   console.log(`   Body preview: ${func.body.substring(0, 50)}...`);
 });
 
-console.log('\n--- Detailed Comparisons ---\n');
+console.log("\n--- Detailed Comparisons ---\n");
 
 // メソッドと関数を比較
-const methodAdd = functions.find(f => f.name === 'add' && f.type === 'method');
-const functionAdd = functions.find(f => f.name === 'add' && f.type === 'function');
-const arrowAdd = functions.find(f => f.name === 'addNumbers');
+const methodAdd = functions.find((f) => f.name === "add" && f.type === "method");
+const functionAdd = functions.find((f) => f.name === "add" && f.type === "function");
+const arrowAdd = functions.find((f) => f.name === "addNumbers");
 
 if (methodAdd && functionAdd) {
-  console.log('1. Calculator.add (method) vs add (function):\n');
-  
+  console.log("1. Calculator.add (method) vs add (function):\n");
+
   // 直接比較
   const directSimilarity = calculateAPTEDSimilarity(methodAdd.body, functionAdd.body);
   console.log(`   Direct body similarity: ${(directSimilarity * 100).toFixed(1)}%`);
-  
+
   // Function extractor の比較
   const comparison = compareFunctions(methodAdd, functionAdd, {
     ignoreThis: true,
-    ignoreParamNames: true
+    ignoreParamNames: true,
   });
-  
+
   console.log(`   Structural equivalence: ${comparison.isStructurallyEquivalent}`);
   console.log(`   Has this difference: ${comparison.differences.thisUsage}`);
   console.log(`   Parameter difference: ${comparison.differences.parameterNames}`);
@@ -85,13 +85,13 @@ if (methodAdd && functionAdd) {
 }
 
 if (methodAdd && arrowAdd) {
-  console.log('\n2. Calculator.add (method) vs addNumbers (arrow):\n');
-  
+  console.log("\n2. Calculator.add (method) vs addNumbers (arrow):\n");
+
   const comparison = compareFunctions(methodAdd, arrowAdd, {
     ignoreThis: true,
-    ignoreParamNames: true
+    ignoreParamNames: true,
   });
-  
+
   console.log(`   Structural equivalence: ${comparison.isStructurallyEquivalent}`);
   console.log(`   Has this difference: ${comparison.differences.thisUsage}`);
   console.log(`   Parameter difference: ${comparison.differences.parameterNames}`);
@@ -99,13 +99,13 @@ if (methodAdd && arrowAdd) {
 }
 
 if (functionAdd && arrowAdd) {
-  console.log('\n3. add (function) vs addNumbers (arrow):\n');
-  
+  console.log("\n3. add (function) vs addNumbers (arrow):\n");
+
   const comparison = compareFunctions(functionAdd, arrowAdd, {
     ignoreThis: false,
-    ignoreParamNames: true
+    ignoreParamNames: true,
   });
-  
+
   console.log(`   Structural equivalence: ${comparison.isStructurallyEquivalent}`);
   console.log(`   Has this difference: ${comparison.differences.thisUsage}`);
   console.log(`   Parameter difference: ${comparison.differences.parameterNames}`);
@@ -113,20 +113,20 @@ if (functionAdd && arrowAdd) {
 }
 
 // 似た機能の比較
-const methodMultiply = functions.find(f => f.name === 'multiply' && f.type === 'method');
-const functionMultiply = functions.find(f => f.name === 'multiply' && f.type === 'function');
+const methodMultiply = functions.find((f) => f.name === "multiply" && f.type === "method");
+const functionMultiply = functions.find((f) => f.name === "multiply" && f.type === "function");
 
 if (methodAdd && methodMultiply) {
-  console.log('\n4. Calculator.add vs Calculator.multiply (both methods):\n');
-  
+  console.log("\n4. Calculator.add vs Calculator.multiply (both methods):\n");
+
   const comparison = compareFunctions(methodAdd, methodMultiply);
-  
+
   console.log(`   Structural equivalence: ${comparison.isStructurallyEquivalent}`);
   console.log(`   Similarity: ${(comparison.similarity * 100).toFixed(1)}%`);
 }
 
-console.log('\n--- Summary ---\n');
-console.log('The APTED algorithm successfully detects that:');
+console.log("\n--- Summary ---\n");
+console.log("The APTED algorithm successfully detects that:");
 console.log('- Class methods using "this" and functions using parameters are structurally similar');
-console.log('- Different parameter names do not affect structural similarity when normalized');
-console.log('- Similar logic patterns (add vs multiply) show high similarity');
+console.log("- Different parameter names do not affect structural similarity when normalized");
+console.log("- Similar logic patterns (add vs multiply) show high similarity");

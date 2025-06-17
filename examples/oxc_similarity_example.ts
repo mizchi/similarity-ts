@@ -24,7 +24,7 @@ interface User {
 function getUser(id: number): User {
   return { id, name: "User" + id };
 }
-`
+`,
   },
   {
     name: "Different implementation, same structure",
@@ -42,7 +42,7 @@ class Calculator {
     return result;
   }
 }
-`
+`,
   },
   {
     name: "TypeScript vs JavaScript-like",
@@ -57,7 +57,7 @@ function updateStatus(id: number, status: Status): void {
 function updateStatus(id, status) {
   console.log(\`Updating \${id} to \${status}\`);
 }
-`
+`,
   },
   {
     name: "Different TypeScript features",
@@ -74,21 +74,21 @@ const myColor: Color = Color.Red;
 type Color = "RED" | "GREEN" | "BLUE";
 
 const myColor: Color = "RED";
-`
-  }
+`,
+  },
 ];
 
 examples.forEach(({ name, code1, code2 }) => {
   console.log(`\n--- ${name} ---`);
   const result = compareStructures(code1, code2);
-  
+
   console.log(`Similarity: ${(result.similarity * 100).toFixed(1)}%`);
   console.log("\nStructure 1:");
   console.log(result.structure1.split("\n").slice(0, 5).join("\n"));
   if (result.structure1.split("\n").length > 5) {
     console.log(`... and ${result.structure1.split("\n").length - 5} more`);
   }
-  
+
   console.log("\nStructure 2:");
   console.log(result.structure2.split("\n").slice(0, 5).join("\n"));
   if (result.structure2.split("\n").length > 5) {

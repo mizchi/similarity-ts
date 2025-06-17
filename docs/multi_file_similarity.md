@@ -18,12 +18,14 @@ When analyzing code similarity across many files (N files), a naive approach wou
 **Purpose**: Fast approximate similarity search based on token sets
 
 **How it works**:
+
 - Extract tokens from each file's AST
 - Generate MinHash signatures (fixed-size fingerprints)
 - Use LSH to group similar signatures into buckets
 - Only compare files in the same buckets
 
 **Characteristics**:
+
 - Time: O(1) query, O(N) preprocessing
 - Space: O(N × signature_size)
 - Accuracy: Approximates Jaccard similarity
@@ -31,8 +33,8 @@ When analyzing code similarity across many files (N files), a naive approach wou
 
 ```typescript
 const repo = new CodeRepository();
-await repo.loadFiles('**/*.ts');
-const similar = repo.findSimilarByMinHash('file.ts', 0.7);
+await repo.loadFiles("**/*.ts");
+const similar = repo.findSimilarByMinHash("file.ts", 0.7);
 ```
 
 ### 2. SimHash
@@ -40,18 +42,20 @@ const similar = repo.findSimilarByMinHash('file.ts', 0.7);
 **Purpose**: Capture structural similarity using weighted features
 
 **How it works**:
+
 - Extract weighted features from AST (node types, depths, patterns)
 - Generate hash where similar structures have similar hash values
 - Use Hamming distance to measure similarity
 
 **Characteristics**:
+
 - Time: O(N) for all comparisons
 - Space: O(N) (one hash per file)
 - Accuracy: Good for structural patterns
 - Best for: Detecting similar code patterns, refactoring opportunities
 
 ```typescript
-const similar = repo.findSimilarBySimHash('file.ts', 0.8);
+const similar = repo.findSimilarBySimHash("file.ts", 0.8);
 ```
 
 ### 3. Hybrid Approach
@@ -59,6 +63,7 @@ const similar = repo.findSimilarBySimHash('file.ts', 0.8);
 **Purpose**: Balance speed and accuracy
 
 **Strategy**:
+
 1. Use MinHash/SimHash for candidate selection
 2. Apply APTED for precise similarity on candidates
 3. Limit expensive comparisons to promising pairs
@@ -73,6 +78,7 @@ const precise = repo.findSimilarByAPTED(file, 0.7, maxCandidates);
 ### Token Extraction
 
 Tokens are extracted from the AST to capture:
+
 - Node types (FunctionDeclaration, ClassDeclaration, etc.)
 - Identifier names with context (id:name, name:value)
 - Literal values for constants
@@ -81,6 +87,7 @@ Tokens are extracted from the AST to capture:
 ### Feature Extraction
 
 Features for SimHash include:
+
 - Node type at depth (e.g., "FunctionDeclaration@2")
 - Aggregate counts (number of functions, classes)
 - TypeScript-specific features
@@ -89,6 +96,7 @@ Features for SimHash include:
 ### LSH Configuration
 
 Key parameters:
+
 - **Signature size**: 128 (higher = more accurate)
 - **Bands**: 16 (more bands = higher recall)
 - **Rows per band**: 8 (signature_size / bands)
@@ -108,6 +116,7 @@ where s = similarity, r = rows, b = bands
 ### 1. Code Clone Detection
 
 Find groups of highly similar code:
+
 ```typescript
 const clones = repo.findClones(0.9);
 // Returns Map<representative, [files in group]>
@@ -116,13 +125,15 @@ const clones = repo.findClones(0.9);
 ### 2. Refactoring Opportunities
 
 Find similar patterns that could be abstracted:
+
 ```typescript
-const patterns = repo.findAllSimilarPairs(0.7, 'simhash');
+const patterns = repo.findAllSimilarPairs(0.7, "simhash");
 ```
 
 ### 3. Code Review Assistance
 
 Find similar existing code when reviewing new changes:
+
 ```typescript
 const existing = repo.findSimilarByAPTED(newFile, 0.8);
 ```
@@ -130,6 +141,7 @@ const existing = repo.findSimilarByAPTED(newFile, 0.8);
 ### 4. Technical Debt Analysis
 
 Identify duplicated logic across the codebase:
+
 ```typescript
 const stats = repo.getStatistics();
 const duplication = clones.size / stats.totalFiles;
@@ -137,12 +149,12 @@ const duplication = clones.size / stats.totalFiles;
 
 ## Algorithm Comparison
 
-| Algorithm | Speed | Memory | Accuracy | Use Case |
-|-----------|-------|---------|----------|----------|
-| MinHash/LSH | Very Fast | Medium | Good | Large-scale search |
-| SimHash | Fast | Low | Good | Pattern detection |
-| APTED | Slow | Low | Excellent | Precise comparison |
-| Hybrid | Fast | Medium | Excellent | Production systems |
+| Algorithm   | Speed     | Memory | Accuracy  | Use Case           |
+| ----------- | --------- | ------ | --------- | ------------------ |
+| MinHash/LSH | Very Fast | Medium | Good      | Large-scale search |
+| SimHash     | Fast      | Low    | Good      | Pattern detection  |
+| APTED       | Slow      | Low    | Excellent | Precise comparison |
+| Hybrid      | Fast      | Medium | Excellent | Production systems |
 
 ## Limitations and Considerations
 

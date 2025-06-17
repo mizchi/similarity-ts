@@ -1,20 +1,9 @@
-/// <reference lib="deno.ns" />
-import { extractFunctions, compareFunctions, findDuplicateFunctions } from '../src/core/function_extractor.ts';
-import { assertEquals } from 'https://deno.land/std@0.200.0/testing/asserts.ts';
+import { test } from "node:test";
+import { strict as assert } from "node:assert";
+import { extractFunctions, compareFunctions, findDuplicateFunctions } from "../src/core/function_extractor.ts";
 
-// Type definitions for tests
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
-
-interface Database {
-  query(sql: string, params: any[]): Promise<{ rows: any[] }>;
-}
-
-Deno.test('Class to function refactoring detection', async (t: Deno.TestContext) => {
-  await t.step('should detect identical logic between class method and function', () => {
+test("Class to function refactoring detection", async (t) => {
+  await t.test("should detect identical logic between class method and function", () => {
     const code = `
       // Original class implementation
       class UserService {
@@ -58,44 +47,44 @@ Deno.test('Class to function refactoring detection', async (t: Deno.TestContext)
         return true;
       }
     `;
-    
+
     const functions = extractFunctions(code);
-    
+
     // Should extract 4 functions total
-    assertEquals(functions.length, 4);
-    
-    const classAddUser = functions.find(f => f.name === 'addUser' && f.type === 'method');
-    const funcAddUser = functions.find(f => f.name === 'addUser' && f.type === 'function');
-    const classRemoveUser = functions.find(f => f.name === 'removeUser' && f.type === 'method');
-    const funcRemoveUser = functions.find(f => f.name === 'removeUser' && f.type === 'function');
-    
+    assert.equal(functions.length, 4);
+
+    const classAddUser = functions.find((f) => f.name === "addUser" && f.type === "method");
+    const funcAddUser = functions.find((f) => f.name === "addUser" && f.type === "function");
+    const classRemoveUser = functions.find((f) => f.name === "removeUser" && f.type === "method");
+    const funcRemoveUser = functions.find((f) => f.name === "removeUser" && f.type === "function");
+
     // All should be found
-    assertEquals(classAddUser !== undefined, true);
-    assertEquals(funcAddUser !== undefined, true);
-    assertEquals(classRemoveUser !== undefined, true);
-    assertEquals(funcRemoveUser !== undefined, true);
-    
+    assert.equal(classAddUser !== undefined, true);
+    assert.equal(funcAddUser !== undefined, true);
+    assert.equal(classRemoveUser !== undefined, true);
+    assert.equal(funcRemoveUser !== undefined, true);
+
     // Compare with normalization
     const addComparison = compareFunctions(classAddUser!, funcAddUser!, {
       ignoreThis: true,
-      ignoreParamNames: false
+      ignoreParamNames: false,
     });
-    
+
     const removeComparison = compareFunctions(classRemoveUser!, funcRemoveUser!, {
       ignoreThis: true,
-      ignoreParamNames: false
+      ignoreParamNames: false,
     });
-    
+
     // Should have high similarity when ignoring this
-    assertEquals(addComparison.similarity > 0.9, true);
-    assertEquals(removeComparison.similarity > 0.9, true);
-    
+    assert.equal(addComparison.similarity > 0.9, true);
+    assert.equal(removeComparison.similarity > 0.9, true);
+
     // Should detect this usage difference
-    assertEquals(addComparison.differences.thisUsage, true);
-    assertEquals(removeComparison.differences.thisUsage, true);
+    assert.equal(addComparison.differences.thisUsage, true);
+    assert.equal(removeComparison.differences.thisUsage, true);
   });
-  
-  await t.step('should detect refactored arrow functions', () => {
+
+  await t.test("should detect refactored arrow functions", () => {
     const code = `
       class Calculator {
         private value: number = 0;
@@ -122,33 +111,32 @@ Deno.test('Class to function refactoring detection', async (t: Deno.TestContext)
         return state.value;
       };
     `;
-    
+
     const functions = extractFunctions(code);
     const duplicates = findDuplicateFunctions(functions, {
       ignoreThis: true,
       ignoreParamNames: true,
-      similarityThreshold: 0.9
+      similarityThreshold: 0.9,
     });
-    
+
     // Should find 2 duplicate pairs
-    assertEquals(duplicates.length, 2);
-    
+    assert.equal(duplicates.length, 2);
+
     // Check that correct pairs are found
-    const addPair = duplicates.find(([f1, f2]) => 
-      (f1.name === 'add' && f2.name === 'add') ||
-      (f2.name === 'add' && f1.name === 'add')
+    const addPair = duplicates.find(
+      ([f1, f2]) => (f1.name === "add" && f2.name === "add") || (f2.name === "add" && f1.name === "add"),
     );
-    
-    const subtractPair = duplicates.find(([f1, f2]) => 
-      (f1.name === 'subtract' && f2.name === 'subtract') ||
-      (f2.name === 'subtract' && f1.name === 'subtract')
+
+    const subtractPair = duplicates.find(
+      ([f1, f2]) =>
+        (f1.name === "subtract" && f2.name === "subtract") || (f2.name === "subtract" && f1.name === "subtract"),
     );
-    
-    assertEquals(addPair !== undefined, true);
-    assertEquals(subtractPair !== undefined, true);
+
+    assert.equal(addPair !== undefined, true);
+    assert.equal(subtractPair !== undefined, true);
   });
-  
-  await t.step('should handle complex refactoring patterns', () => {
+
+  await t.test("should handle complex refactoring patterns", () => {
     const code = `
       // Original: Repository pattern with class
       class UserRepository {
@@ -192,40 +180,40 @@ Deno.test('Class to function refactoring detection', async (t: Deno.TestContext)
         };
       }
     `;
-    
+
     const functions = extractFunctions(code);
-    
+
     // Find the corresponding methods/functions
-    const classFindById = functions.find(f => f.name === 'findById' && f.type === 'method');
-    const funcFindUserById = functions.find(f => f.name === 'findUserById' && f.type === 'function');
-    const classMapRow = functions.find(f => f.name === 'mapRowToUser' && f.type === 'method');
-    const funcMapRow = functions.find(f => f.name === 'mapRowToUser' && f.type === 'function');
-    
+    const classFindById = functions.find((f) => f.name === "findById" && f.type === "method");
+    const funcFindUserById = functions.find((f) => f.name === "findUserById" && f.type === "function");
+    const classMapRow = functions.find((f) => f.name === "mapRowToUser" && f.type === "method");
+    const funcMapRow = functions.find((f) => f.name === "mapRowToUser" && f.type === "function");
+
     // Compare findById implementations
     if (classFindById && funcFindUserById) {
       const comparison = compareFunctions(classFindById, funcFindUserById, {
         ignoreThis: true,
-        ignoreParamNames: true
+        ignoreParamNames: true,
       });
-      
+
       // Should have high similarity despite name difference
-      assertEquals(comparison.similarity > 0.85, true);
-      assertEquals(comparison.differences.thisUsage, true);
+      assert.equal(comparison.similarity > 0.85, true);
+      assert.equal(comparison.differences.thisUsage, true);
     }
-    
+
     // Compare mapRowToUser implementations
     if (classMapRow && funcMapRow) {
       const comparison = compareFunctions(classMapRow, funcMapRow, {
         ignoreThis: true,
-        ignoreParamNames: true
+        ignoreParamNames: true,
       });
-      
+
       // Should be nearly identical
-      assertEquals(comparison.similarity > 0.95, true);
+      assert.equal(comparison.similarity > 0.95, true);
     }
   });
-  
-  await t.step('should detect state management refactoring', () => {
+
+  await t.test("should detect state management refactoring", () => {
     const code = `
       // Class with state
       class Counter {
@@ -267,32 +255,26 @@ Deno.test('Class to function refactoring detection', async (t: Deno.TestContext)
         console.log(\`Count is now: \${state.count}\`);
       }
     `;
-    
+
     const functions = extractFunctions(code);
     const duplicates = findDuplicateFunctions(functions, {
       ignoreThis: true,
       ignoreParamNames: true,
-      similarityThreshold: 0.8
+      similarityThreshold: 0.8,
     });
-    
+
     // Should find duplicates for increment, decrement, and notify
-    const incrementDupe = duplicates.find(([f1, f2]) => 
-      f1.name === 'increment' && f2.name === 'increment'
-    );
-    const decrementDupe = duplicates.find(([f1, f2]) => 
-      f1.name === 'decrement' && f2.name === 'decrement'
-    );
-    const notifyDupe = duplicates.find(([f1, f2]) => 
-      f1.name === 'notify' && f2.name === 'notify'
-    );
-    
-    assertEquals(incrementDupe !== undefined, true);
-    assertEquals(decrementDupe !== undefined, true);
-    assertEquals(notifyDupe !== undefined, true);
-    
+    const incrementDupe = duplicates.find(([f1, f2]) => f1.name === "increment" && f2.name === "increment");
+    const decrementDupe = duplicates.find(([f1, f2]) => f1.name === "decrement" && f2.name === "decrement");
+    const notifyDupe = duplicates.find(([f1, f2]) => f1.name === "notify" && f2.name === "notify");
+
+    assert.equal(incrementDupe !== undefined, true);
+    assert.equal(decrementDupe !== undefined, true);
+    assert.equal(notifyDupe !== undefined, true);
+
     // Check similarity scores
     if (incrementDupe) {
-      assertEquals(incrementDupe[2].similarity > 0.8, true);
+      assert.equal(incrementDupe[2].similarity > 0.8, true);
     }
   });
 });

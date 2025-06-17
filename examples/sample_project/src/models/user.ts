@@ -9,9 +9,9 @@ export interface User {
 }
 
 export enum UserRole {
-  ADMIN = 'admin',
-  USER = 'user',
-  GUEST = 'guest'
+  ADMIN = "admin",
+  USER = "user",
+  GUEST = "guest",
 }
 
 export interface UserProfile extends User {
@@ -21,7 +21,7 @@ export interface UserProfile extends User {
 }
 
 export interface UserPreferences {
-  theme: 'light' | 'dark';
+  theme: "light" | "dark";
   language: string;
   notifications: boolean;
 }

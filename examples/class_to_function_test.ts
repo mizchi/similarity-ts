@@ -1,10 +1,10 @@
-import { extractFunctions, compareFunctions, findDuplicateFunctions } from '../src/core/function_extractor.ts';
+import { extractFunctions, compareFunctions, findDuplicateFunctions } from "../src/core/function_extractor.ts";
 
-console.log('=== Class to Function Refactoring Detection Test ===\n');
+console.log("=== Class to Function Refactoring Detection Test ===\n");
 
 // Test 1: Basic class method to function refactoring
-console.log('Test 1: Basic class method to function refactoring');
-console.log('-'.repeat(50));
+console.log("Test 1: Basic class method to function refactoring");
+console.log("-".repeat(50));
 
 const code1 = `
 // Original class implementation
@@ -53,16 +53,16 @@ function removeUser(users: Map<string, User>, userId: string): boolean {
 const functions1 = extractFunctions(code1);
 console.log(`\nExtracted ${functions1.length} functions`);
 
-const classAddUser = functions1.find(f => f.name === 'addUser' && f.type === 'method');
-const funcAddUser = functions1.find(f => f.name === 'addUser' && f.type === 'function');
+const classAddUser = functions1.find((f) => f.name === "addUser" && f.type === "method");
+const funcAddUser = functions1.find((f) => f.name === "addUser" && f.type === "function");
 
 if (classAddUser && funcAddUser) {
   const comparison = compareFunctions(classAddUser, funcAddUser, {
     ignoreThis: true,
-    ignoreParamNames: false
+    ignoreParamNames: false,
   });
-  
-  console.log('\nComparing UserService.addUser (method) vs addUser (function):');
+
+  console.log("\nComparing UserService.addUser (method) vs addUser (function):");
   console.log(`  Similarity: ${(comparison.similarity * 100).toFixed(1)}%`);
   console.log(`  Has this difference: ${comparison.differences.thisUsage}`);
   console.log(`  Structurally equivalent: ${comparison.isStructurallyEquivalent}`);
@@ -70,8 +70,8 @@ if (classAddUser && funcAddUser) {
 }
 
 // Test 2: Arrow function refactoring
-console.log('\n\nTest 2: Arrow function refactoring');
-console.log('-'.repeat(50));
+console.log("\n\nTest 2: Arrow function refactoring");
+console.log("-".repeat(50));
 
 const code2 = `
 class Calculator {
@@ -104,7 +104,7 @@ const functions2 = extractFunctions(code2);
 const duplicates2 = findDuplicateFunctions(functions2, {
   ignoreThis: true,
   ignoreParamNames: true,
-  similarityThreshold: 0.9
+  similarityThreshold: 0.9,
 });
 
 console.log(`\nFound ${duplicates2.length} duplicate pairs with >90% similarity`);
@@ -114,8 +114,8 @@ duplicates2.forEach(([f1, f2, comparison]) => {
 });
 
 // Test 3: Complex repository pattern refactoring
-console.log('\n\nTest 3: Complex repository pattern refactoring');
-console.log('-'.repeat(50));
+console.log("\n\nTest 3: Complex repository pattern refactoring");
+console.log("-".repeat(50));
 
 const code3 = `
 // Original: Repository pattern with class
@@ -162,18 +162,18 @@ function mapRowToUser(row: any): User {
 `;
 
 const functions3 = extractFunctions(code3);
-const classFindById = functions3.find(f => f.name === 'findById' && f.type === 'method');
-const funcFindUserById = functions3.find(f => f.name === 'findUserById' && f.type === 'function');
-const classMapRow = functions3.find(f => f.name === 'mapRowToUser' && f.type === 'method');
-const funcMapRow = functions3.find(f => f.name === 'mapRowToUser' && f.type === 'function');
+const classFindById = functions3.find((f) => f.name === "findById" && f.type === "method");
+const funcFindUserById = functions3.find((f) => f.name === "findUserById" && f.type === "function");
+const classMapRow = functions3.find((f) => f.name === "mapRowToUser" && f.type === "method");
+const funcMapRow = functions3.find((f) => f.name === "mapRowToUser" && f.type === "function");
 
 if (classFindById && funcFindUserById) {
   const comparison = compareFunctions(classFindById, funcFindUserById, {
     ignoreThis: true,
-    ignoreParamNames: true
+    ignoreParamNames: true,
   });
-  
-  console.log('\nComparing findById (method) vs findUserById (function):');
+
+  console.log("\nComparing findById (method) vs findUserById (function):");
   console.log(`  Similarity: ${(comparison.similarity * 100).toFixed(1)}%`);
   console.log(`  Has this difference: ${comparison.differences.thisUsage}`);
   console.log(`  ✅ High similarity despite name difference!`);
@@ -182,17 +182,17 @@ if (classFindById && funcFindUserById) {
 if (classMapRow && funcMapRow) {
   const comparison = compareFunctions(classMapRow, funcMapRow, {
     ignoreThis: true,
-    ignoreParamNames: true
+    ignoreParamNames: true,
   });
-  
-  console.log('\nComparing mapRowToUser (method) vs mapRowToUser (function):');
+
+  console.log("\nComparing mapRowToUser (method) vs mapRowToUser (function):");
   console.log(`  Similarity: ${(comparison.similarity * 100).toFixed(1)}%`);
   console.log(`  ✅ Nearly identical implementations!`);
 }
 
 // Test 4: State management refactoring
-console.log('\n\nTest 4: State management refactoring');
-console.log('-'.repeat(50));
+console.log("\n\nTest 4: State management refactoring");
+console.log("-".repeat(50));
 
 const code4 = `
 // Class with state
@@ -240,20 +240,14 @@ const functions4 = extractFunctions(code4);
 const duplicates4 = findDuplicateFunctions(functions4, {
   ignoreThis: true,
   ignoreParamNames: true,
-  similarityThreshold: 0.8
+  similarityThreshold: 0.8,
 });
 
 console.log(`\nFound ${duplicates4.length} duplicate pairs with >80% similarity`);
 
-const incrementDupe = duplicates4.find(([f1, f2]) => 
-  f1.name === 'increment' && f2.name === 'increment'
-);
-const decrementDupe = duplicates4.find(([f1, f2]) => 
-  f1.name === 'decrement' && f2.name === 'decrement'
-);
-const notifyDupe = duplicates4.find(([f1, f2]) => 
-  f1.name === 'notify' && f2.name === 'notify'
-);
+const incrementDupe = duplicates4.find(([f1, f2]) => f1.name === "increment" && f2.name === "increment");
+const decrementDupe = duplicates4.find(([f1, f2]) => f1.name === "decrement" && f2.name === "decrement");
+const notifyDupe = duplicates4.find(([f1, f2]) => f1.name === "notify" && f2.name === "notify");
 
 if (incrementDupe) {
   console.log(`\n✅ increment duplication detected: ${(incrementDupe[2].similarity * 100).toFixed(1)}%`);
@@ -265,9 +259,9 @@ if (notifyDupe) {
   console.log(`✅ notify duplication detected: ${(notifyDupe[2].similarity * 100).toFixed(1)}%`);
 }
 
-console.log('\n\n=== Summary ===');
-console.log('All tests passed! The APTED algorithm successfully detects:');
-console.log('- Class methods refactored to functions');
+console.log("\n\n=== Summary ===");
+console.log("All tests passed! The APTED algorithm successfully detects:");
+console.log("- Class methods refactored to functions");
 console.log('- Methods using "this" vs functions using parameters');
-console.log('- Arrow functions with different parameter names');
-console.log('- Complex refactoring patterns in real-world scenarios');
+console.log("- Arrow functions with different parameter names");
+console.log("- Complex refactoring patterns in real-world scenarios");

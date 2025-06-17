@@ -1,21 +1,21 @@
 // Demonstration of duplication detection capabilities
-import { 
-  extractFunctions, 
+import {
+  extractFunctions,
   compareFunctions,
   findDuplicateFunctions,
   calculateTSED,
   REFACTORING_TSED_OPTIONS,
-  buildRepoAnalyzer
-} from '../src/index.ts';
-import { parseTypeScript } from '../src/parser.ts';
-import { readFileSync } from 'fs';
-import { join } from 'path';
+  buildRepoAnalyzer,
+} from "../src/index.ts";
+import { parseTypeScript } from "../src/parser.ts";
+import { readFileSync } from "fs";
+import { join } from "path";
 
-console.log('=== TypeScript Code Duplication Detection Demo ===\n');
+console.log("=== TypeScript Code Duplication Detection Demo ===\n");
 
 // Example 1: Exact Duplication Detection
-console.log('1. Exact Duplication Detection');
-console.log('─'.repeat(50));
+console.log("1. Exact Duplication Detection");
+console.log("─".repeat(50));
 
 const userServiceCode = `
 class UserService {
@@ -49,16 +49,16 @@ class CustomerService {
   }
 }`;
 
-const ast1 = parseTypeScript('user.ts', userServiceCode);
-const ast2 = parseTypeScript('customer.ts', customerServiceCode);
+const ast1 = parseTypeScript("user.ts", userServiceCode);
+const ast2 = parseTypeScript("customer.ts", customerServiceCode);
 const tsed = calculateTSED(ast1, ast2);
 
 console.log(`UserService vs CustomerService TSED: ${(tsed * 100).toFixed(1)}%`);
-console.log('→ Nearly identical structure with only name changes\n');
+console.log("→ Nearly identical structure with only name changes\n");
 
 // Example 2: Refactoring Detection
-console.log('2. Class to Function Refactoring Detection');
-console.log('─'.repeat(50));
+console.log("2. Class to Function Refactoring Detection");
+console.log("─".repeat(50));
 
 const classCode = `
 class Calculator {
@@ -90,16 +90,16 @@ function subtract(state: State, n: number): number {
   return state.value;
 }`;
 
-const classAst = parseTypeScript('class.ts', classCode);
-const funcAst = parseTypeScript('func.ts', functionCode);
+const classAst = parseTypeScript("class.ts", classCode);
+const funcAst = parseTypeScript("func.ts", functionCode);
 const refactoringTsed = calculateTSED(classAst, funcAst, REFACTORING_TSED_OPTIONS);
 
 console.log(`Calculator class vs functions TSED: ${(refactoringTsed * 100).toFixed(1)}%`);
-console.log('→ Detects class-to-function refactoring pattern\n');
+console.log("→ Detects class-to-function refactoring pattern\n");
 
 // Example 3: Copy-Paste Pattern Detection
-console.log('3. Copy-Paste Pattern Detection');
-console.log('─'.repeat(50));
+console.log("3. Copy-Paste Pattern Detection");
+console.log("─".repeat(50));
 
 const copyPasteCode = `
 function findMaxValue(numbers: number[]): number {
@@ -131,19 +131,21 @@ function calculateSum(numbers: number[]): number {
 }`;
 
 const functions = extractFunctions(copyPasteCode);
-const duplicatePairs = findDuplicateFunctions(functions, { similarityThreshold: 0.7 });
+const duplicatePairs = findDuplicateFunctions(functions, {
+  similarityThreshold: 0.7,
+});
 
 // Group duplicates by similarity
-const groups = new Map<string, { functions: typeof functions, similarities: number[] }>();
+const groups = new Map<string, { functions: typeof functions; similarities: number[] }>();
 
 for (const [func1, func2, result] of duplicatePairs) {
   // Create a group key based on function names
-  const key = [func1.name, func2.name].sort().join('-');
-  
+  const key = [func1.name, func2.name].sort().join("-");
+
   if (!groups.has(key)) {
-    groups.set(key, { 
-      functions: [func1, func2], 
-      similarities: [result.similarity] 
+    groups.set(key, {
+      functions: [func1, func2],
+      similarities: [result.similarity],
     });
   }
 }
@@ -160,12 +162,12 @@ if (groups.size > 0) {
     console.log(`  Similarity: ${(avgSim * 100).toFixed(1)}%`);
   }
 } else {
-  console.log('No duplicate groups found with threshold 0.7');
+  console.log("No duplicate groups found with threshold 0.7");
 }
 
 // Example 4: Semantic Duplication Detection
-console.log('\n\n4. Semantic Duplication Detection');
-console.log('─'.repeat(50));
+console.log("\n\n4. Semantic Duplication Detection");
+console.log("─".repeat(50));
 
 const imperativeCode = `
 function processUsers(users: User[]): ProcessedUser[] {
@@ -191,57 +193,59 @@ function processUsers(users: User[]): ProcessedUser[] {
     }));
 }`;
 
-const impAst = parseTypeScript('imperative.ts', imperativeCode);
-const funcAstSem = parseTypeScript('functional.ts', functionalCode);
+const impAst = parseTypeScript("imperative.ts", imperativeCode);
+const funcAstSem = parseTypeScript("functional.ts", functionalCode);
 const semanticTsed = calculateTSED(impAst, funcAstSem);
 
 console.log(`Imperative vs Functional TSED: ${(semanticTsed * 100).toFixed(1)}%`);
-console.log('→ Different style but same logic\n');
+console.log("→ Different style but same logic\n");
 
 // Example 5: Real-world Duplication Analysis
-console.log('5. Real-world Duplication Analysis');
-console.log('─'.repeat(50));
+console.log("5. Real-world Duplication Analysis");
+console.log("─".repeat(50));
 
 async function analyzeRealProject() {
   const repo = buildRepoAnalyzer();
-  
+
   // Load duplication fixtures
-  await repo.loadFiles('test/__fixtures__/duplication/**/*.ts');
-  
+  await repo.loadFiles("test/__fixtures__/duplication/**/*.ts");
+
   const stats = repo.getStatistics();
   console.log(`\nAnalyzed ${stats.totalFiles} files`);
-  
+
   // Find highly similar pairs
-  const highSimilarity = repo.findAllSimilarPairs(0.85, 'minhash');
+  const highSimilarity = repo.findAllSimilarPairs(0.85, "minhash");
   console.log(`\nHighly similar pairs (>85%):`);
-  
+
   for (const pair of highSimilarity.slice(0, 10)) {
-    const file1 = pair.file1.split('/').pop();
-    const file2 = pair.file2.split('/').pop();
+    const file1 = pair.file1.split("/").pop();
+    const file2 = pair.file2.split("/").pop();
     console.log(`  ${file1} ↔ ${file2}: ${(pair.similarity * 100).toFixed(1)}%`);
   }
-  
+
   // Analyze specific patterns
-  console.log('\n\nPattern Analysis:');
-  
+  console.log("\n\nPattern Analysis:");
+
   // Check service duplications
   const serviceResults = await repo.findSimilarByAPTED(
-    'test/__fixtures__/duplication/exact/service_duplication_1.ts',
-    0.7
+    "test/__fixtures__/duplication/exact/service_duplication_1.ts",
+    0.7,
   );
-  
-  console.log('\nService duplication detection:');
+
+  console.log("\nService duplication detection:");
   for (const result of serviceResults) {
-    const fileName = result.file2.split('/').pop();
+    const fileName = result.file2.split("/").pop();
     console.log(`  service_duplication_1.ts ↔ ${fileName}: ${(result.similarity * 100).toFixed(1)}%`);
   }
 }
 
 // Run the analysis
-analyzeRealProject().then(() => {
-  console.log('\n\n=== Summary ===');
-  console.log('• TSED effectively detects various duplication patterns');
-  console.log('• Refactoring options help identify class-to-function conversions');
-  console.log('• Function comparison finds copy-paste patterns');
-  console.log('• Semantic duplications require lower thresholds');
-}).catch(console.error);
+analyzeRealProject()
+  .then(() => {
+    console.log("\n\n=== Summary ===");
+    console.log("• TSED effectively detects various duplication patterns");
+    console.log("• Refactoring options help identify class-to-function conversions");
+    console.log("• Function comparison finds copy-paste patterns");
+    console.log("• Semantic duplications require lower thresholds");
+  })
+  .catch(console.error);

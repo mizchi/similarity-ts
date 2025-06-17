@@ -39,7 +39,7 @@ server.tool(
         ],
       };
     }
-  }
+  },
 );
 
 try {

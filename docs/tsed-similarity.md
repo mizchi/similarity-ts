@@ -47,7 +47,7 @@ Here, o ⁢ p ⁢ s 𝑜 𝑝 𝑠 ops italic_o italic_p italic_s is a sequence 
 Normalization: Normalization of tree edit distances accounts for the complexity of the code by considering the maximum number of nodes between two trees, and we add a ramp function to avoid some extreme situations:
 
 | --- | --- | --- | --- |
-| | T ⁢ S ⁢ E ⁢ D = max ⁡ { 1 − δ M ⁢ a ⁢ x ⁢ N ⁢ o ⁢ d ⁢ e ⁢ s ⁢ ( G 1, G 2), 0 } 𝑇 𝑆 𝐸 𝐷 1 𝛿 𝑀 𝑎 𝑥 𝑁 𝑜 𝑑 𝑒 𝑠 subscript 𝐺 1 subscript 𝐺 2 0 TSED=\\max\\{1-\\frac{\\delta}{MaxNodes(G\_{1},G\_{2})},0\\} italic_T italic_S italic_E italic_D = roman_max { 1 - divide start_ARG italic_δ end_ARG start_ARG italic_M italic_a italic_x italic_N italic_o italic_d italic_e italic_s ( italic_G start_POSTSUBSCRIPT 1 end_POSTSUBSCRIPT , italic_G start_POSTSUBSCRIPT 2 end_POSTSUBSCRIPT ) end_ARG , 0 } | | (2) |
+| | T ⁢ S ⁢ E ⁢ D = max ⁡ { 1 − δ M ⁢ a ⁢ x ⁢ N ⁢ o ⁢ d ⁢ e ⁢ s ⁢ ( G 1, G 2), 0 } 𝑇 𝑆 𝐸 𝐷 1 𝛿 𝑀 𝑎 𝑥 𝑁 𝑜 𝑑 𝑒 𝑠 subscript 𝐺 1 subscript 𝐺 2 0 TSED=\\max\\{1-\\frac{\\delta}{MaxNodes(G\_{1},G\_{2})},0\\} italic*T italic_S italic_E italic_D = roman_max { 1 - divide start_ARG italic*δ end_ARG start_ARG italic_M italic_a italic_x italic_N italic_o italic_d italic_e italic_s ( italic_G start_POSTSUBSCRIPT 1 end_POSTSUBSCRIPT , italic_G start_POSTSUBSCRIPT 2 end_POSTSUBSCRIPT ) end_ARG , 0 } | | (2) |
 
 This provides a metric for structural similarity comparison of programming code, enabling a nuanced analysis beyond mere syntactic comparison.
 

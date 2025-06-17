@@ -1,10 +1,10 @@
 import {
   extractFunctionBody,
   compareFunctionBodies,
-  findDuplicateFunctionBodies
-} from '../src/core/function_body_comparer.ts';
+  findDuplicateFunctionBodies,
+} from "../src/core/function_body_comparer.ts";
 
-console.log('=== Function Body Comparison Example ===\n');
+console.log("=== Function Body Comparison Example ===\n");
 
 const code = `
 // Class-based implementation
@@ -82,15 +82,15 @@ interface Product {
 `;
 
 // 1. Extract and display function bodies
-console.log('1. Extracting function bodies:\n');
+console.log("1. Extracting function bodies:\n");
 
 const functions = [
-  { name: 'addUser', isMethod: true },
-  { name: 'removeUser', isMethod: true },
-  { name: 'addUserToStore', isMethod: false },
-  { name: 'addUserToMap', isMethod: false },
-  { name: 'addProduct', isMethod: true },
-  { name: 'saveUser', isMethod: false }
+  { name: "addUser", isMethod: true },
+  { name: "removeUser", isMethod: true },
+  { name: "addUserToStore", isMethod: false },
+  { name: "addUserToMap", isMethod: false },
+  { name: "addProduct", isMethod: true },
+  { name: "saveUser", isMethod: false },
 ];
 
 const extractedBodies: Map<string, string> = new Map();
@@ -100,30 +100,30 @@ for (const func of functions) {
   if (body) {
     extractedBodies.set(func.name, body);
     console.log(`${func.name}:`);
-    console.log('```');
+    console.log("```");
     console.log(body);
-    console.log('```\n');
+    console.log("```\n");
   }
 }
 
 // 2. Compare specific function pairs
-console.log('\n2. Comparing function pairs:\n');
+console.log("\n2. Comparing function pairs:\n");
 
 // Compare class method vs standalone function
-const addUserBody = extractedBodies.get('addUser');
-const addUserToStoreBody = extractedBodies.get('addUserToStore');
+const addUserBody = extractedBodies.get("addUser");
+const addUserToStoreBody = extractedBodies.get("addUserToStore");
 
 if (addUserBody && addUserToStoreBody) {
-  console.log('Comparing UserService.addUser vs addUserToStore:');
+  console.log("Comparing UserService.addUser vs addUserToStore:");
   const comparison = compareFunctionBodies(
     addUserBody,
     addUserToStoreBody,
-    'method',
-    'function',
-    ['user'],
-    ['store', 'user']
+    "method",
+    "function",
+    ["user"],
+    ["store", "user"],
   );
-  
+
   console.log(`- Direct similarity: ${(comparison.similarity * 100).toFixed(1)}%`);
   console.log(`- Normalized similarity: ${(comparison.normalizedSimilarity * 100).toFixed(1)}%`);
   console.log(`- Structural similarity: ${(comparison.structuralSimilarity * 100).toFixed(1)}%`);
@@ -132,19 +132,12 @@ if (addUserBody && addUserToStoreBody) {
 }
 
 // Compare similar methods from different classes
-const addProductBody = extractedBodies.get('addProduct');
+const addProductBody = extractedBodies.get("addProduct");
 
 if (addUserBody && addProductBody) {
-  console.log('Comparing UserService.addUser vs ProductService.addProduct:');
-  const comparison = compareFunctionBodies(
-    addUserBody,
-    addProductBody,
-    'method',
-    'method',
-    ['user'],
-    ['product']
-  );
-  
+  console.log("Comparing UserService.addUser vs ProductService.addProduct:");
+  const comparison = compareFunctionBodies(addUserBody, addProductBody, "method", "method", ["user"], ["product"]);
+
   console.log(`- Direct similarity: ${(comparison.similarity * 100).toFixed(1)}%`);
   console.log(`- Normalized similarity: ${(comparison.normalizedSimilarity * 100).toFixed(1)}%`);
   console.log(`- Structural similarity: ${(comparison.structuralSimilarity * 100).toFixed(1)}%`);
@@ -153,19 +146,19 @@ if (addUserBody && addProductBody) {
 }
 
 // Compare different implementations
-const saveUserBody = extractedBodies.get('saveUser');
+const saveUserBody = extractedBodies.get("saveUser");
 
 if (addUserBody && saveUserBody) {
-  console.log('Comparing UserService.addUser vs saveUser (different data structures):');
+  console.log("Comparing UserService.addUser vs saveUser (different data structures):");
   const comparison = compareFunctionBodies(
     addUserBody,
     saveUserBody,
-    'method',
-    'function',
-    ['user'],
-    ['users', 'user']
+    "method",
+    "function",
+    ["user"],
+    ["users", "user"],
   );
-  
+
   console.log(`- Direct similarity: ${(comparison.similarity * 100).toFixed(1)}%`);
   console.log(`- Normalized similarity: ${(comparison.normalizedSimilarity * 100).toFixed(1)}%`);
   console.log(`- Structural similarity: ${(comparison.structuralSimilarity * 100).toFixed(1)}%`);
@@ -174,7 +167,7 @@ if (addUserBody && saveUserBody) {
 }
 
 // 3. Find all duplicates automatically
-console.log('\n3. Finding all duplicate function bodies:\n');
+console.log("\n3. Finding all duplicate function bodies:\n");
 
 const duplicates = findDuplicateFunctionBodies(code, 0.8);
 
@@ -185,29 +178,29 @@ duplicates.forEach(({ func1, func2, comparison }) => {
   console.log(`  - Normalized similarity: ${(comparison.normalizedSimilarity * 100).toFixed(1)}%`);
   console.log(`  - Structural similarity: ${(comparison.structuralSimilarity * 100).toFixed(1)}%`);
   if (comparison.hasThisDifference) {
-    console.log('  - Note: Different this usage (method vs function)');
+    console.log("  - Note: Different this usage (method vs function)");
   }
   console.log();
 });
 
 // 4. Summary and recommendations
-console.log('4. Summary:\n');
+console.log("4. Summary:\n");
 
-const highDuplicates = duplicates.filter(d => d.comparison.normalizedSimilarity >= 0.95);
-const mediumDuplicates = duplicates.filter(d => 
-  d.comparison.normalizedSimilarity >= 0.85 && d.comparison.normalizedSimilarity < 0.95
+const highDuplicates = duplicates.filter((d) => d.comparison.normalizedSimilarity >= 0.95);
+const mediumDuplicates = duplicates.filter(
+  (d) => d.comparison.normalizedSimilarity >= 0.85 && d.comparison.normalizedSimilarity < 0.95,
 );
 
 if (highDuplicates.length > 0) {
   console.log(`🔴 Very high duplication (≥95%): ${highDuplicates.length} pairs`);
-  console.log('   Consider extracting shared logic into utility functions');
+  console.log("   Consider extracting shared logic into utility functions");
 }
 
 if (mediumDuplicates.length > 0) {
   console.log(`🟡 High duplication (85-95%): ${mediumDuplicates.length} pairs`);
-  console.log('   Review for potential refactoring opportunities');
+  console.log("   Review for potential refactoring opportunities");
 }
 
 const totalFunctions = functions.length;
-const duplicateRate = (duplicates.length / (totalFunctions * (totalFunctions - 1) / 2)) * 100;
+const duplicateRate = (duplicates.length / ((totalFunctions * (totalFunctions - 1)) / 2)) * 100;
 console.log(`\n📊 Overall duplication rate: ${duplicateRate.toFixed(1)}%`);

@@ -1,4 +1,4 @@
-import { CodeSimilarity } from '../src/index.ts';
+import { CodeSimilarity } from "../src/index.ts";
 
 function main() {
   const similarity = new CodeSimilarity();
@@ -14,12 +14,12 @@ function sum(x: number, y: number): number {
   return x + y;
 }`;
 
-  console.log('=== Example 1: Similar functions ===');
+  console.log("=== Example 1: Similar functions ===");
   const score1 = similarity.calculateSimilarity(code1, code2);
   console.log(`Similarity score: ${score1.toFixed(4)}`);
 
   const report1 = similarity.getDetailedReport(code1, code2);
-  console.log('Detailed report:', report1);
+  console.log("Detailed report:", report1);
 
   // Example 2: Identical code
   const code3 = `
@@ -29,7 +29,7 @@ class Calculator {
   }
 }`;
 
-  console.log('\n=== Example 2: Identical code ===');
+  console.log("\n=== Example 2: Identical code ===");
   const score2 = similarity.calculateSimilarity(code3, code3);
   console.log(`Similarity score: ${score2.toFixed(4)} (should be 1.0)`);
 
@@ -40,15 +40,15 @@ interface User {
   name: string;
 }`;
 
-  console.log('\n=== Example 3: Different code structures ===');
+  console.log("\n=== Example 3: Different code structures ===");
   const score3 = similarity.calculateSimilarity(code3, code4);
   console.log(`Similarity score: ${score3.toFixed(4)}`);
 
   // Example 4: Parse AST
-  console.log('\n=== Example 4: AST Structure ===');
+  console.log("\n=== Example 4: AST Structure ===");
   const ast = similarity.parse(code1);
-  console.log('AST for code1:');
-  console.log(JSON.stringify(ast.program, null, 2).substring(0, 500) + '...');
+  console.log("AST for code1:");
+  console.log(JSON.stringify(ast.program, null, 2).substring(0, 500) + "...");
 }
 
 // Run the examples

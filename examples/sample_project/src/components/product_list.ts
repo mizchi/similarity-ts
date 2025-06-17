@@ -1,4 +1,4 @@
-import { Product } from '../models/product.ts';
+import { Product } from "../models/product.ts";
 
 export class ProductList {
   private container: HTMLElement;
@@ -23,24 +23,24 @@ export class ProductList {
   }
 
   removeProduct(productId: string): void {
-    this.products = this.products.filter(p => p.id !== productId);
+    this.products = this.products.filter((p) => p.id !== productId);
     this.render();
   }
 
   private render(): void {
-    this.container.innerHTML = '';
-    
+    this.container.innerHTML = "";
+
     if (this.products.length === 0) {
-      this.container.innerHTML = '<p>No products found</p>';
+      this.container.innerHTML = "<p>No products found</p>";
       return;
     }
 
-    const div = document.createElement('div');
-    div.className = 'product-grid';
+    const div = document.createElement("div");
+    div.className = "product-grid";
 
-    this.products.forEach(product => {
-      const card = document.createElement('div');
-      card.className = 'product-card';
+    this.products.forEach((product) => {
+      const card = document.createElement("div");
+      card.className = "product-card";
       card.innerHTML = `
         <h3>${this.escapeHtml(product.name)}</h3>
         <p class="description">${this.escapeHtml(product.description)}</p>
@@ -54,7 +54,7 @@ export class ProductList {
   }
 
   private escapeHtml(text: string): string {
-    const div = document.createElement('div');
+    const div = document.createElement("div");
     div.textContent = text;
     return div.innerHTML;
   }

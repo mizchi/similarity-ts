@@ -1,5 +1,5 @@
-import { User } from '../models/user.ts';
-import { Logger } from '../utils/logger.ts';
+import { User } from "../models/user.ts";
+import { Logger } from "../utils/logger.ts";
 
 export class UserService {
   private users: Map<string, User> = new Map();
@@ -9,7 +9,7 @@ export class UserService {
     this.logger = logger;
   }
 
-  async createUser(data: Omit<User, 'id' | 'createdAt'>): Promise<User> {
+  async createUser(data: Omit<User, "id" | "createdAt">): Promise<User> {
     const user: User = {
       id: this.generateId(),
       ...data,
@@ -18,13 +18,13 @@ export class UserService {
 
     this.users.set(user.id, user);
     this.logger.info(`User created: ${user.id}`);
-    
+
     return user;
   }
 
   async getUserById(id: string): Promise<User | null> {
     const user = this.users.get(id);
-    
+
     if (!user) {
       this.logger.warn(`User not found: ${id}`);
       return null;
@@ -35,7 +35,7 @@ export class UserService {
 
   async updateUser(id: string, updates: Partial<User>): Promise<User | null> {
     const user = await this.getUserById(id);
-    
+
     if (!user) {
       return null;
     }
@@ -43,13 +43,13 @@ export class UserService {
     const updatedUser = { ...user, ...updates, id: user.id };
     this.users.set(id, updatedUser);
     this.logger.info(`User updated: ${id}`);
-    
+
     return updatedUser;
   }
 
   async deleteUser(id: string): Promise<boolean> {
     const exists = this.users.has(id);
-    
+
     if (exists) {
       this.users.delete(id);
       this.logger.info(`User deleted: ${id}`);

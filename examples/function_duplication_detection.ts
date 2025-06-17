@@ -3,10 +3,10 @@ import {
   findDuplicateFunctions,
   compareFunctions,
   methodToFunction,
-  areSemanticallySimilar
-} from '../src/index.ts';
+  areSemanticallySimilar,
+} from "../src/index.ts";
 
-console.log('=== Function Duplication Detection Example ===\n');
+console.log("=== Function Duplication Detection Example ===\n");
 
 // Example code with potential duplications
 const sampleCode = `
@@ -142,36 +142,36 @@ interface Product {
 `;
 
 // Extract all functions
-console.log('1. Extracting functions from code...');
+console.log("1. Extracting functions from code...");
 const functions = extractFunctions(sampleCode);
 console.log(`   Found ${functions.length} functions/methods\n`);
 
 // Group by type
-const methods = functions.filter(f => f.type === 'method');
-const standaloneFuncs = functions.filter(f => f.type === 'function');
-const arrowFuncs = functions.filter(f => f.type === 'arrow');
+const methods = functions.filter((f) => f.type === "method");
+const standaloneFuncs = functions.filter((f) => f.type === "function");
+const arrowFuncs = functions.filter((f) => f.type === "arrow");
 
 console.log(`   - Methods: ${methods.length}`);
 console.log(`   - Functions: ${standaloneFuncs.length}`);
 console.log(`   - Arrow functions: ${arrowFuncs.length}\n`);
 
 // Find duplicates without considering 'this' differences
-console.log('2. Finding duplicate implementations (ignoring this/parameter differences)...\n');
+console.log("2. Finding duplicate implementations (ignoring this/parameter differences)...\n");
 const duplicates = findDuplicateFunctions(functions, {
   ignoreThis: true,
   ignoreParamNames: true,
-  similarityThreshold: 0.8
+  similarityThreshold: 0.8,
 });
 
 console.log(`   Found ${duplicates.length} potential duplicate pairs:\n`);
 
 // Group duplicates by similarity level
-const highDuplicates = duplicates.filter(([,,comp]) => comp.similarity >= 0.95);
-const mediumDuplicates = duplicates.filter(([,,comp]) => comp.similarity >= 0.85 && comp.similarity < 0.95);
-const lowDuplicates = duplicates.filter(([,,comp]) => comp.similarity >= 0.8 && comp.similarity < 0.85);
+const highDuplicates = duplicates.filter(([, , comp]) => comp.similarity >= 0.95);
+const mediumDuplicates = duplicates.filter(([, , comp]) => comp.similarity >= 0.85 && comp.similarity < 0.95);
+const lowDuplicates = duplicates.filter(([, , comp]) => comp.similarity >= 0.8 && comp.similarity < 0.85);
 
 if (highDuplicates.length > 0) {
-  console.log('   🔴 Very High Similarity (≥95%):');
+  console.log("   🔴 Very High Similarity (≥95%):");
   highDuplicates.forEach(([func1, func2, comparison]) => {
     const desc1 = func1.className ? `${func1.className}.${func1.name}` : func1.name;
     const desc2 = func2.className ? `${func2.className}.${func2.name}` : func2.name;
@@ -181,7 +181,7 @@ if (highDuplicates.length > 0) {
 }
 
 if (mediumDuplicates.length > 0) {
-  console.log('   🟡 High Similarity (85-95%):');
+  console.log("   🟡 High Similarity (85-95%):");
   mediumDuplicates.forEach(([func1, func2, comparison]) => {
     const desc1 = func1.className ? `${func1.className}.${func1.name}` : func1.name;
     const desc2 = func2.className ? `${func2.className}.${func2.name}` : func2.name;
@@ -191,7 +191,7 @@ if (mediumDuplicates.length > 0) {
 }
 
 if (lowDuplicates.length > 0) {
-  console.log('   🟢 Medium Similarity (80-85%):');
+  console.log("   🟢 Medium Similarity (80-85%):");
   lowDuplicates.forEach(([func1, func2, comparison]) => {
     const desc1 = func1.className ? `${func1.className}.${func1.name}` : func1.name;
     const desc2 = func2.className ? `${func2.className}.${func2.name}` : func2.name;
@@ -201,94 +201,106 @@ if (lowDuplicates.length > 0) {
 }
 
 // Detailed comparison example
-console.log('3. Detailed comparison example:\n');
+console.log("3. Detailed comparison example:\n");
 
-const userManagerAdd = functions.find(f => f.name === 'addUser' && f.className === 'UserManager');
-const standaloneAdd = functions.find(f => f.name === 'addUserToStore');
-const genericAdd = functions.find(f => f.name === 'addToMap');
+const userManagerAdd = functions.find((f) => f.name === "addUser" && f.className === "UserManager");
+const standaloneAdd = functions.find((f) => f.name === "addUserToStore");
+const genericAdd = functions.find((f) => f.name === "addToMap");
 
 if (userManagerAdd && standaloneAdd) {
-  console.log('   Comparing UserManager.addUser vs addUserToStore:');
-  
+  console.log("   Comparing UserManager.addUser vs addUserToStore:");
+
   // Compare with this difference
   const comp1 = compareFunctions(userManagerAdd, standaloneAdd);
   console.log(`   - With this difference: ${(comp1.similarity * 100).toFixed(1)}%`);
   console.log(`   - This usage differs: ${comp1.differences.thisUsage}`);
-  
+
   // Compare ignoring this
-  const comp2 = compareFunctions(userManagerAdd, standaloneAdd, { ignoreThis: true });
+  const comp2 = compareFunctions(userManagerAdd, standaloneAdd, {
+    ignoreThis: true,
+  });
   console.log(`   - Ignoring this: ${(comp2.similarity * 100).toFixed(1)}%`);
   console.log(`   - Structurally equivalent: ${comp2.isStructurallyEquivalent}\n`);
 }
 
 // Semantic similarity check
-console.log('4. Semantic similarity analysis:\n');
+console.log("4. Semantic similarity analysis:\n");
 
 if (userManagerAdd && standaloneAdd && genericAdd) {
-  console.log('   Testing semantic equivalence:');
-  
+  console.log("   Testing semantic equivalence:");
+
   const semanticSim1 = areSemanticallySimilar(
     userManagerAdd.body,
-    'method',
+    "method",
     userManagerAdd.parameters,
     standaloneAdd.body,
-    'function',
+    "function",
     standaloneAdd.parameters,
-    0.85
+    0.85,
   );
-  
+
   console.log(`   - UserManager.addUser ≈ addUserToStore: ${semanticSim1}`);
-  
+
   const semanticSim2 = areSemanticallySimilar(
     userManagerAdd.body,
-    'method',
+    "method",
     userManagerAdd.parameters,
     genericAdd.body,
-    'function',
+    "function",
     genericAdd.parameters,
-    0.85
+    0.85,
   );
-  
+
   console.log(`   - UserManager.addUser ≈ addToMap<T>: ${semanticSim2}\n`);
 }
 
 // Method to function conversion example
-console.log('5. Method to function conversion:\n');
+console.log("5. Method to function conversion:\n");
 
 if (userManagerAdd) {
   const convertedFunction = methodToFunction(
     userManagerAdd.body,
     userManagerAdd.name,
     userManagerAdd.parameters,
-    'UserManager'
+    "UserManager",
   );
-  
-  console.log('   Original method:');
-  console.log('   ```typescript');
-  console.log(`   ${userManagerAdd.name}(${userManagerAdd.parameters.join(', ')}) {`);
-  console.log(userManagerAdd.body.split('\n').map(line => '   ' + line).join('\n'));
-  console.log('   }');
-  console.log('   ```\n');
-  
-  console.log('   Converted to standalone function:');
-  console.log('   ```typescript');
-  console.log(convertedFunction.split('\n').map(line => '   ' + line).join('\n'));
-  console.log('   ```\n');
+
+  console.log("   Original method:");
+  console.log("   ```typescript");
+  console.log(`   ${userManagerAdd.name}(${userManagerAdd.parameters.join(", ")}) {`);
+  console.log(
+    userManagerAdd.body
+      .split("\n")
+      .map((line) => "   " + line)
+      .join("\n"),
+  );
+  console.log("   }");
+  console.log("   ```\n");
+
+  console.log("   Converted to standalone function:");
+  console.log("   ```typescript");
+  console.log(
+    convertedFunction
+      .split("\n")
+      .map((line) => "   " + line)
+      .join("\n"),
+  );
+  console.log("   ```\n");
 }
 
 // Summary and recommendations
-console.log('6. Summary and Recommendations:\n');
+console.log("6. Summary and Recommendations:\n");
 
-const uniqueClasses = [...new Set(functions.filter(f => f.className).map(f => f.className))];
-console.log(`   - Classes analyzed: ${uniqueClasses.join(', ')}`);
+const uniqueClasses = [...new Set(functions.filter((f) => f.className).map((f) => f.className))];
+console.log(`   - Classes analyzed: ${uniqueClasses.join(", ")}`);
 console.log(`   - Total functions: ${functions.length}`);
 console.log(`   - Duplicate pairs found: ${duplicates.length}`);
 
 if (highDuplicates.length > 0) {
-  console.log('\n   💡 Refactoring suggestions:');
-  console.log('   - Consider extracting common logic into shared utility functions');
-  console.log('   - Use generic implementations where possible');
-  console.log('   - Apply DRY principle to reduce code duplication');
+  console.log("\n   💡 Refactoring suggestions:");
+  console.log("   - Consider extracting common logic into shared utility functions");
+  console.log("   - Use generic implementations where possible");
+  console.log("   - Apply DRY principle to reduce code duplication");
 }
 
 // Calculate duplication percentage

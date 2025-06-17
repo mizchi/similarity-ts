@@ -1,27 +1,30 @@
 export class ApplicationError extends Error {
-  constructor(message: string, public code: string) {
+  constructor(
+    message: string,
+    public code: string,
+  ) {
     super(message);
-    this.name = 'ApplicationError';
+    this.name = "ApplicationError";
   }
 }
 
 export class ValidationError extends ApplicationError {
   constructor(message: string) {
-    super(message, 'VALIDATION_ERROR');
-    this.name = 'ValidationError';
+    super(message, "VALIDATION_ERROR");
+    this.name = "ValidationError";
   }
 }
 
 export class NotFoundError extends ApplicationError {
   constructor(resource: string, id: string) {
-    super(`${resource} not found: ${id}`, 'NOT_FOUND');
-    this.name = 'NotFoundError';
+    super(`${resource} not found: ${id}`, "NOT_FOUND");
+    this.name = "NotFoundError";
   }
 }
 
 export class UnauthorizedError extends ApplicationError {
-  constructor(message: string = 'Unauthorized') {
-    super(message, 'UNAUTHORIZED');
-    this.name = 'UnauthorizedError';
+  constructor(message: string = "Unauthorized") {
+    super(message, "UNAUTHORIZED");
+    this.name = "UnauthorizedError";
   }
 }

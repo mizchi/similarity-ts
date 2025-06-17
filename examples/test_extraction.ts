@@ -1,4 +1,4 @@
-import { extractFunctions } from '../src/core/function_extractor.ts';
+import { extractFunctions } from "../src/core/function_extractor.ts";
 
 const code = `
 class UserService {
@@ -28,19 +28,19 @@ const addUserToMap = (userMap: Map<string, User>, newUser: User): void => {
 };
 `;
 
-console.log('Extracting functions...\n');
+console.log("Extracting functions...\n");
 const functions = extractFunctions(code);
 
 console.log(`Found ${functions.length} functions:\n`);
 
-functions.forEach(func => {
+functions.forEach((func) => {
   console.log(`Name: ${func.name}`);
   console.log(`Type: ${func.type}`);
-  console.log(`Parameters: [${func.parameters.join(', ')}]`);
+  console.log(`Parameters: [${func.parameters.join(", ")}]`);
   console.log(`Body length: ${func.body.length}`);
   console.log(`Body preview: ${func.body.substring(0, 100)}...`);
   if (func.className) {
     console.log(`Class: ${func.className}`);
   }
-  console.log('---\n');
+  console.log("---\n");
 });

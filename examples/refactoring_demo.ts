@@ -1,12 +1,12 @@
-import { extractFunctions } from '../src/core/function_extractor.ts';
+import { extractFunctions } from "../src/core/function_extractor.ts";
 
-console.log('=== Refactoring Demonstration ===\n');
+console.log("=== Refactoring Demonstration ===\n");
 
 // Show the duplicated visitNode pattern
-console.log('Current situation: 3 files have their own visitNode implementation\n');
+console.log("Current situation: 3 files have their own visitNode implementation\n");
 
-console.log('1. function_body_comparer.ts:');
-console.log('```typescript');
+console.log("1. function_body_comparer.ts:");
+console.log("```typescript");
 console.log(`function visitNode(node: any, inClass: boolean = false) {
   if (!node || typeof node !== 'object') return;
   
@@ -23,10 +23,10 @@ console.log(`function visitNode(node: any, inClass: boolean = false) {
     // ... traverse logic ...
   }
 }`);
-console.log('```\n');
+console.log("```\n");
 
-console.log('2. function_extractor.ts:');
-console.log('```typescript');
+console.log("2. function_extractor.ts:");
+console.log("```typescript");
 console.log(`function visitNode(node: any, className?: string) {
   if (!node || typeof node !== 'object') return;
   
@@ -47,10 +47,10 @@ console.log(`function visitNode(node: any, className?: string) {
     // ... traverse logic ...
   }
 }`);
-console.log('```\n');
+console.log("```\n");
 
-console.log('3. semantic_normalizer.ts:');
-console.log('```typescript');
+console.log("3. semantic_normalizer.ts:");
+console.log("```typescript");
 console.log(`function visitNode(node: any) {
   if (!node || typeof node !== 'object') return;
   
@@ -67,13 +67,13 @@ console.log(`function visitNode(node: any) {
     // ... traverse logic ...
   }
 }`);
-console.log('```\n');
+console.log("```\n");
 
-console.log('=== Refactoring Solution ===\n');
+console.log("=== Refactoring Solution ===\n");
 
-console.log('Create a shared AST traversal utility:\n');
+console.log("Create a shared AST traversal utility:\n");
 
-console.log('```typescript');
+console.log("```typescript");
 console.log(`// src/core/ast_traversal.ts
 export function traverseAST<T>(
   node: any,
@@ -108,11 +108,11 @@ export function traverseAST<T>(
     }
   }
 }`);
-console.log('```\n');
+console.log("```\n");
 
-console.log('Then refactor each file to use it:\n');
+console.log("Then refactor each file to use it:\n");
 
-console.log('```typescript');
+console.log("```typescript");
 console.log(`// function_extractor.ts (refactored)
 export function extractFunctions(code: string): FunctionDefinition[] {
   const ast = parseTypeScript('temp.ts', code);
@@ -148,20 +148,20 @@ export function extractFunctions(code: string): FunctionDefinition[] {
   
   return state.functions;
 }`);
-console.log('```\n');
+console.log("```\n");
 
-console.log('=== Benefits ===\n');
-console.log('1. ✅ Eliminates code duplication (DRY principle)');
-console.log('2. ✅ Consistent traversal logic across the codebase');
-console.log('3. ✅ Easier to maintain and debug');
-console.log('4. ✅ Type-safe with proper TypeScript generics');
-console.log('5. ✅ Extensible for new node types');
-console.log('6. ✅ ~74% code similarity reduced to 0%');
+console.log("=== Benefits ===\n");
+console.log("1. ✅ Eliminates code duplication (DRY principle)");
+console.log("2. ✅ Consistent traversal logic across the codebase");
+console.log("3. ✅ Easier to maintain and debug");
+console.log("4. ✅ Type-safe with proper TypeScript generics");
+console.log("5. ✅ Extensible for new node types");
+console.log("6. ✅ ~74% code similarity reduced to 0%");
 
-console.log('\n=== Implementation Steps ===\n');
-console.log('1. Create the shared ast_traversal.ts module');
-console.log('2. Refactor function_extractor.ts to use it');
-console.log('3. Refactor function_body_comparer.ts to use it');
-console.log('4. Refactor semantic_normalizer.ts to use it');
-console.log('5. Remove the old visitNode functions');
-console.log('6. Update tests to ensure functionality is preserved');
+console.log("\n=== Implementation Steps ===\n");
+console.log("1. Create the shared ast_traversal.ts module");
+console.log("2. Refactor function_extractor.ts to use it");
+console.log("3. Refactor function_body_comparer.ts to use it");
+console.log("4. Refactor semantic_normalizer.ts to use it");
+console.log("5. Remove the old visitNode functions");
+console.log("6. Update tests to ensure functionality is preserved");

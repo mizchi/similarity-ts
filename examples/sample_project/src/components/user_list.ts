@@ -1,4 +1,4 @@
-import { User } from '../models/user.ts';
+import { User } from "../models/user.ts";
 
 export class UserList {
   private container: HTMLElement;
@@ -23,24 +23,24 @@ export class UserList {
   }
 
   removeUser(userId: string): void {
-    this.users = this.users.filter(u => u.id !== userId);
+    this.users = this.users.filter((u) => u.id !== userId);
     this.render();
   }
 
   private render(): void {
-    this.container.innerHTML = '';
-    
+    this.container.innerHTML = "";
+
     if (this.users.length === 0) {
-      this.container.innerHTML = '<p>No users found</p>';
+      this.container.innerHTML = "<p>No users found</p>";
       return;
     }
 
-    const ul = document.createElement('ul');
-    ul.className = 'user-list';
+    const ul = document.createElement("ul");
+    ul.className = "user-list";
 
-    this.users.forEach(user => {
-      const li = document.createElement('li');
-      li.className = 'user-item';
+    this.users.forEach((user) => {
+      const li = document.createElement("li");
+      li.className = "user-item";
       li.innerHTML = `
         <span class="user-name">${this.escapeHtml(user.name)}</span>
         <span class="user-email">${this.escapeHtml(user.email)}</span>
@@ -53,7 +53,7 @@ export class UserList {
   }
 
   private escapeHtml(text: string): string {
-    const div = document.createElement('div');
+    const div = document.createElement("div");
     div.textContent = text;
     return div.innerHTML;
   }

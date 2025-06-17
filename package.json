@@ -8,7 +8,10 @@
     "ts-similarity": "./dist/cli/cli.mjs"
   },
   "scripts": {
-    "test": "tsx test/similarity_test.ts && tsx test/fixtures_test.ts && tsx test/duplication_detection_test.ts",
+    "test": "pnpm test:tsx",
+    "test:vitest": "echo 'Vitest tests not yet migrated'",
+    "test:cov": "echo 'Coverage temporarily disabled due to memory issues'",
+    "test:tsx": "tsx test/similarity_test.ts && tsx test/fixtures_test.ts && tsx test/duplication_detection_test.ts",
     "test:fixtures": "tsx test/fixtures_test.ts",
     "test:duplication": "tsx test/duplication_detection_test.ts",
     "test:apted": "tsx test/apted_test.ts",
@@ -16,7 +19,12 @@
     "example:apted": "tsx examples/apted_comparison.ts",
     "example:multi": "tsx examples/multi_file_similarity.ts",
     "benchmark": "tsx examples/run_benchmark.ts",
-    "typecheck": "tsgo --noEmit",
+    "typecheck": "tsc --noEmit",
+    "check": "pnpm typecheck && pnpm test",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "lint": "oxlint --silent",
+    "lint:strict": "oxlint --deny-warnings",
     "build": "pnpm run \"/^build:.*/\"",
     "build:cjs": "tsdown src/index.ts --outfile=dist/index.cjs --format=cjs",
     "build:mjs": "tsdown src/index.ts --outfile=dist/index.mjs --format=esm",
@@ -25,14 +33,17 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
     "@mizchi/readability": "^0.5.8",
     "@modelcontextprotocol/sdk": "^1.12.1",
     "@oxc-project/types": "^0.73.0",
     "@types/node": "^22.15.30",
     "@typescript/native-preview": "7.0.0-dev.20250616.1",
+    "@vitest/coverage-v8": "^3.2.3",
     "oxc-parser": "^0.73.0",
+    "oxlint": "^1.1.0",
     "tsdown": "^0.12.7",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
@@ -43,5 +54,8 @@
     "@types/glob": "^8.1.0",
     "chalk": "^5.4.1",
     "glob": "^11.0.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
   }
 }

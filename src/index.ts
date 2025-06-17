@@ -1,17 +1,14 @@
 // Main exports for TypeScript Code Similarity
-export { 
+export {
   parseTypeScript as parse,
   parseTypeScriptAsync as parseAsync,
-  parseMultipleAsync
+  parseMultipleAsync,
 } from "./parser.ts";
 
 // Import core functionality
 import { astToString } from "./core/ast.ts";
 import { calculateSimilarity as calculateLevenshteinSimilarity, compareStructures } from "./core/ast.ts";
-import {
-  compareStructuresAPTED,
-  type APTEDOptions,
-} from "./core/apted.ts";
+import { compareStructuresAPTED, type APTEDOptions } from "./core/apted.ts";
 import { calculateTSED as calculateAPTEDSimilarityFromAST } from "./core/tsed.ts";
 import { parseTypeScript, parseTypeScriptAsync } from "./parser.ts";
 
@@ -34,23 +31,27 @@ import {
 import { loadFilesFromPattern } from "./cli/io.ts";
 
 // Re-export types and functions
-export type { CodeFile, SimilarityResult, RepositoryState } from "./cli/repo_checker.ts";
+export type {
+  CodeFile,
+  SimilarityResult,
+  RepositoryState,
+} from "./cli/repo_checker.ts";
 export type { APTEDOptions } from "./core/apted.ts";
-export { 
+export {
   calculateTSED,
   calculateTSEDWithMetrics,
   DEFAULT_TSED_OPTIONS,
   REFACTORING_TSED_OPTIONS,
-  type TSEDOptions
+  type TSEDOptions,
 } from "./core/tsed.ts";
 export type { ASTNode, Program } from "./core/oxc_types.ts";
-export { 
+export {
   addFileAsync,
-  findSimilarByMinHash, 
-  findSimilarBySimHash, 
+  findSimilarByMinHash,
+  findSimilarBySimHash,
   findSimilarByAPTEDAsync,
   getStatistics,
-  loadFilesAsync
+  loadFilesAsync,
 } from "./cli/repo_checker.ts";
 
 // Function extraction and comparison
@@ -59,7 +60,7 @@ export {
   compareFunctions,
   findDuplicateFunctions,
   type FunctionDefinition,
-  type FunctionComparisonResult
+  type FunctionComparisonResult,
 } from "./core/function_extractor.ts";
 
 export {
@@ -68,7 +69,7 @@ export {
   functionToMethod,
   areSemanticallySimilar,
   type NormalizationOptions,
-  type SemanticPattern
+  type SemanticPattern,
 } from "./core/semantic_normalizer.ts";
 
 // Type definitions
@@ -86,7 +87,6 @@ export interface DetailedReport {
   code2Length: number;
 }
 
-
 /**
  * Calculate similarity between two code snippets using Levenshtein algorithm
  * Returns a score between 0 and 1 (1 = identical, 0 = completely different)
@@ -99,14 +99,10 @@ export function calculateSimilarity(code1: string, code2: string): number {
  * Calculate similarity using APTED algorithm for better structural comparison
  * Handles renamed identifiers better than Levenshtein
  */
-export function calculateAPTEDSimilarity(
-  code1: string,
-  code2: string,
-  config?: Partial<APTEDOptions>
-): number {
+export function calculateAPTEDSimilarity(code1: string, code2: string, config?: Partial<APTEDOptions>): number {
   try {
-    const ast1 = parseTypeScript('file1.ts', code1);
-    const ast2 = parseTypeScript('file2.ts', code2);
+    const ast1 = parseTypeScript("file1.ts", code1);
+    const ast2 = parseTypeScript("file2.ts", code2);
     return calculateAPTEDSimilarityFromAST(ast1, ast2, config);
   } catch (error) {
     // Fall back to simple string comparison
@@ -120,12 +116,12 @@ export function calculateAPTEDSimilarity(
 export async function calculateAPTEDSimilarityAsync(
   code1: string,
   code2: string,
-  config?: Partial<APTEDOptions>
+  config?: Partial<APTEDOptions>,
 ): Promise<number> {
   try {
     const [ast1, ast2] = await Promise.all([
-      parseTypeScriptAsync('file1.ts', code1),
-      parseTypeScriptAsync('file2.ts', code2)
+      parseTypeScriptAsync("file1.ts", code1),
+      parseTypeScriptAsync("file2.ts", code2),
     ]);
     return calculateAPTEDSimilarityFromAST(ast1, ast2, config);
   } catch (error) {
@@ -142,11 +138,7 @@ export { calculateAPTEDSimilarityFromAST };
 /**
  * Get detailed comparison report including AST structures
  */
-export function getDetailedReport(
-  code1: string,
-  code2: string,
-  options: SimilarityOptions = {}
-): DetailedReport {
+export function getDetailedReport(code1: string, code2: string, options: SimilarityOptions = {}): DetailedReport {
   const ast1 = parseTypeScript("file1.ts", code1);
   const ast2 = parseTypeScript("file2.ts", code2);
 
@@ -188,39 +180,43 @@ export { createRepository };
  */
 export function buildRepoAnalyzer() {
   let state = createRepository();
-  
+
   return {
     async loadFiles(pattern: string): Promise<void> {
       state = await loadFilesIntoRepositoryAsync(state, pattern);
     },
-    
+
     async addFile(id: string, path: string, content: string): Promise<void> {
       state = await addFileAsync(state, id, path, content);
     },
-    
+
     findSimilarByMinHash(fileId: string, threshold: number = 0.7): SimilarityResult[] {
       return findSimilarByMinHash(state, fileId, threshold);
     },
-    
+
     findSimilarBySimHash(fileId: string, threshold: number = 0.7): SimilarityResult[] {
       return findSimilarBySimHash(state, fileId, threshold);
     },
-    
-    async findSimilarByAPTED(fileId: string, threshold: number = 0.7, maxComparisons: number = 100): Promise<SimilarityResult[]> {
+
+    async findSimilarByAPTED(
+      fileId: string,
+      threshold: number = 0.7,
+      maxComparisons: number = 100,
+    ): Promise<SimilarityResult[]> {
       return findSimilarByAPTEDAsync(state, fileId, threshold, maxComparisons);
     },
-    
-    findAllSimilarPairs(threshold: number = 0.7, method: 'minhash' | 'simhash' = 'minhash'): SimilarityResult[] {
+
+    findAllSimilarPairs(threshold: number = 0.7, method: "minhash" | "simhash" = "minhash"): SimilarityResult[] {
       return findAllSimilarPairs(state, threshold, method);
     },
-    
+
     getStatistics() {
       return getStatistics(state);
     },
-    
+
     getFiles(): CodeFile[] {
       return Array.from(state.files.values());
-    }
+    },
   };
 }
 
@@ -228,10 +224,7 @@ export function buildRepoAnalyzer() {
  * Load files from a glob pattern into the repository (synchronous parsing)
  * @deprecated Use loadFilesIntoRepositoryAsync for better performance
  */
-export async function loadFilesIntoRepository(
-  repo: RepositoryState,
-  pattern: string
-): Promise<RepositoryState> {
+export async function loadFilesIntoRepository(repo: RepositoryState, pattern: string): Promise<RepositoryState> {
   const files = await loadFilesFromPattern(pattern);
   return loadFiles(repo, files);
 }
@@ -239,10 +232,7 @@ export async function loadFilesIntoRepository(
 /**
  * Load files from a glob pattern into the repository with parallel parsing
  */
-export async function loadFilesIntoRepositoryAsync(
-  repo: RepositoryState,
-  pattern: string
-): Promise<RepositoryState> {
+export async function loadFilesIntoRepositoryAsync(repo: RepositoryState, pattern: string): Promise<RepositoryState> {
   const files = await loadFilesFromPattern(pattern);
   return loadFilesAsync(repo, files);
 }
@@ -255,7 +245,7 @@ export function findSimilarFiles(
   repo: RepositoryState,
   filePath: string,
   threshold: number,
-  method: "minhash" | "simhash" = "minhash"
+  method: "minhash" | "simhash" = "minhash",
 ): SimilarityResult[] {
   if (method === "simhash") {
     return findSimilarBySimHash(repo, filePath, threshold);
@@ -273,10 +263,7 @@ export { findAllSimilarPairs };
  * Find groups of code clones (highly similar files)
  * Returns arrays of files that are similar to each other
  */
-export function findCodeClones(
-  repo: RepositoryState,
-  threshold: number = 0.9
-): CodeFile[][] {
+export function findCodeClones(repo: RepositoryState, threshold: number = 0.9): CodeFile[][] {
   const cloneMap = findClones(repo, threshold);
   const cloneGroups: CodeFile[][] = [];
 
@@ -297,11 +284,7 @@ export function findCodeClones(
 }
 
 // Convenience function for one-shot similarity calculation with options
-export function calculateSimilarityWithOptions(
-  code1: string,
-  code2: string,
-  options: SimilarityOptions = {}
-): number {
+export function calculateSimilarityWithOptions(code1: string, code2: string, options: SimilarityOptions = {}): number {
   if (options.algorithm === "apted") {
     return calculateAPTEDSimilarity(code1, code2, options.aptedConfig);
   }
