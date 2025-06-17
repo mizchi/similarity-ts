@@ -1,30 +1,30 @@
-# ts-similarity CLI (Rust版)
+# ts-similarity CLI (Rust Version)
 
-TypeScriptコードの類似度を計算するコマンドラインツールです。
+A command-line tool for calculating TypeScript code similarity.
 
-## インストール
+## Installation
 
 ```bash
-# リポジトリのルートディレクトリで
+# Build from the repository root
 cargo build --release
 
-# バイナリは以下に生成されます
+# The binary will be generated at:
 ./target/release/ts-similarity
 ```
 
-## 使い方
+## Usage
 
-### 基本的な使い方（2つのファイルを比較）
+### Basic Usage (Compare Two Files)
 
 ```bash
-# デフォルトのパラメータで比較
+# Compare with default parameters
 ./target/release/ts-similarity file1.ts file2.ts
 
-# または compareサブコマンドを使用
+# Or use the compare subcommand
 ./target/release/ts-similarity compare file1.ts file2.ts
 ```
 
-### 詳細なパラメータ指定
+### Advanced Parameters
 
 ```bash
 ./target/release/ts-similarity compare file1.ts file2.ts \
@@ -33,55 +33,55 @@ cargo build --release
   --insert-cost 1.0
 ```
 
-### 単一ファイル内の類似関数検出
+### Find Similar Functions in a Single File
 
 ```bash
-# デフォルトの閾値（70%）で検出
+# Detect with default threshold (70%)
 ./target/release/ts-similarity functions src/utils.ts
 
-# 閾値を指定（80%以上の類似度）
+# Specify threshold (80% or higher similarity)
 ./target/release/ts-similarity functions src/utils.ts -t 0.8
 
-# rename costも調整
+# Also adjust rename cost
 ./target/release/ts-similarity functions src/utils.ts -t 0.8 --rename-cost 0.2
 ```
 
-### 複数ファイル間の類似関数検出
+### Find Similar Functions Across Multiple Files
 
 ```bash
-# 複数ファイル間で類似関数を検出
+# Detect similar functions across multiple files
 ./target/release/ts-similarity cross-file src/file1.ts src/file2.ts src/file3.ts
 
-# 閾値を指定
+# Specify threshold
 ./target/release/ts-similarity cross-file src/*.ts -t 0.85
 ```
 
-## サブコマンド
+## Subcommands
 
-### `compare` - ファイル全体の比較
+### `compare` - Compare Entire Files
 
-2つのTypeScriptファイル全体の類似度を計算します。
+Calculates the similarity between two complete TypeScript files.
 
-**オプション:**
-- `--rename-cost` (デフォルト: 0.3) - ノードの名前変更コスト
-- `--delete-cost` (デフォルト: 1.0) - ノードの削除コスト
-- `--insert-cost` (デフォルト: 1.0) - ノードの挿入コスト
+**Options:**
+- `--rename-cost` (default: 0.3) - Cost for renaming nodes
+- `--delete-cost` (default: 1.0) - Cost for deleting nodes
+- `--insert-cost` (default: 1.0) - Cost for inserting nodes
 
-**出力例:**
+**Example Output:**
 ```
 TSED Similarity: 85.50%
 Distance: 0.1450
 ```
 
-### `functions` - 単一ファイル内の類似関数検出
+### `functions` - Find Similar Functions in a Single File
 
-1つのファイル内で類似した関数を検出します。
+Detects similar functions within a single file.
 
-**オプション:**
-- `-t, --threshold` (デフォルト: 0.7) - 類似度の閾値（0.0〜1.0）
-- `--rename-cost` (デフォルト: 0.3) - ノードの名前変更コスト
+**Options:**
+- `-t, --threshold` (default: 0.7) - Similarity threshold (0.0-1.0)
+- `--rename-cost` (default: 0.3) - Cost for renaming nodes
 
-**出力例:**
+**Example Output:**
 ```
 Similar functions in src/utils.ts:
 ============================================================
@@ -93,15 +93,15 @@ arrow getTotalPrice (lines 25-27) <-> function calculateOrderTotal (lines 29-35)
 Similarity: 90.00%
 ```
 
-### `cross-file` - 複数ファイル間の類似関数検出
+### `cross-file` - Find Similar Functions Across Files
 
-複数のファイル間で類似した関数を検出します。
+Detects similar functions across multiple files.
 
-**オプション:**
-- `-t, --threshold` (デフォルト: 0.7) - 類似度の閾値（0.0〜1.0）
-- `--rename-cost` (デフォルト: 0.3) - ノードの名前変更コスト
+**Options:**
+- `-t, --threshold` (default: 0.7) - Similarity threshold (0.0-1.0)
+- `--rename-cost` (default: 0.3) - Cost for renaming nodes
 
-**出力例:**
+**Example Output:**
 ```
 Similar functions across files:
 ============================================================
@@ -113,44 +113,44 @@ file1.ts:validateInput (lines 15-20) <-> file3.ts:checkInput (lines 7-12)
 Similarity: 85.00%
 ```
 
-## アルゴリズム
+## Algorithms
 
-このツールは以下のアルゴリズムを使用しています：
+This tool uses the following algorithms:
 
-- **APTED (All Path Tree Edit Distance)**: 構造的な類似度を計算
-- **TSED (Tree Similarity of Edit Distance)**: 0〜1の範囲に正規化された類似度スコア
+- **APTED (All Path Tree Edit Distance)**: Calculates structural similarity
+- **TSED (Tree Similarity of Edit Distance)**: Normalized similarity score (0-1 range)
 
-## パフォーマンス
+## Performance
 
-Rust実装はTypeScript実装と比較して：
-- 中規模ファイル: 約16倍高速
-- 大規模ファイル: メモリ効率が良く、TypeScript版でメモリ不足になるケースでも処理可能
+Compared to the TypeScript implementation:
+- Medium files: ~16x faster
+- Large files: Better memory efficiency, can handle cases where TypeScript version runs out of memory
 
-## 注意事項
+## Notes
 
-- TypeScriptとJavaScriptファイルの両方をサポート
-- oxc-parserを使用して高速にパース
-- 関数の構造的な類似性を重視した比較
+- Supports both TypeScript and JavaScript files
+- Uses oxc-parser for fast parsing
+- Focuses on structural similarity of functions
 
-## 例
+## Examples
 
-### コードの重複検出
+### Code Duplication Detection
 
 ```bash
-# プロジェクト内の重複コードを検出
+# Detect duplicate code in your project
 ./target/release/ts-similarity functions src/main.ts -t 0.9
 ```
 
-### リファクタリング前後の比較
+### Compare Before and After Refactoring
 
 ```bash
-# リファクタリング前後でコードの類似度を確認
+# Check code similarity before and after refactoring
 ./target/release/ts-similarity compare old_version.ts new_version.ts
 ```
 
-### 複数ファイルでの重複関数チェック
+### Check for Duplicate Functions Across Multiple Files
 
 ```bash
-# utilsディレクトリ内の全ファイルで重複関数をチェック
+# Check all files in utils directory for duplicate functions
 ./target/release/ts-similarity cross-file src/utils/*.ts -t 0.85
 ```
