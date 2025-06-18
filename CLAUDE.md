@@ -1,33 +1,25 @@
 ## Project Goal
 
-Calculate code similarity
+Calculate code similarity between TypeScript/JavaScript functions and types.
 
 ## Project Structure
 
-- **Rust implementation (crates/)**: メインの実装。今後の開発はこちらで行う
-- **TypeScript implementation (src/)**: プロトタイプ実装。参考用
+- **Rust implementation (crates/)**: メインの実装。すべての開発はこちらで行う
+- **TypeScript implementation (__deprecated/)**: プロトタイプ実装。参考用のみ（非推奨）
 
 ## Development Stack
 
 ### Rust (Main)
 - cargo
 - clap (CLI framework)
-
-### TypeScript (Prototype)
-- pnpm
-- typescript
-- tsdown
+- oxc_parser (TypeScript/JavaScript parser)
 
 ## Coding Rules
 
 ### Rust
 - Follow standard Rust conventions
 - Use clippy for linting
-
-### TypeScript
-- file: snake_case
-- add `.ts` extensions to import. eg. `import {} from "./x.ts"` for deno compatibility.
-- Never use class. Use Function
+- Run tests with `cargo test`
 
 ## Directory Patterns
 
@@ -35,6 +27,14 @@ Calculate code similarity
 crates/          # Rust implementation (main)
   cli/           # CLI application
   core/          # Core logic
-src/             # TypeScript prototype
 examples/        # Example files
+__deprecated/    # Deprecated TypeScript prototype
 ```
+
+## Features
+
+- Function similarity detection using AST-based comparison
+- Type similarity detection (interfaces, type aliases, type literals)
+- Configurable similarity thresholds
+- Cross-file analysis support
+- VSCode-compatible output format
