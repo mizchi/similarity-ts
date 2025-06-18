@@ -180,4 +180,4 @@ ts-similarity ./src \
 
 ## License
 
-ISC
+MIT
