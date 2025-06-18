@@ -52,58 +52,58 @@ ts-similarity src/ lib/
 # Use custom threshold
 ts-similarity . -t 0.9
 
-# Show code details
-ts-similarity . --show
+# Print code details
+ts-similarity . --print
 
-# Or use specific commands
-ts-similarity functions .
-ts-similarity types .
+# Only check functions or types
+ts-similarity . --no-types      # Functions only
+ts-similarity . --no-functions  # Types only
 ```
 
 ## Usage
 
-By default, `ts-similarity` runs both function and type similarity detection. You can also run specific analyzers using subcommands.
+By default, `ts-similarity` runs both function and type similarity detection. You can disable either analyzer using flags.
 
 ### Function Similarity Detection
 
 ```bash
 # Check for duplicate functions in a directory (default: current directory)
-ts-similarity functions ./src
+ts-similarity ./src
 
 # Check across files (not just within files)
-ts-similarity functions ./src --cross-file
+ts-similarity ./src --cross-file
 
 # Adjust similarity threshold (0.0-1.0, default: 0.8)
-ts-similarity functions ./src --threshold 0.9
+ts-similarity ./src --threshold 0.9
 
-# Show function code in output
-ts-similarity functions ./src --show
+# Print function code in output
+ts-similarity ./src --print
 
 # Filter by minimum function size (default: 5 lines)
-ts-similarity functions ./src --min-lines 10
+ts-similarity ./src --min-lines 10
 
 # Check specific file extensions
-ts-similarity functions ./src --extensions ts,tsx
+ts-similarity ./src --extensions ts,tsx
 ```
 
 ### Type Similarity Detection
 
 ```bash
-# Check for similar type definitions
-ts-similarity types ./src
+# Check for similar type definitions (types only)
+ts-similarity ./src --no-functions
 
-# Show type definitions in output
-ts-similarity types ./src --show
+# Print type definitions in output
+ts-similarity ./src --no-functions --print
 
 # Check only interfaces or type aliases
-ts-similarity types ./src --interfaces-only
-ts-similarity types ./src --types-only
+ts-similarity ./src --interfaces-only
+ts-similarity ./src --types-only
 
 # Include type literals (function parameters, return types, etc.)
-ts-similarity types ./src --include-type-literals
+ts-similarity ./src --include-type-literals
 
 # Adjust weights for structural vs naming similarity
-ts-similarity types ./src --structural-weight 0.7 --naming-weight 0.3
+ts-similarity ./src --structural-weight 0.7 --naming-weight 0.3
 ```
 
 ## Output Format
@@ -112,13 +112,15 @@ The tool outputs in a VSCode-compatible format for easy navigation:
 
 ```
 Duplicates in src/utils.ts:
-------------------------------------------------------------
+────────────────────────────────────────────────────────────
   src/utils.ts:10 | L10-15 similar-function: calculateSum
   src/utils.ts:20 | L20-25 similar-function: addNumbers
-  Similarity: 85.00%, Impact: 10 lines
+  Similarity: 85.00%, Priority: 8.5 (lines: 10)
 ```
 
 Click on the file paths in VSCode's terminal to jump directly to the code.
+
+Results are sorted by priority (lines × similarity) to help you focus on the most impactful duplications first.
 
 ## How It Works
 
@@ -141,13 +143,13 @@ Click on the file paths in VSCode's terminal to jump directly to the code.
 
 ```bash
 # Find duplicate functions in your project
-ts-similarity functions ./src --threshold 0.7 --show
+ts-similarity ./src --threshold 0.7 --print
 
 # Find similar types across files
-ts-similarity types ./src --cross-file --show
+ts-similarity ./src --no-functions --cross-file --print
 
 # Comprehensive analysis with custom settings
-ts-similarity functions ./src \
+ts-similarity ./src \
   --threshold 0.8 \
   --min-lines 10 \
   --cross-file \

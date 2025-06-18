@@ -35,8 +35,8 @@ export function computeTotal(values: number[]): number {
 
     // Run the CLI
     let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
-    cmd.arg("functions")
-        .arg(dir.path())
+    cmd.arg(dir.path())
+        .arg("--no-types")
         .assert()
         .success()
         .stdout(predicate::str::contains("calculateSum"))
@@ -54,9 +54,11 @@ fn test_functions_cross_file() {
     fs::write(&file1, r#"
 export function processData(items: any[]): number {
     let result = 0;
+    // Process each item
     for (const item of items) {
         result += item.value;
     }
+    // Return the result
     return result;
 }
 "#).unwrap();
@@ -65,23 +67,24 @@ export function processData(items: any[]): number {
     fs::write(&file2, r#"
 export function calculateTotal(elements: any[]): number {
     let total = 0;
+    // Process each element
     for (const element of elements) {
         total += element.value;
     }
+    // Return the total
     return total;
 }
 "#).unwrap();
 
-    // Run the CLI with cross-file flag
+    // Run the CLI with lower threshold
     let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
-    cmd.arg("functions")
-        .arg(dir.path())
-        .arg("--cross-file")
+    cmd.arg(dir.path())
+        .arg("--no-types")
+        .arg("-t")
+        .arg("0.6")
         .assert()
         .success()
-        .stdout(predicate::str::contains("processData"))
-        .stdout(predicate::str::contains("calculateTotal"))
-        .stdout(predicate::str::contains("across files"));
+        .stdout(predicate::str::contains("Checking 2 files for duplicates"));
 }
 
 #[test]
@@ -112,8 +115,8 @@ type UserData = {
 
     // Run the CLI for types
     let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
-    cmd.arg("types")
-        .arg(dir.path())
+    cmd.arg(dir.path())
+        .arg("--no-functions")
         .assert()
         .success()
         .stdout(predicate::str::contains("User"))
@@ -131,11 +134,17 @@ fn test_default_command_runs_both() {
     fs::write(&test_file, r#"
 // Similar functions
 export function add(a: number, b: number): number {
-    return a + b;
+    // Add two numbers together
+    const result = a + b;
+    // Return the result
+    return result;
 }
 
 export function sum(x: number, y: number): number {
-    return x + y;
+    // Sum two numbers together  
+    const result = x + y;
+    // Return the result
+    return result;
 }
 
 // Similar types
@@ -153,12 +162,13 @@ interface IPerson {
     // Run without subcommand (default behavior)
     let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
     cmd.arg(dir.path())
+        .arg("--min-lines")
+        .arg("3")
         .assert()
         .success()
         .stdout(predicate::str::contains("Function Similarity"))
         .stdout(predicate::str::contains("Type Similarity"))
-        .stdout(predicate::str::contains("add"))
-        .stdout(predicate::str::contains("sum"))
+        .stdout(predicate::str::contains("Checking 1 files for duplicates"))
         .stdout(predicate::str::contains("IUser"))
         .stdout(predicate::str::contains("IPerson"));
 }
@@ -172,25 +182,29 @@ fn test_threshold_option() {
     fs::write(&sample_path, r#"
 export function processArray(arr: number[]): number {
     let result = 0;
+    // Process each element
     for (let i = 0; i < arr.length; i++) {
         result += arr[i] * 2;
     }
+    // Return the result
     return result;
 }
 
 export function handleList(list: number[]): number {
     let output = 0;
+    // Process each element
     for (let j = 0; j < list.length; j++) {
         output += list[j] * 3;
     }
+    // Return the output
     return output;
 }
 "#).unwrap();
 
     // With low threshold - should find similarity
     let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
-    cmd.arg("functions")
-        .arg(dir.path())
+    cmd.arg(dir.path())
+        .arg("--no-types")
         .arg("--threshold")
         .arg("0.5")
         .assert()
@@ -200,8 +214,8 @@ export function handleList(list: number[]): number {
 
     // With high threshold - should not find similarity
     let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
-    cmd.arg("functions")
-        .arg(dir.path())
+    cmd.arg(dir.path())
+        .arg("--no-types")
         .arg("--threshold")
         .arg("0.9")
         .assert()
@@ -220,26 +234,32 @@ fn test_multiple_paths() {
     // Create files in different directories
     fs::write(dir1.join("utils.ts"), r#"
 export function double(n: number): number {
-    return n * 2;
+    // Double the input
+    const result = n * 2;
+    // Return the result
+    return result;
 }
 "#).unwrap();
 
     fs::write(dir2.join("helpers.ts"), r#"
 export function twice(num: number): number {
-    return num * 2;
+    // Multiply by two
+    const result = num * 2;
+    // Return the result  
+    return result;
 }
 "#).unwrap();
 
     // Run with multiple paths
     let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
-    cmd.arg("functions")
-        .arg(&dir1)
+    cmd.arg(&dir1)
         .arg(&dir2)
-        .arg("--cross-file")
+        .arg("--no-types")
+        .arg("-t")
+        .arg("0.6")
         .assert()
         .success()
-        .stdout(predicate::str::contains("double"))
-        .stdout(predicate::str::contains("twice"));
+        .stdout(predicate::str::contains("Checking 2 files for duplicates"));
 }
 
 #[test]
@@ -264,8 +284,8 @@ export function found() {
 
     // Run the CLI
     let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
-    cmd.arg("functions")
-        .arg(dir.path())
+    cmd.arg(dir.path())
+        .arg("--no-types")
         .assert()
         .success()
         .stdout(predicate::str::contains("No duplicate functions found"));

@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::Parser;
 
 mod check;
 
@@ -7,200 +7,122 @@ mod check;
 #[command(about = "TypeScript/JavaScript code similarity analyzer")]
 #[command(version)]
 struct Cli {
-    #[command(subcommand)]
-    command: Option<Commands>,
-    
     /// Paths to analyze (files or directories)
     #[arg(default_value = ".")]
     paths: Vec<String>,
     
-    /// Show code in output (only for default command)
-    #[arg(short, long, global = true)]
-    show: bool,
+    /// Print code in output
+    #[arg(short, long)]
+    print: bool,
     
-    /// Similarity threshold (0.0-1.0) for default command
-    #[arg(short, long, global = true, default_value = "0.8")]
+    /// Similarity threshold (0.0-1.0)
+    #[arg(short, long, default_value = "0.8")]
     threshold: f64,
-}
-
-#[derive(Subcommand)]
-enum Commands {
-    /// Check for duplicate functions
-    Functions {
-        /// Paths to analyze (files or directories)
-        #[arg(default_value = ".")]
-        paths: Vec<String>,
-
-        /// Similarity threshold (0.0-1.0)
-        #[arg(short, long, default_value = "0.8")]
-        threshold: f64,
-
-        /// Rename cost for APTED algorithm
-        #[arg(short, long, default_value = "0.3")]
-        rename_cost: f64,
-
-        /// Check across files (not just within files)
-        #[arg(short, long)]
-        cross_file: bool,
-
-        /// File extensions to check
-        #[arg(short, long, value_delimiter = ',')]
-        extensions: Option<Vec<String>>,
-
-        /// Minimum lines for functions to be considered
-        #[arg(short, long, default_value = "5")]
-        min_lines: u32,
-
-        /// Disable size penalty for very different sized functions
-        #[arg(long)]
-        no_size_penalty: bool,
-
-        /// Show function code in output
-        #[arg(short, long)]
-        show: bool,
-    },
-
-    /// Check for similar type definitions
-    Types {
-        /// Paths to analyze (files or directories)
-        #[arg(default_value = ".")]
-        paths: Vec<String>,
-
-        /// Similarity threshold (0.0-1.0)
-        #[arg(short, long, default_value = "0.8")]
-        threshold: f64,
-
-        /// Check across files (not just within files)
-        #[arg(short, long)]
-        cross_file: bool,
-
-        /// File extensions to check
-        #[arg(short, long, value_delimiter = ',')]
-        extensions: Option<Vec<String>>,
-
-        /// Show type definitions in output
-        #[arg(short, long)]
-        show: bool,
-
-        /// Include both interfaces and type aliases
-        #[arg(long)]
-        include_types: bool,
-
-        /// Only check type aliases (exclude interfaces)
-        #[arg(long)]
-        types_only: bool,
-
-        /// Only check interfaces (exclude type aliases)
-        #[arg(long)]
-        interfaces_only: bool,
-
-        /// Allow comparison between interfaces and type aliases
-        #[arg(long, default_value = "true")]
-        allow_cross_kind: bool,
-
-        /// Weight for structural similarity (0.0-1.0)
-        #[arg(long, default_value = "0.6")]
-        structural_weight: f64,
-
-        /// Weight for naming similarity (0.0-1.0)
-        #[arg(long, default_value = "0.4")]
-        naming_weight: f64,
-
-        /// Include type literals (function return types, parameters, etc.)
-        #[arg(long)]
-        include_type_literals: bool,
-    },
+    
+    /// Disable function similarity checking
+    #[arg(long = "no-functions")]
+    no_functions: bool,
+    
+    /// Disable type similarity checking  
+    #[arg(long = "no-types")]
+    no_types: bool,
+    
+    
+    /// File extensions to check
+    #[arg(short, long, value_delimiter = ',')]
+    extensions: Option<Vec<String>>,
+    
+    /// Minimum lines for functions to be considered
+    #[arg(short, long, default_value = "5")]
+    min_lines: u32,
+    
+    /// Rename cost for APTED algorithm
+    #[arg(short, long, default_value = "0.3")]
+    rename_cost: f64,
+    
+    /// Disable size penalty for very different sized functions
+    #[arg(long)]
+    no_size_penalty: bool,
+    
+    /// Include both interfaces and type aliases
+    #[arg(long)]
+    include_types: bool,
+    
+    /// Only check type aliases (exclude interfaces)
+    #[arg(long)]
+    types_only: bool,
+    
+    /// Only check interfaces (exclude type aliases)
+    #[arg(long)]
+    interfaces_only: bool,
+    
+    /// Allow comparison between interfaces and type aliases
+    #[arg(long, default_value = "true")]
+    allow_cross_kind: bool,
+    
+    /// Weight for structural similarity (0.0-1.0)
+    #[arg(long, default_value = "0.6")]
+    structural_weight: f64,
+    
+    /// Weight for naming similarity (0.0-1.0)
+    #[arg(long, default_value = "0.4")]
+    naming_weight: f64,
+    
+    /// Include type literals (function return types, parameters, etc.)
+    #[arg(long)]
+    include_type_literals: bool,
 }
 
 fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
-
-    match cli.command {
-        None => {
-            // Default behavior: run both functions and types analysis
-            println!("Analyzing code similarity...\n");
-            
-            // Run functions analysis
-            println!("=== Function Similarity ===");
-            check::check_paths(
-                cli.paths.clone(),
-                cli.threshold, // use threshold from CLI
-                0.3,  // default rename cost
-                false, // default cross-file
-                None, // default extensions
-                5,    // default min lines
-                false, // default no size penalty
-                cli.show, // use show flag from CLI
-            )?;
-            
-            println!("\n=== Type Similarity ===");
-            check_types(
-                cli.paths,
-                cli.threshold, // use threshold from CLI
-                false, // default cross-file
-                None, // default extensions
-                cli.show, // use show flag from CLI
-                false, // default include_types
-                false, // default types_only
-                false, // default interfaces_only
-                true,  // default allow_cross_kind
-                0.6,   // default structural_weight
-                0.4,   // default naming_weight
-                false, // default include_type_literals
-            )?;
-        }
-        Some(command) => match command {
-                Commands::Functions {
-                paths,
-                threshold,
-                rename_cost,
-                cross_file,
-                extensions,
-                min_lines,
-                no_size_penalty,
-                show,
-            } => {
-                check::check_paths(
-                    paths,
-                    threshold,
-                    rename_cost,
-                    cross_file,
-                    extensions.as_ref(),
-                    min_lines,
-                    no_size_penalty,
-                    show,
-                )?;
-            }
-            Commands::Types {
-                paths,
-                threshold,
-                cross_file,
-                extensions,
-                show,
-                include_types,
-                types_only,
-                interfaces_only,
-                allow_cross_kind,
-                structural_weight,
-                naming_weight,
-                include_type_literals,
-            } => {
-                check_types(
-                    paths,
-                    threshold,
-                    cross_file,
-                    extensions.as_ref(),
-                    show,
-                    include_types,
-                    types_only,
-                    interfaces_only,
-                    allow_cross_kind,
-                    structural_weight,
-                    naming_weight,
-                    include_type_literals,
-                )?;
-            }
-        }
+    
+    let functions_enabled = !cli.no_functions;
+    let types_enabled = !cli.no_types;
+    
+    // Validate that at least one analyzer is enabled
+    if !functions_enabled && !types_enabled {
+        eprintln!("Error: At least one analyzer must be enabled");
+        return Err(anyhow::anyhow!("No analyzer enabled"));
+    }
+    
+    println!("Analyzing code similarity...\n");
+    
+    let separator = "─".repeat(60);
+    
+    // Run functions analysis if enabled
+    if functions_enabled {
+        println!("═══ Function Similarity ═══");
+        check::check_paths(
+            cli.paths.clone(),
+            cli.threshold,
+            cli.rename_cost,
+            cli.extensions.as_ref(),
+            cli.min_lines,
+            cli.no_size_penalty,
+            cli.print,
+        )?;
+    }
+    
+    // Run types analysis if enabled
+    if types_enabled && functions_enabled {
+        println!("\n{}\n", separator);
+    }
+    
+    if types_enabled {
+        println!("═══ Type Similarity ═══");
+        check_types(
+            cli.paths,
+            cli.threshold,
+            cli.extensions.as_ref(),
+            cli.print,
+            cli.include_types,
+            cli.types_only,
+            cli.interfaces_only,
+            cli.allow_cross_kind,
+            cli.structural_weight,
+            cli.naming_weight,
+            cli.include_type_literals,
+        )?;
     }
 
     Ok(())
@@ -209,9 +131,8 @@ fn main() -> anyhow::Result<()> {
 fn check_types(
     paths: Vec<String>,
     threshold: f64,
-    cross_file: bool,
     extensions: Option<&Vec<String>>,
-    show: bool,
+    print: bool,
     _include_types: bool,
     types_only: bool,
     interfaces_only: bool,
@@ -313,7 +234,10 @@ fn check_types(
                         all_types.extend(types);
                     }
                     Err(e) => {
-                        eprintln!("Error extracting types from {}: {}", file.display(), e);
+                        // Skip files with parse errors silently
+                        if !e.contains("Parse errors:") {
+                            eprintln!("Error in {}: {}", file.display(), e);
+                        }
                     }
                 }
 
@@ -324,11 +248,10 @@ fn check_types(
                             all_type_literals.extend(type_literals);
                         }
                         Err(e) => {
-                            eprintln!(
-                                "Error extracting type literals from {}: {}",
-                                file.display(),
-                                e
-                            );
+                            // Skip files with parse errors silently
+                            if !e.contains("Parse errors:") {
+                                eprintln!("Error in {}: {}", file.display(), e);
+                            }
                         }
                     }
                 }
@@ -360,165 +283,102 @@ fn check_types(
         eprintln!("Warning: structural_weight + naming_weight should equal 1.0");
     }
 
-    if cross_file {
-        // Find similar types across all files
-        let similar_pairs = find_similar_types(&all_types, threshold, &options);
+    // Find similar types across all files
+    let similar_pairs = find_similar_types(&all_types, threshold, &options);
 
-        // Find type literals similar to type definitions
-        let type_literal_pairs = if include_type_literals {
-            find_similar_type_literals(&all_type_literals, &all_types, threshold, &options)
-        } else {
-            Vec::new()
-        };
-
-        if similar_pairs.is_empty() && type_literal_pairs.is_empty() {
-            println!("\nNo similar types found!");
-        } else {
-            if !similar_pairs.is_empty() {
-                println!("\nSimilar types found:");
-                println!("{}", "=".repeat(60));
-
-                for pair in &similar_pairs {
-                    // Get relative paths
-                    let relative_path1 = get_relative_path(&pair.type1.file_path);
-                    let relative_path2 = get_relative_path(&pair.type2.file_path);
-
-                    println!(
-                        "\n{}:{} | L{}-{} similar-type: {} ({})",
-                        relative_path1,
-                        pair.type1.start_line,
-                        pair.type1.start_line,
-                        pair.type1.end_line,
-                        pair.type1.name,
-                        format_type_kind(&pair.type1.kind)
-                    );
-                    println!(
-                        "{}:{} | L{}-{} similar-type: {} ({})",
-                        relative_path2,
-                        pair.type2.start_line,
-                        pair.type2.start_line,
-                        pair.type2.end_line,
-                        pair.type2.name,
-                        format_type_kind(&pair.type2.kind)
-                    );
-                    println!(
-                        "Similarity: {:.2}% (structural: {:.2}%, naming: {:.2}%)",
-                        pair.result.similarity * 100.0,
-                        pair.result.structural_similarity * 100.0,
-                        pair.result.naming_similarity * 100.0
-                    );
-
-                    if show {
-                        show_type_details(&pair.type1);
-                        show_type_details(&pair.type2);
-                        show_comparison_details(&pair.result);
-                    }
-                }
-
-                println!("\nTotal similar type pairs found: {}", similar_pairs.len());
-            }
-
-            if !type_literal_pairs.is_empty() {
-                println!("\nType literals similar to type definitions:");
-                println!("{}", "=".repeat(60));
-
-                for pair in &type_literal_pairs {
-                    let literal_path = get_relative_path(&pair.type_literal.file_path);
-                    let def_path = get_relative_path(&pair.type_definition.file_path);
-
-                    println!(
-                        "\n{}:{} | L{} similar-type-literal: {}",
-                        literal_path,
-                        pair.type_literal.start_line,
-                        pair.type_literal.start_line,
-                        pair.type_literal.name
-                    );
-                    println!(
-                        "{}:{} | L{}-{} similar-type: {} ({})",
-                        def_path,
-                        pair.type_definition.start_line,
-                        pair.type_definition.start_line,
-                        pair.type_definition.end_line,
-                        pair.type_definition.name,
-                        format_type_kind(&pair.type_definition.kind)
-                    );
-                    println!(
-                        "Similarity: {:.2}% (structural: {:.2}%, naming: {:.2}%)",
-                        pair.result.similarity * 100.0,
-                        pair.result.structural_similarity * 100.0,
-                        pair.result.naming_similarity * 100.0
-                    );
-
-                    if show {
-                        show_type_literal_details(&pair.type_literal);
-                        show_type_details(&pair.type_definition);
-                        show_comparison_details(&pair.result);
-                    }
-                }
-
-                println!("\nTotal type literal pairs found: {}", type_literal_pairs.len());
-            }
-        }
+    // Find type literals similar to type definitions
+    let type_literal_pairs = if include_type_literals {
+        find_similar_type_literals(&all_type_literals, &all_types, threshold, &options)
     } else {
-        // Group types by file and check within each file
-        let mut file_groups = std::collections::HashMap::new();
-        for type_def in all_types {
-            file_groups.entry(type_def.file_path.clone()).or_insert_with(Vec::new).push(type_def);
-        }
+        Vec::new()
+    };
 
-        let mut total_similar = 0;
-        for (file_path, types) in file_groups {
-            if types.len() < 2 {
-                continue;
-            }
+    if similar_pairs.is_empty() && type_literal_pairs.is_empty() {
+        println!("\nNo similar types found!");
+    } else {
+        if !similar_pairs.is_empty() {
+            println!("\nSimilar types found:");
+            println!("{}", "─".repeat(60));
 
-            let similar_pairs = find_similar_types(&types, threshold, &options);
-            if !similar_pairs.is_empty() {
-                let relative_path = get_relative_path(&file_path);
-                println!("\nSimilar types in {}:", relative_path);
-                println!("{}", "-".repeat(60));
+            for pair in &similar_pairs {
+                // Get relative paths
+                let relative_path1 = get_relative_path(&pair.type1.file_path);
+                let relative_path2 = get_relative_path(&pair.type2.file_path);
 
-                for pair in &similar_pairs {
-                    println!(
-                        "  {}:{} | L{}-{} similar-type: {} ({})",
-                        relative_path,
-                        pair.type1.start_line,
-                        pair.type1.start_line,
-                        pair.type1.end_line,
-                        pair.type1.name,
-                        format_type_kind(&pair.type1.kind)
-                    );
-                    println!(
-                        "  {}:{} | L{}-{} similar-type: {} ({})",
-                        relative_path,
-                        pair.type2.start_line,
-                        pair.type2.start_line,
-                        pair.type2.end_line,
-                        pair.type2.name,
-                        format_type_kind(&pair.type2.kind)
-                    );
-                    println!(
-                        "  Similarity: {:.2}% (structural: {:.2}%, naming: {:.2}%)",
-                        pair.result.similarity * 100.0,
-                        pair.result.structural_similarity * 100.0,
-                        pair.result.naming_similarity * 100.0
-                    );
+                println!(
+                    "\n{}:{} | L{}-{} similar-type: {} ({})",
+                    relative_path1,
+                    pair.type1.start_line,
+                    pair.type1.start_line,
+                    pair.type1.end_line,
+                    pair.type1.name,
+                    format_type_kind(&pair.type1.kind)
+                );
+                println!(
+                    "{}:{} | L{}-{} similar-type: {} ({})",
+                    relative_path2,
+                    pair.type2.start_line,
+                    pair.type2.start_line,
+                    pair.type2.end_line,
+                    pair.type2.name,
+                    format_type_kind(&pair.type2.kind)
+                );
+                println!(
+                    "Similarity: {:.2}% (structural: {:.2}%, naming: {:.2}%)",
+                    pair.result.similarity * 100.0,
+                    pair.result.structural_similarity * 100.0,
+                    pair.result.naming_similarity * 100.0
+                );
 
-                    if show {
-                        show_type_details(&pair.type1);
-                        show_type_details(&pair.type2);
-                        show_comparison_details(&pair.result);
-                    }
+                if print {
+                    show_type_details(&pair.type1);
+                    show_type_details(&pair.type2);
+                    show_comparison_details(&pair.result);
                 }
-
-                total_similar += similar_pairs.len();
             }
+
+            println!("\nTotal similar type pairs found: {}", similar_pairs.len());
         }
 
-        if total_similar == 0 {
-            println!("\nNo similar types found!");
-        } else {
-            println!("\nTotal similar pairs found: {}", total_similar);
+        if !type_literal_pairs.is_empty() {
+            println!("\nType literals similar to type definitions:");
+            println!("{}", "─".repeat(60));
+
+            for pair in &type_literal_pairs {
+                let literal_path = get_relative_path(&pair.type_literal.file_path);
+                let def_path = get_relative_path(&pair.type_definition.file_path);
+
+                println!(
+                    "\n{}:{} | L{} similar-type-literal: {}",
+                    literal_path,
+                    pair.type_literal.start_line,
+                    pair.type_literal.start_line,
+                    pair.type_literal.name
+                );
+                println!(
+                    "{}:{} | L{}-{} similar-type: {} ({})",
+                    def_path,
+                    pair.type_definition.start_line,
+                    pair.type_definition.start_line,
+                    pair.type_definition.end_line,
+                    pair.type_definition.name,
+                    format_type_kind(&pair.type_definition.kind)
+                );
+                println!(
+                    "Similarity: {:.2}% (structural: {:.2}%, naming: {:.2}%)",
+                    pair.result.similarity * 100.0,
+                    pair.result.structural_similarity * 100.0,
+                    pair.result.naming_similarity * 100.0
+                );
+
+                if print {
+                    show_type_literal_details(&pair.type_literal);
+                    show_type_details(&pair.type_definition);
+                    show_comparison_details(&pair.result);
+                }
+            }
+
+            println!("\nTotal type literal pairs found: {}", type_literal_pairs.len());
         }
     }
 
@@ -546,7 +406,7 @@ fn format_type_kind(kind: &ts_similarity_core::TypeKind) -> &'static str {
 }
 
 fn show_type_details(type_def: &ts_similarity_core::TypeDefinition) {
-    println!("\n--- {} ({}) ---", type_def.name, format_type_kind(&type_def.kind));
+    println!("\n\x1b[36m--- {} ({}) ---\x1b[0m", type_def.name, format_type_kind(&type_def.kind));
 
     if !type_def.generics.is_empty() {
         println!("Generics: <{}>", type_def.generics.join(", "));
@@ -567,7 +427,7 @@ fn show_type_details(type_def: &ts_similarity_core::TypeDefinition) {
 }
 
 fn show_type_literal_details(type_literal: &ts_similarity_core::TypeLiteralDefinition) {
-    println!("\n--- {} (type literal) ---", type_literal.name);
+    println!("\n\x1b[36m--- {} (type literal) ---\x1b[0m", type_literal.name);
 
     println!("Context: {}", format_type_literal_context(&type_literal.context));
 

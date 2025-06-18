@@ -38,7 +38,7 @@ fn show_function_code(file_path: &str, function_name: &str, start_line: u32, end
         Ok(content) => {
             let code = extract_lines_from_content(&content, start_line, end_line);
             println!(
-                "\n--- {}:{} (lines {}-{}) ---",
+                "\n\x1b[36m--- {}:{} (lines {}-{}) ---\x1b[0m",
                 file_path, function_name, start_line, end_line
             );
             println!("{}", code);
@@ -53,11 +53,10 @@ pub fn check_paths(
     paths: Vec<String>,
     threshold: f64,
     rename_cost: f64,
-    cross_file: bool,
     extensions: Option<&Vec<String>>,
     min_lines: u32,
     no_size_penalty: bool,
-    show: bool,
+    print: bool,
 ) -> anyhow::Result<()> {
     let default_extensions = vec!["ts", "tsx", "js", "jsx"];
     let exts: Vec<&str> =
@@ -127,23 +126,19 @@ pub fn check_paths(
     options.min_lines = min_lines;
     options.size_penalty = !no_size_penalty;
 
-    if cross_file {
-        // Check across all files
-        check_cross_file_duplicates(&files, threshold, &options, show);
-    } else {
-        // Check each file individually
-        let mut total_duplicates = 0;
-        for file in &files {
-            let duplicates = check_file_duplicates(file, threshold, &options, show)?;
-            total_duplicates += duplicates;
-        }
-
-        if total_duplicates == 0 {
-            println!("\nNo duplicate functions found!");
-        } else {
-            println!("\nTotal duplicate pairs found: {total_duplicates}");
+    // Check both within files and across files
+    let mut all_duplicates = Vec::new();
+    
+    // First check within each file
+    for file in &files {
+        match check_file_duplicates(file, threshold, &options, print) {
+            Ok(pairs) => all_duplicates.extend(pairs),
+            Err(e) => eprintln!("Error checking {}: {}", file.display(), e),
         }
     }
+    
+    // Then check across files
+    check_cross_file_duplicates(&files, threshold, &options, print, all_duplicates.len() > 0);
 
     Ok(())
 }
@@ -152,20 +147,26 @@ fn check_file_duplicates(
     file: &Path,
     threshold: f64,
     options: &TSEDOptions,
-    show: bool,
-) -> anyhow::Result<usize> {
+    print: bool,
+) -> anyhow::Result<Vec<ts_similarity_core::SimilarityResult>> {
     let code = fs::read_to_string(file)?;
     let file_str = file.to_string_lossy();
 
     match find_similar_functions_in_file(&file_str, &code, threshold, options) {
         Ok(similar_pairs) => {
-            if similar_pairs.is_empty() {
-                Ok(0)
-            } else {
+            if !similar_pairs.is_empty() {
                 println!("Duplicates in {}:", file.display());
-                println!("{}", "-".repeat(60));
+                println!("{}", "─".repeat(60));
+                
+                // Sort by priority (impact * similarity)
+                let mut sorted_pairs = similar_pairs.clone();
+                sorted_pairs.sort_by(|a, b| {
+                    let priority_a = (a.impact as f64) * a.similarity;
+                    let priority_b = (b.impact as f64) * b.similarity;
+                    priority_b.partial_cmp(&priority_a).unwrap_or(std::cmp::Ordering::Equal)
+                });
 
-                for result in &similar_pairs {
+                for result in &sorted_pairs {
                     // Get relative path from current directory
                     let relative_path = if let Ok(current_dir) = std::env::current_dir() {
                         file.strip_prefix(&current_dir)
@@ -194,13 +195,15 @@ fn check_file_duplicates(
                             result.func2.end_line,
                         )
                     );
+                    let priority = (result.impact as f64) * result.similarity;
                     println!(
-                        "  Similarity: {:.2}%, Impact: {} lines",
+                        "  Similarity: {:.2}%, Priority: {:.1} (lines: {})",
                         result.similarity * 100.0,
+                        priority,
                         result.impact
                     );
 
-                    if show {
+                    if print {
                         show_function_code(
                             &relative_path,
                             &result.func1.name,
@@ -216,12 +219,20 @@ fn check_file_duplicates(
                     }
                 }
                 println!();
-                Ok(similar_pairs.len())
+                Ok(sorted_pairs)
+            } else {
+                Ok(vec![])
             }
         }
         Err(e) => {
-            eprintln!("Error processing {}: {e}", file.display());
-            Ok(0)
+            // Skip files with parse errors silently
+            if e.contains("Parse errors:") {
+                // Just skip this file
+                Ok(vec![])
+            } else {
+                eprintln!("Error in {}: {e}", file.display());
+                Ok(vec![])
+            }
         }
     }
 }
@@ -230,7 +241,8 @@ fn check_cross_file_duplicates(
     files: &[PathBuf],
     threshold: f64,
     options: &TSEDOptions,
-    show: bool,
+    print: bool,
+    has_within_file_duplicates: bool,
 ) {
     let mut file_contents = Vec::new();
 
@@ -248,12 +260,25 @@ fn check_cross_file_duplicates(
     match find_similar_functions_across_files(&file_contents, threshold, options) {
         Ok(similar_pairs) => {
             if similar_pairs.is_empty() {
-                println!("No duplicate functions found across files!");
+                if !has_within_file_duplicates {
+                    println!("\nNo duplicate functions found!");
+                }
             } else {
+                if has_within_file_duplicates {
+                    println!();
+                }
                 println!("Duplicate functions across files:");
-                println!("{}", "=".repeat(60));
+                println!("{}", "─".repeat(60));
+                
+                // Sort by priority (impact * similarity)
+                let mut sorted_pairs = similar_pairs.clone();
+                sorted_pairs.sort_by(|(_, a, _), (_, b, _)| {
+                    let priority_a = (a.impact as f64) * a.similarity;
+                    let priority_b = (b.impact as f64) * b.similarity;
+                    priority_b.partial_cmp(&priority_a).unwrap_or(std::cmp::Ordering::Equal)
+                });
 
-                for (file1, result, file2) in &similar_pairs {
+                for (file1, result, file2) in &sorted_pairs {
                     // Get relative paths from current directory
                     let relative_path1 = if let Ok(current_dir) = std::env::current_dir() {
                         Path::new(&file1)
@@ -293,13 +318,15 @@ fn check_cross_file_duplicates(
                             result.func2.end_line,
                         )
                     );
+                    let priority = (result.impact as f64) * result.similarity;
                     println!(
-                        "Similarity: {:.2}%, Impact: {} lines",
+                        "Similarity: {:.2}%, Priority: {:.1} (lines: {})",
                         result.similarity * 100.0,
+                        priority,
                         result.impact
                     );
 
-                    if show {
+                    if print {
                         show_function_code(
                             &file1,
                             &result.func1.name,
@@ -315,7 +342,7 @@ fn check_cross_file_duplicates(
                     }
                 }
 
-                println!("\nTotal duplicate pairs found: {}", similar_pairs.len());
+                println!("\nTotal duplicate pairs found: {}", sorted_pairs.len());
             }
         }
         Err(e) => {
