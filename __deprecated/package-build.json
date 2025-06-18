@@ -1,0 +1,17 @@
+{
+  "name": "ts-similarity",
+  "version": "1.0.0",
+  "description": "TypeScript implementation (deprecated)",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "ts-similarity": "./dist/cli/cli.mjs"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage",
+    "build": "tsdown src/index.ts --outfile=dist/index.mjs --format=esm && tsdown src/cli/cli.ts --outfile=dist/cli/cli.mjs --format=esm --platform=node",
+    "prepublishOnly": "pnpm run build"
+  }
+}
