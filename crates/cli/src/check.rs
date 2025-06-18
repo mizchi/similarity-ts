@@ -346,7 +346,10 @@ fn check_cross_file_duplicates(
             }
         }
         Err(e) => {
-            eprintln!("Error during cross-file analysis: {e}");
+            // Silently skip parse errors
+            if !e.contains("Parse errors:") {
+                eprintln!("Error during cross-file analysis: {e}");
+            }
         }
     }
 }
