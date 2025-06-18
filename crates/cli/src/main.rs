@@ -39,9 +39,13 @@ enum Commands {
         #[arg(long, value_delimiter = ',')]
         extensions: Option<Vec<String>>,
 
-        /// Minimum lines for a function to be considered (default: 3)
-        #[arg(long, default_value_t = 3)]
+        /// Minimum lines for a function to be considered (default: 5)
+        #[arg(long, default_value_t = 5)]
         min_lines: u32,
+        
+        /// Disable size penalty for short functions
+        #[arg(long = "no-size-penalty", default_value_t = false)]
+        no_size_penalty: bool,
     },
 
     /// Compare two files
@@ -78,9 +82,13 @@ enum Commands {
         #[arg(long, default_value_t = 0.3)]
         rename_cost: f64,
 
-        /// Minimum lines for a function to be considered (default: 3)
-        #[arg(long, default_value_t = 3)]
+        /// Minimum lines for a function to be considered (default: 5)
+        #[arg(long, default_value_t = 5)]
         min_lines: u32,
+        
+        /// Disable size penalty for short functions
+        #[arg(long = "no-size-penalty", default_value_t = false)]
+        no_size_penalty: bool,
     },
 
     /// Find similar functions across multiple files
@@ -96,9 +104,13 @@ enum Commands {
         #[arg(long, default_value_t = 0.3)]
         rename_cost: f64,
 
-        /// Minimum lines for a function to be considered (default: 3)
-        #[arg(long, default_value_t = 3)]
+        /// Minimum lines for a function to be considered (default: 5)
+        #[arg(long, default_value_t = 5)]
         min_lines: u32,
+        
+        /// Disable size penalty for short functions
+        #[arg(long = "no-size-penalty", default_value_t = false)]
+        no_size_penalty: bool,
     },
 }
 
@@ -106,27 +118,27 @@ fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
     match args.command {
-        Some(Commands::Check { directory, threshold, rename_cost, within_file, extensions, min_lines }) => {
-            check_directory(directory, threshold, rename_cost, !within_file, extensions, min_lines)?;
+        Some(Commands::Check { directory, threshold, rename_cost, within_file, extensions, min_lines, no_size_penalty }) => {
+            check_directory(directory, threshold, rename_cost, !within_file, extensions, min_lines, no_size_penalty)?;
         }
         Some(Commands::Compare { file1, file2, rename_cost, delete_cost, insert_cost }) => {
             compare_files(file1, file2, rename_cost, delete_cost, insert_cost)?;
         }
-        Some(Commands::Functions { file, threshold, rename_cost, min_lines }) => {
-            find_similar_functions(file, threshold, rename_cost, min_lines)?;
+        Some(Commands::Functions { file, threshold, rename_cost, min_lines, no_size_penalty }) => {
+            find_similar_functions(file, threshold, rename_cost, min_lines, no_size_penalty)?;
         }
-        Some(Commands::CrossFile { files, threshold, rename_cost, min_lines }) => {
-            find_similar_across_files(files, threshold, rename_cost, min_lines)?;
+        Some(Commands::CrossFile { files, threshold, rename_cost, min_lines, no_size_penalty }) => {
+            find_similar_across_files(files, threshold, rename_cost, min_lines, no_size_penalty)?;
         }
         None => {
             // Default behavior: check current directory
             let args: Vec<String> = std::env::args().collect();
             if args.len() >= 2 {
                 // If a directory is provided, check it
-                check_directory(args[1].clone(), 0.8, 0.3, true, None, 3)?;
+                check_directory(args[1].clone(), 0.8, 0.3, true, None, 5, false)?;
             } else {
                 // Otherwise check current directory
-                check_directory(".".to_string(), 0.8, 0.3, true, None, 3)?;
+                check_directory(".".to_string(), 0.8, 0.3, true, None, 5, false)?;
             }
         }
     }
@@ -166,12 +178,12 @@ fn compare_files(
     Ok(())
 }
 
-fn find_similar_functions(file: String, threshold: f64, rename_cost: f64, min_lines: u32) -> anyhow::Result<()> {
+fn find_similar_functions(file: String, threshold: f64, rename_cost: f64, min_lines: u32, no_size_penalty: bool) -> anyhow::Result<()> {
     let code = fs::read_to_string(&file)?;
     let mut options = TSEDOptions::default();
     options.apted_options.rename_cost = rename_cost;
     options.min_lines = min_lines;
-    options.min_lines = min_lines;
+    options.size_penalty = !no_size_penalty;
 
     match find_similar_functions_in_file(&file, &code, threshold, &options) {
         Ok(similar_pairs) => {
@@ -228,6 +240,7 @@ fn find_similar_across_files(
     threshold: f64,
     rename_cost: f64,
     min_lines: u32,
+    no_size_penalty: bool,
 ) -> anyhow::Result<()> {
     let mut file_contents = Vec::new();
 
@@ -239,6 +252,7 @@ fn find_similar_across_files(
     let mut options = TSEDOptions::default();
     options.apted_options.rename_cost = rename_cost;
     options.min_lines = min_lines;
+    options.size_penalty = !no_size_penalty;
 
     match find_similar_functions_across_files(&file_contents, threshold, &options) {
         Ok(similar_pairs) => {

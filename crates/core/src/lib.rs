@@ -6,8 +6,8 @@ pub mod tsed;
 
 pub use apted::{compute_edit_distance, APTEDOptions};
 pub use function_extractor::{
-    extract_functions, find_similar_functions_across_files, find_similar_functions_in_file,
-    FunctionDefinition, FunctionType, SimilarityResult,
+    compare_functions, extract_functions, find_similar_functions_across_files, 
+    find_similar_functions_in_file, FunctionDefinition, FunctionType, SimilarityResult,
 };
 pub use parser::{ast_to_tree_node, parse_and_convert_to_tree};
 pub use tree::TreeNode;

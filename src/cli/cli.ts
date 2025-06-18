@@ -45,8 +45,8 @@ function extractFunctions(filePath: string, content: string): FunctionInfo[] {
 
     // Extract function declarations
     if (node.type === "FunctionDeclaration" && node.id?.name) {
-      const startLine = getLineNumber(node.span?.start || 0, lines);
-      const endLine = getLineNumber(node.span?.end || 0, lines);
+      const startLine = getLineNumber(node.start ?? node.span?.start ?? 0, lines);
+      const endLine = getLineNumber(node.end ?? node.span?.end ?? 0, lines);
       const functionContent = lines.slice(startLine - 1, endLine).join("\n");
 
       functions.push({
@@ -65,8 +65,8 @@ function extractFunctions(filePath: string, content: string): FunctionInfo[] {
       node.id?.name &&
       (node.init?.type === "FunctionExpression" || node.init?.type === "ArrowFunctionExpression")
     ) {
-      const startLine = getLineNumber(node.span?.start || 0, lines);
-      const endLine = getLineNumber(node.span?.end || 0, lines);
+      const startLine = getLineNumber(node.start ?? node.span?.start ?? 0, lines);
+      const endLine = getLineNumber(node.end ?? node.span?.end ?? 0, lines);
       const functionContent = lines.slice(startLine - 1, endLine).join("\n");
 
       functions.push({
@@ -82,8 +82,8 @@ function extractFunctions(filePath: string, content: string): FunctionInfo[] {
     // Extract methods in classes
     if (node.type === "MethodDefinition" && node.key?.name) {
       const methodName = parentName ? `${parentName}.${node.key.name}` : node.key.name;
-      const startLine = getLineNumber(node.span?.start || 0, lines);
-      const endLine = getLineNumber(node.span?.end || 0, lines);
+      const startLine = getLineNumber(node.start ?? node.span?.start ?? 0, lines);
+      const endLine = getLineNumber(node.end ?? node.span?.end ?? 0, lines);
       const functionContent = lines.slice(startLine - 1, endLine).join("\n");
 
       functions.push({
@@ -159,17 +159,32 @@ function compareFunctions(func1: FunctionInfo, func2: FunctionInfo, noSizePenalt
     const size2 = countNodes(tree2);
     const sizeRatio = Math.min(size1, size2) / Math.max(size1, size2);
 
+    // Calculate line counts
+    const lineCount1 = func1.endLine - func1.startLine + 1;
+    const lineCount2 = func2.endLine - func2.startLine + 1;
+    const avgLineCount = (lineCount1 + lineCount2) / 2;
+
+    let finalSimilarity = tsedSimilarity;
+
     // Apply size penalty unless disabled
     if (!noSizePenalty) {
       // If size difference is too large (e.g., one is 10x larger), reduce similarity
       if (sizeRatio < 0.1) {
-        return tsedSimilarity * sizeRatio * 10; // Scale down dramatically
+        finalSimilarity *= sizeRatio * 10; // Scale down dramatically
       } else if (sizeRatio < 0.3) {
-        return tsedSimilarity * (0.7 + sizeRatio); // Moderate penalty
+        finalSimilarity *= (0.7 + sizeRatio); // Moderate penalty
+      }
+
+      // Apply additional penalty for very short functions
+      // The shorter the functions, the more penalty we apply
+      if (avgLineCount < 10) {
+        // For functions under 10 lines, apply a penalty based on line count
+        const shortFunctionPenalty = avgLineCount / 10; // 0.5 for 5 lines, 0.8 for 8 lines, etc.
+        finalSimilarity *= shortFunctionPenalty;
       }
     }
 
-    return tsedSimilarity;
+    return finalSimilarity;
   } catch (error) {
     // Fallback to content-based comparison
     return calculateAPTEDSimilarity(func1.content, func2.content);
@@ -207,6 +222,11 @@ async function main() {
         type: "boolean",
         default: false,
       },
+      "min-lines": {
+        type: "string",
+        short: "l",
+        default: "5",
+      },
       help: {
         type: "boolean",
         short: "h",
@@ -227,6 +247,7 @@ Options:
   -t, --threshold <num>    Similarity threshold 0-1 (default: 0.7)
   -o, --output <file>      Output file (default: console)
   -j, --json               Output as JSON
+  -l, --min-lines <num>    Minimum function lines to analyze (default: 5)
   --no-size-penalty        Disable size-based similarity penalty
   -h, --help               Show this help
 
@@ -234,6 +255,7 @@ Examples:
   ts-similarity ./src
   ts-similarity ./src -p "**/*.ts" -t 0.8
   ts-similarity ./src -j -o results.json
+  ts-similarity ./src -l 10 -t 0.9
 `);
     process.exit(0);
   }
@@ -244,11 +266,13 @@ Examples:
   const outputFile = values.output as string;
   const jsonOutput = values.json as boolean;
   const noSizePenalty = values["no-size-penalty"] as boolean;
+  const minLines = parseInt(values["min-lines"] as string);
 
   console.log(chalk.bold("\n🔍 TypeScript Function Similarity Analyzer\n"));
   console.log(chalk.gray(`Directory: ${directory}`));
   console.log(chalk.gray(`Pattern: ${pattern}`));
   console.log(chalk.gray(`Threshold: ${threshold}`));
+  console.log(chalk.gray(`Minimum lines: ${minLines}`));
   console.log(chalk.gray(`Output: ${outputFile === "console" ? "Console" : outputFile}\n`));
 
   // Find all TypeScript files
@@ -264,19 +288,34 @@ Examples:
     allFunctions.push(...functions);
   }
 
-  console.log(chalk.blue(`Extracted ${allFunctions.length} functions\n`));
+  console.log(chalk.blue(`Extracted ${allFunctions.length} functions total\n`));
 
-  if (allFunctions.length === 0) {
-    console.log(chalk.yellow("No functions found!"));
+  // Filter functions by minimum line count
+  const filteredFunctions = allFunctions.filter((func) => {
+    const lineCount = func.endLine - func.startLine + 1;
+    return lineCount >= minLines;
+  });
+
+  console.log(
+    chalk.blue(`Analyzing ${filteredFunctions.length} functions (filtered by minimum ${minLines} lines)\n`),
+  );
+
+  if (filteredFunctions.length === 0) {
+    console.log(chalk.yellow("No functions found after filtering!"));
+    if (allFunctions.length > 0) {
+      console.log(
+        chalk.gray(`  (${allFunctions.length} functions were excluded due to minimum line threshold)`),
+      );
+    }
     process.exit(0);
   }
 
   // Create repository for efficient comparison
   let repo = createRepository();
 
-  // Add all functions to repository
-  for (let i = 0; i < allFunctions.length; i++) {
-    const func = allFunctions[i];
+  // Add all filtered functions to repository
+  for (let i = 0; i < filteredFunctions.length; i++) {
+    const func = filteredFunctions[i];
     const id = `${func.filePath}:${func.name}:${func.startLine}`;
     repo = addFile(repo, id, func.filePath, func.content);
   }
@@ -288,10 +327,10 @@ Examples:
   const processed = new Set<string>();
 
   // Compare all function pairs
-  for (let i = 0; i < allFunctions.length; i++) {
-    for (let j = i + 1; j < allFunctions.length; j++) {
-      const func1 = allFunctions[i];
-      const func2 = allFunctions[j];
+  for (let i = 0; i < filteredFunctions.length; i++) {
+    for (let j = i + 1; j < filteredFunctions.length; j++) {
+      const func1 = filteredFunctions[i];
+      const func2 = filteredFunctions[j];
 
       // Skip if same function
       if (func1.filePath === func2.filePath && func1.name === func2.name) {
@@ -310,8 +349,8 @@ Examples:
     }
 
     // Progress indicator
-    if ((i + 1) % 10 === 0 || i === allFunctions.length - 1) {
-      process.stdout.write(`\rProgress: ${i + 1}/${allFunctions.length} functions processed`);
+    if ((i + 1) % 10 === 0 || i === filteredFunctions.length - 1) {
+      process.stdout.write(`\rProgress: ${i + 1}/${filteredFunctions.length} functions processed`);
     }
   }
 
@@ -381,7 +420,9 @@ Examples:
 
     // Summary statistics
     console.log(chalk.bold("\n📊 Summary:"));
-    console.log(chalk.gray(`  Total functions analyzed: ${allFunctions.length}`));
+    console.log(chalk.gray(`  Total functions found: ${allFunctions.length}`));
+    console.log(chalk.gray(`  Functions analyzed (≥${minLines} lines): ${filteredFunctions.length}`));
+    console.log(chalk.gray(`  Functions filtered out: ${allFunctions.length - filteredFunctions.length}`));
     console.log(chalk.gray(`  Similar pairs found: ${results.length}`));
     if (results.length > 0) {
       const avgSimilarity = results.reduce((sum, r) => sum + r.similarity, 0) / results.length;

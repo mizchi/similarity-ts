@@ -301,7 +301,19 @@ pub fn compare_functions(
     let tree1 = parse_and_convert_to_tree("func1.ts", &body1)?;
     let tree2 = parse_and_convert_to_tree("func2.ts", &body2)?;
 
-    Ok(calculate_tsed(&tree1, &tree2, options))
+    let mut similarity = calculate_tsed(&tree1, &tree2, options);
+    
+    // Apply size penalty for short functions if enabled
+    if options.size_penalty {
+        let avg_lines = (func1.line_count() + func2.line_count()) as f64 / 2.0;
+        if avg_lines < 10.0 {
+            // Apply penalty: shorter functions get more penalty
+            let penalty = avg_lines / 10.0;
+            similarity *= penalty;
+        }
+    }
+
+    Ok(similarity)
 }
 
 fn extract_body_text(func: &FunctionDefinition, source: &str) -> String {
@@ -483,6 +495,8 @@ mod tests {
 
         let mut options = TSEDOptions::default();
         options.apted_options.rename_cost = 0.3; // Lower rename cost for better similarity detection
+        options.size_penalty = false; // Disable for test with small functions
+        options.min_lines = 1; // Allow small functions in test
 
         let similar_pairs = find_similar_functions_in_file("test.ts", code, 0.7, &options).unwrap();
 
@@ -542,6 +556,8 @@ mod tests {
 
         let mut options = TSEDOptions::default();
         options.apted_options.rename_cost = 0.3;
+        options.size_penalty = false; // Disable for test with small functions
+        options.min_lines = 1; // Allow small functions in test
 
         let similar_pairs =
             find_similar_functions_across_files(&[file1, file2], 0.7, &options).unwrap();

@@ -1,21 +1,30 @@
-You are typescript expert and use `typescript` mcp tools to analyze and edit code.
-
-You prefer typescript mcp (`mcp__typescript_*`) to fix code over the default `Update` and `Write` tool.
-
-Given a URL, use read_url_content to get the content
-
 ## Project Goal
 
 Calculate code similarity
 
+## Project Structure
+
+- **Rust implementation (crates/)**: メインの実装。今後の開発はこちらで行う
+- **TypeScript implementation (src/)**: プロトタイプ実装。参考用
+
 ## Development Stack
 
+### Rust (Main)
+- cargo
+- clap (CLI framework)
+
+### TypeScript (Prototype)
 - pnpm
 - typescript
 - tsdown
 
 ## Coding Rules
 
+### Rust
+- Follow standard Rust conventions
+- Use clippy for linting
+
+### TypeScript
 - file: snake_case
 - add `.ts` extensions to import. eg. `import {} from "./x.ts"` for deno compatibility.
 - Never use class. Use Function
@@ -23,6 +32,9 @@ Calculate code similarity
 ## Directory Patterns
 
 ```
-examples/
-src/
+crates/          # Rust implementation (main)
+  cli/           # CLI application
+  core/          # Core logic
+src/             # TypeScript prototype
+examples/        # Example files
 ```

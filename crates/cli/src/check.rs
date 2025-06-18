@@ -13,6 +13,7 @@ pub fn check_directory(
     cross_file: bool,
     extensions: Option<Vec<String>>,
     min_lines: u32,
+    no_size_penalty: bool,
 ) -> anyhow::Result<()> {
     let default_extensions = vec!["ts", "tsx", "js", "jsx"];
     let exts: Vec<&str> = extensions
@@ -60,6 +61,7 @@ pub fn check_directory(
     let mut options = TSEDOptions::default();
     options.apted_options.rename_cost = rename_cost;
     options.min_lines = min_lines;
+    options.size_penalty = !no_size_penalty;
 
     if cross_file {
         // Check across all files
