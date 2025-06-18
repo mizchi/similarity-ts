@@ -8,7 +8,11 @@ mod check;
 #[command(version)]
 struct Cli {
     #[command(subcommand)]
-    command: Commands,
+    command: Option<Commands>,
+    
+    /// Paths to analyze (files or directories)
+    #[arg(default_value = ".")]
+    paths: Vec<String>,
 }
 
 #[derive(Subcommand)]
@@ -104,46 +108,66 @@ fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Functions {
-            paths,
-            threshold,
-            rename_cost,
-            cross_file,
-            extensions,
-            min_lines,
-            no_size_penalty,
-            show,
-        } => {
+        None => {
+            // Default behavior: run both functions and types analysis
+            println!("Analyzing code similarity...\n");
+            
+            // Run functions analysis
+            println!("=== Function Similarity ===");
             check::check_paths(
+                cli.paths.clone(),
+                0.7,  // default threshold
+                0.3,  // default rename cost
+                false, // default cross-file
+                None, // default extensions
+                5,    // default min lines
+                false, // default no size penalty
+                false, // default show
+            )?;
+            
+            println!("\n=== Type Similarity ===");
+            check_types(
+                cli.paths,
+                0.7,  // default threshold
+                false, // default cross-file
+                None, // default extensions
+                false, // default show
+                false, // default include_types
+                false, // default types_only
+                false, // default interfaces_only
+                true,  // default allow_cross_kind
+                0.6,   // default structural_weight
+                0.4,   // default naming_weight
+                false, // default include_type_literals
+            )?;
+        }
+        Some(command) => match command {
+                Commands::Functions {
                 paths,
                 threshold,
                 rename_cost,
                 cross_file,
-                extensions.as_ref(),
+                extensions,
                 min_lines,
                 no_size_penalty,
                 show,
-            )?;
-        }
-        Commands::Types {
-            paths,
-            threshold,
-            cross_file,
-            extensions,
-            show,
-            include_types,
-            types_only,
-            interfaces_only,
-            allow_cross_kind,
-            structural_weight,
-            naming_weight,
-            include_type_literals,
-        } => {
-            check_types(
+            } => {
+                check::check_paths(
+                    paths,
+                    threshold,
+                    rename_cost,
+                    cross_file,
+                    extensions.as_ref(),
+                    min_lines,
+                    no_size_penalty,
+                    show,
+                )?;
+            }
+            Commands::Types {
                 paths,
                 threshold,
                 cross_file,
-                extensions.as_ref(),
+                extensions,
                 show,
                 include_types,
                 types_only,
@@ -152,7 +176,22 @@ fn main() -> anyhow::Result<()> {
                 structural_weight,
                 naming_weight,
                 include_type_literals,
-            )?;
+            } => {
+                check_types(
+                    paths,
+                    threshold,
+                    cross_file,
+                    extensions.as_ref(),
+                    show,
+                    include_types,
+                    types_only,
+                    interfaces_only,
+                    allow_cross_kind,
+                    structural_weight,
+                    naming_weight,
+                    include_type_literals,
+                )?;
+            }
         }
     }
 

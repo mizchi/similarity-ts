@@ -44,10 +44,19 @@ ts-similarity --help
 
 ```bash
 # Just run it! Zero configuration needed
+ts-similarity
+
+# Analyze specific paths
+ts-similarity src/ lib/
+
+# Or use specific commands
 ts-similarity functions .
+ts-similarity types .
 ```
 
 ## Usage
+
+By default, `ts-similarity` runs both function and type similarity detection. You can also run specific analyzers using subcommands.
 
 ### Function Similarity Detection
 
