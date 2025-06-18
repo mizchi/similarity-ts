@@ -134,7 +134,12 @@ pub fn check_paths(
     for file in &files {
         match check_file_duplicates(file, threshold, &options, print, fast_mode) {
             Ok(pairs) => all_duplicates.extend(pairs),
-            Err(e) => eprintln!("Error checking {}: {}", file.display(), e),
+            Err(e) => {
+                // Silently skip files with parse errors
+                if !e.to_string().contains("Parse errors:") {
+                    eprintln!("Error checking {}: {}", file.display(), e);
+                }
+            }
         }
     }
 
