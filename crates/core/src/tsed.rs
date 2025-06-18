@@ -95,8 +95,10 @@ mod tests {
     #[test]
     fn test_identical_code() {
         let code = "function add(a: number, b: number) { return a + b; }";
-        let mut options = TSEDOptions::default();
-        options.size_penalty = false; // Disable for small test functions
+        let options = TSEDOptions {
+            size_penalty: false, // Disable for small test functions
+            ..Default::default()
+        };
 
         let similarity =
             calculate_tsed_from_code(code, code, "test1.ts", "test2.ts", &options).unwrap();
@@ -107,8 +109,10 @@ mod tests {
     fn test_renamed_function() {
         let code1 = "function add(a: number, b: number) { return a + b; }";
         let code2 = "function sum(x: number, y: number) { return x + y; }";
-        let mut options = TSEDOptions::default();
-        options.size_penalty = false; // Disable for small test functions
+        let options = TSEDOptions {
+            size_penalty: false, // Disable for small test functions
+            ..Default::default()
+        };
 
         let similarity =
             calculate_tsed_from_code(code1, code2, "test1.ts", "test2.ts", &options).unwrap();

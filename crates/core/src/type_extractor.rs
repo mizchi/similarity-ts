@@ -219,6 +219,7 @@ impl TypeExtractor {
         })
     }
 
+    #[allow(clippy::only_used_in_recursion)]
     fn extract_type_string(&self, ts_type: &TSType) -> String {
         match ts_type {
             TSType::TSStringKeyword(_) => "string".to_string(),

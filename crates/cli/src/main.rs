@@ -132,6 +132,7 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[allow(clippy::too_many_arguments)]
 fn check_types(
     paths: Vec<String>,
     threshold: f64,
@@ -277,10 +278,12 @@ fn check_types(
     }
 
     // Set up comparison options
-    let mut options = TypeComparisonOptions::default();
-    options.allow_cross_kind_comparison = allow_cross_kind;
-    options.structural_weight = structural_weight;
-    options.naming_weight = naming_weight;
+    let options = TypeComparisonOptions {
+        allow_cross_kind_comparison: allow_cross_kind,
+        structural_weight,
+        naming_weight,
+        ..Default::default()
+    };
 
     // Validate weights
     if (structural_weight + naming_weight - 1.0).abs() > 0.001 {

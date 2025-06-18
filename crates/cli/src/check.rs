@@ -51,6 +51,7 @@ fn show_function_code(file_path: &str, function_name: &str, start_line: u32, end
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn check_paths(
     paths: Vec<String>,
     threshold: f64,
@@ -143,7 +144,7 @@ pub fn check_paths(
         threshold,
         &options,
         print,
-        all_duplicates.len() > 0,
+        !all_duplicates.is_empty(),
         fast_mode,
     );
 

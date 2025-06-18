@@ -59,8 +59,10 @@ function getNodeLabel(node: TreeNode): string {
 }
 "#;
 
-    let mut options = TSEDOptions::default();
-    options.size_penalty = true; // Enable size penalty
+    let options = TSEDOptions {
+        size_penalty: true, // Enable size penalty
+        ..Default::default()
+    };
 
     let funcs1 = extract_functions("test1.ts", code1).unwrap();
     let funcs2 = extract_functions("test2.ts", code2).unwrap();
@@ -136,8 +138,7 @@ function computeChildrenAlignment(node1: TreeNode, node2: TreeNode): AlignmentRe
 }
 "#;
 
-    let mut options = TSEDOptions::default();
-    options.size_penalty = true;
+    let options = TSEDOptions { size_penalty: true, ..Default::default() };
 
     let funcs1 = extract_functions("test1.ts", code1).unwrap();
     let funcs2 = extract_functions("test2.ts", code2).unwrap();
@@ -189,8 +190,7 @@ function calculateTotal(items: Item[]): number {
 }
 "#;
 
-    let mut options = TSEDOptions::default();
-    options.size_penalty = true;
+    let options = TSEDOptions { size_penalty: true, ..Default::default() };
 
     let funcs1 = extract_functions("test1.ts", traversal_code).unwrap();
     let funcs2 = extract_functions("test2.ts", specific_code).unwrap();
@@ -235,8 +235,7 @@ function countOccurrences(text: string, char: string): number {
 }
 "#;
 
-    let mut options = TSEDOptions::default();
-    options.size_penalty = true;
+    let options = TSEDOptions { size_penalty: true, ..Default::default() };
 
     let funcs1 = extract_functions("test1.ts", code1).unwrap();
     let funcs2 = extract_functions("test2.ts", code2).unwrap();

@@ -89,16 +89,16 @@ pub fn normalize_type_name(type_name: &str) -> String {
         ("Function", "function"),
     ];
 
-    // Replace known type aliases
-    for (original, replacement) in &type_map {
-        normalized = normalized.replace(original, replacement);
-    }
-
-    // Normalize array syntax: T[] vs Array<T>
+    // Normalize array syntax: T[] vs Array<T> - do this before type replacements
     if let Some(captures) = regex::Regex::new(r"Array<([^>]+)>").unwrap().captures(&normalized) {
         if let Some(element_type) = captures.get(1) {
             normalized = format!("{}[]", element_type.as_str());
         }
+    }
+
+    // Replace known type aliases
+    for (original, replacement) in &type_map {
+        normalized = normalized.replace(original, replacement);
     }
 
     // Sort union types for consistent comparison
@@ -318,6 +318,7 @@ fn levenshtein_distance(s1: &str, s2: &str) -> usize {
     let mut matrix = vec![vec![0; len2 + 1]; len1 + 1];
 
     // Initialize first row and column
+    #[allow(clippy::needless_range_loop)]
     for i in 0..=len1 {
         matrix[i][0] = i;
     }
@@ -384,7 +385,7 @@ mod tests {
 
         assert_eq!(normalized.original_name, "User");
         assert_eq!(normalized.properties.len(), 4);
-        assert!(normalized.optional_properties.is_empty()); // ignore_optional_modifiers is false by default
+        assert_eq!(normalized.optional_properties.len(), 1); // "age" is optional, and ignore_optional_modifiers is false by default
         assert!(normalized.readonly_properties.is_empty()); // ignore_readonly_modifiers is true by default
     }
 

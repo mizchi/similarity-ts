@@ -532,7 +532,7 @@ mod tests {
 
         assert!(result.similarity > 0.5);
         assert!(result.similarity < 0.9);
-        assert_eq!(result.matched_properties.len(), 2);
+        assert_eq!(result.matched_properties.len(), 1); // Only "id" matches
     }
 
     #[test]
