@@ -78,35 +78,108 @@ let parsed_files: Vec<_> = files
    - If not cached: parse and extract, then cache
 3. Run similarity analysis on cached/extracted data
 
-### 3. Shared AST Between Analyzers
+### 3. Shared AST Between Analyzers (Visitor Pattern)
 
 **Current issue:**
 When running default mode (both functions and types), each file is parsed twice.
 
 **Solution:**
-Create a unified analyzer that:
-1. Parses file once
-2. Extracts both functions and types in single pass
-3. Runs both similarity analyses
+Implement a visitor pattern that traverses the AST once and collects all needed information.
 
-**Implementation approach:**
+**Visitor Pattern Design:**
+
 ```rust
-struct ParsedData {
+// Define visitor trait
+trait AstVisitor {
+    fn visit_function(&mut self, func: &FunctionDeclaration);
+    fn visit_method(&mut self, method: &MethodDefinition);
+    fn visit_arrow_function(&mut self, arrow: &ArrowFunction);
+    fn visit_interface(&mut self, interface: &InterfaceDeclaration);
+    fn visit_type_alias(&mut self, type_alias: &TypeAliasDeclaration);
+    fn visit_type_literal(&mut self, literal: &TypeLiteral, context: TypeLiteralContext);
+}
+
+// Combined visitor that collects everything
+struct CombinedExtractor {
     functions: Vec<FunctionDefinition>,
     types: Vec<TypeDefinition>,
     type_literals: Vec<TypeLiteralDefinition>,
 }
 
+impl AstVisitor for CombinedExtractor {
+    fn visit_function(&mut self, func: &FunctionDeclaration) {
+        self.functions.push(extract_function_definition(func));
+    }
+    
+    fn visit_interface(&mut self, interface: &InterfaceDeclaration) {
+        self.types.push(extract_interface_definition(interface));
+    }
+    
+    fn visit_type_alias(&mut self, type_alias: &TypeAliasDeclaration) {
+        self.types.push(extract_type_alias_definition(type_alias));
+    }
+    
+    // ... other visitor methods
+}
+
+// AST traversal function
+fn traverse_ast<V: AstVisitor>(program: &Program, visitor: &mut V) {
+    for stmt in &program.body {
+        match stmt {
+            Statement::FunctionDeclaration(func) => visitor.visit_function(func),
+            Statement::TSInterfaceDeclaration(interface) => visitor.visit_interface(interface),
+            Statement::TSTypeAliasDeclaration(alias) => visitor.visit_type_alias(alias),
+            // ... handle other statement types
+        }
+    }
+}
+
+// Single-pass analysis
 fn analyze_file(file: &Path) -> Result<ParsedData> {
     let content = fs::read_to_string(file)?;
     let ast = parse(file, &content)?;
     
+    let mut extractor = CombinedExtractor::default();
+    traverse_ast(&ast.program, &mut extractor);
+    
     Ok(ParsedData {
-        functions: extract_functions(&ast)?,
-        types: extract_types(&ast)?,
-        type_literals: extract_type_literals(&ast)?,
+        functions: extractor.functions,
+        types: extractor.types,
+        type_literals: extractor.type_literals,
     })
 }
+```
+
+**Benefits of Visitor Pattern:**
+1. **Single traversal**: Walk the AST only once
+2. **Extensibility**: Easy to add new extractors without modifying traversal logic
+3. **Separation of concerns**: Traversal logic separate from extraction logic
+4. **Composability**: Can combine multiple visitors if needed
+5. **Type safety**: Compiler ensures all node types are handled
+
+**Alternative: Modular Visitors**
+For even more flexibility, visitors can be composed:
+
+```rust
+struct VisitorChain {
+    visitors: Vec<Box<dyn AstVisitor>>,
+}
+
+impl AstVisitor for VisitorChain {
+    fn visit_function(&mut self, func: &FunctionDeclaration) {
+        for visitor in &mut self.visitors {
+            visitor.visit_function(func);
+        }
+    }
+    // ... forward all visits to chain
+}
+
+// Usage
+let mut chain = VisitorChain::new();
+chain.add(Box::new(FunctionExtractor::new()));
+chain.add(Box::new(TypeExtractor::new()));
+chain.add(Box::new(TypeLiteralExtractor::new()));
+traverse_ast(&ast, &mut chain);
 ```
 
 ## Performance Considerations
