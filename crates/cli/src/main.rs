@@ -13,6 +13,10 @@ struct Cli {
     /// Paths to analyze (files or directories)
     #[arg(default_value = ".")]
     paths: Vec<String>,
+    
+    /// Show code in output (only for default command)
+    #[arg(short, long, global = true)]
+    show: bool,
 }
 
 #[derive(Subcommand)]
@@ -122,7 +126,7 @@ fn main() -> anyhow::Result<()> {
                 None, // default extensions
                 5,    // default min lines
                 false, // default no size penalty
-                false, // default show
+                cli.show, // use show flag from CLI
             )?;
             
             println!("\n=== Type Similarity ===");
@@ -131,7 +135,7 @@ fn main() -> anyhow::Result<()> {
                 0.7,  // default threshold
                 false, // default cross-file
                 None, // default extensions
-                false, // default show
+                cli.show, // use show flag from CLI
                 false, // default include_types
                 false, // default types_only
                 false, // default interfaces_only
