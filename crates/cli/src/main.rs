@@ -17,6 +17,10 @@ struct Cli {
     /// Show code in output (only for default command)
     #[arg(short, long, global = true)]
     show: bool,
+    
+    /// Similarity threshold (0.0-1.0) for default command
+    #[arg(short, long, global = true, default_value = "0.8")]
+    threshold: f64,
 }
 
 #[derive(Subcommand)]
@@ -28,7 +32,7 @@ enum Commands {
         paths: Vec<String>,
 
         /// Similarity threshold (0.0-1.0)
-        #[arg(short, long, default_value = "0.7")]
+        #[arg(short, long, default_value = "0.8")]
         threshold: f64,
 
         /// Rename cost for APTED algorithm
@@ -63,7 +67,7 @@ enum Commands {
         paths: Vec<String>,
 
         /// Similarity threshold (0.0-1.0)
-        #[arg(short, long, default_value = "0.7")]
+        #[arg(short, long, default_value = "0.8")]
         threshold: f64,
 
         /// Check across files (not just within files)
@@ -120,7 +124,7 @@ fn main() -> anyhow::Result<()> {
             println!("=== Function Similarity ===");
             check::check_paths(
                 cli.paths.clone(),
-                0.7,  // default threshold
+                cli.threshold, // use threshold from CLI
                 0.3,  // default rename cost
                 false, // default cross-file
                 None, // default extensions
@@ -132,7 +136,7 @@ fn main() -> anyhow::Result<()> {
             println!("\n=== Type Similarity ===");
             check_types(
                 cli.paths,
-                0.7,  // default threshold
+                cli.threshold, // use threshold from CLI
                 false, // default cross-file
                 None, // default extensions
                 cli.show, // use show flag from CLI

@@ -49,6 +49,12 @@ ts-similarity
 # Analyze specific paths
 ts-similarity src/ lib/
 
+# Use custom threshold
+ts-similarity . -t 0.9
+
+# Show code details
+ts-similarity . --show
+
 # Or use specific commands
 ts-similarity functions .
 ts-similarity types .
@@ -67,8 +73,8 @@ ts-similarity functions ./src
 # Check across files (not just within files)
 ts-similarity functions ./src --cross-file
 
-# Adjust similarity threshold (0.0-1.0, default: 0.7)
-ts-similarity functions ./src --threshold 0.8
+# Adjust similarity threshold (0.0-1.0, default: 0.8)
+ts-similarity functions ./src --threshold 0.9
 
 # Show function code in output
 ts-similarity functions ./src --show
