@@ -977,6 +977,7 @@ dependencies = [
  "oxc_ast",
  "oxc_parser",
  "oxc_span",
+ "regex",
 ]
 
 [[package]]

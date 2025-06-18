@@ -11,19 +11,14 @@ pub struct SimilarityResult {
     pub func1: FunctionDefinition,
     pub func2: FunctionDefinition,
     pub similarity: f64,
-    pub impact: u32,  // Total lines that could be removed
+    pub impact: u32, // Total lines that could be removed
 }
 
 impl SimilarityResult {
     pub fn new(func1: FunctionDefinition, func2: FunctionDefinition, similarity: f64) -> Self {
         // Impact is the smaller function's line count (since we'd remove the duplicate)
         let impact = func1.line_count().min(func2.line_count());
-        SimilarityResult {
-            func1,
-            func2,
-            similarity,
-            impact,
-        }
+        SimilarityResult { func1, func2, similarity, impact }
     }
 }
 
@@ -302,7 +297,7 @@ pub fn compare_functions(
     let tree2 = parse_and_convert_to_tree("func2.ts", &body2)?;
 
     let mut similarity = calculate_tsed(&tree1, &tree2, options);
-    
+
     // Apply size penalty for short functions if enabled
     if options.size_penalty {
         let avg_lines = (func1.line_count() + func2.line_count()) as f64 / 2.0;
@@ -336,10 +331,12 @@ pub fn find_similar_functions_in_file(
     for i in 0..functions.len() {
         for j in (i + 1)..functions.len() {
             // Skip if either function is too short
-            if functions[i].line_count() < options.min_lines || functions[j].line_count() < options.min_lines {
+            if functions[i].line_count() < options.min_lines
+                || functions[j].line_count() < options.min_lines
+            {
                 continue;
             }
-            
+
             let similarity =
                 compare_functions(&functions[i], &functions[j], source_text, source_text, options)?;
 
@@ -352,10 +349,11 @@ pub fn find_similar_functions_in_file(
             }
         }
     }
-    
+
     // Sort by impact (descending), then by similarity (descending)
     similar_pairs.sort_by(|a, b| {
-        b.impact.cmp(&a.impact)
+        b.impact
+            .cmp(&a.impact)
             .then(b.similarity.partial_cmp(&a.similarity).unwrap_or(std::cmp::Ordering::Equal))
     });
 
@@ -383,14 +381,14 @@ pub fn find_similar_functions_across_files(
     // Compare all pairs across files
     for i in 0..all_functions.len() {
         for j in (i + 1)..all_functions.len() {
-            let (file1, source1, func1) = &all_functions[i];
-            let (file2, source2, func2) = &all_functions[j];
+            let (first_file, source1, func1) = &all_functions[i];
+            let (second_file, source2, func2) = &all_functions[j];
 
             // Skip if same file (already handled by find_similar_functions_in_file)
-            if file1 == file2 {
+            if first_file == second_file {
                 continue;
             }
-            
+
             // Skip if either function is too short
             if func1.line_count() < options.min_lines || func2.line_count() < options.min_lines {
                 continue;
@@ -400,17 +398,18 @@ pub fn find_similar_functions_across_files(
 
             if similarity >= threshold {
                 similar_pairs.push((
-                    file1.clone(),
+                    first_file.clone(),
                     SimilarityResult::new(func1.clone(), func2.clone(), similarity),
-                    file2.clone(),
+                    second_file.clone(),
                 ));
             }
         }
     }
-    
+
     // Sort by impact (descending), then by similarity (descending)
     similar_pairs.sort_by(|a, b| {
-        b.1.impact.cmp(&a.1.impact)
+        b.1.impact
+            .cmp(&a.1.impact)
             .then(b.1.similarity.partial_cmp(&a.1.similarity).unwrap_or(std::cmp::Ordering::Equal))
     });
 
@@ -423,7 +422,7 @@ mod tests {
 
     #[test]
     fn test_extract_functions() {
-        let code = r#"
+        let code = r"
             function add(a: number, b: number): number {
                 return a + b;
             }
@@ -445,7 +444,7 @@ mod tests {
             export function divide(a: number, b: number): number {
                 return a / b;
             }
-        "#;
+        ";
 
         let functions = extract_functions("test.ts", code).unwrap();
 
@@ -475,7 +474,7 @@ mod tests {
 
     #[test]
     fn test_find_similar_functions_in_file() {
-        let code = r#"
+        let code = r"
             function calculateSum(a: number, b: number): number {
                 return a + b;
             }
@@ -491,7 +490,7 @@ mod tests {
             function computeSum(first: number, second: number): number {
                 return first + second;
             }
-        "#;
+        ";
 
         let mut options = TSEDOptions::default();
         options.apted_options.rename_cost = 0.3; // Lower rename cost for better similarity detection
