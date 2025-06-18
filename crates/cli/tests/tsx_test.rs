@@ -1,13 +1,13 @@
 use assert_cmd::Command;
+use predicates::prelude::*;
 use std::fs;
 use tempfile::tempdir;
-use predicates::prelude::*;
 
 #[test]
 fn test_tsx_file_support() {
     let dir = tempdir().unwrap();
     let tsx_file = dir.path().join("component.tsx");
-    
+
     // Create a .tsx file with React component
     fs::write(
         &tsx_file,
@@ -48,7 +48,7 @@ fn test_mixed_ts_tsx_files() {
     let dir = tempdir().unwrap();
     let ts_file = dir.path().join("utils.ts");
     let tsx_file = dir.path().join("component.tsx");
-    
+
     // Create a .ts file
     fs::write(
         &ts_file,
@@ -59,7 +59,7 @@ export function formatName(first: string, last: string): string {
 "#,
     )
     .unwrap();
-    
+
     // Create a .tsx file with similar function
     fs::write(
         &tsx_file,

@@ -57,19 +57,19 @@ jobs:
           key: ${{ runner.os }}-cargo-build-target-${{ matrix.rust }}-${{ hashFiles('**/Cargo.lock') }}
       
       - name: Check formatting
-        run: cargo fmt -- --check
+        run: cargo fmt --all -- --check
         
       - name: Run clippy
-        run: cargo clippy -- -D warnings
+        run: cargo clippy --all-targets --all-features -- -D warnings
         
       - name: Build
-        run: cargo build --verbose
+        run: cargo build --all --verbose
         
       - name: Run tests
-        run: cargo test --verbose
+        run: cargo test --all --verbose
         
       - name: Build release
-        run: cargo build --release --verbose
+        run: cargo build --all --release --verbose
 
   coverage:
     name: Code Coverage
