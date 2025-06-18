@@ -156,7 +156,7 @@ fn check_file_duplicates(
         Ok(similar_pairs) => {
             if !similar_pairs.is_empty() {
                 println!("Duplicates in {}:", file.display());
-                println!("{}", "─".repeat(60));
+                println!("{}", "-".repeat(60));
                 
                 // Sort by priority (impact * similarity)
                 let mut sorted_pairs = similar_pairs.clone();
@@ -177,8 +177,15 @@ fn check_file_duplicates(
                         file.to_string_lossy().to_string()
                     };
 
+                    let priority = (result.impact as f64) * result.similarity;
                     println!(
-                        "  {}",
+                        "  Similarity: {:.2}%, Priority: {:.1} (lines: {})",
+                        result.similarity * 100.0,
+                        priority,
+                        result.impact
+                    );
+                    println!(
+                        "    {}",
                         format_function_output(
                             &relative_path,
                             &result.func1.name,
@@ -187,20 +194,13 @@ fn check_file_duplicates(
                         )
                     );
                     println!(
-                        "  {}",
+                        "    {}",
                         format_function_output(
                             &relative_path,
                             &result.func2.name,
                             result.func2.start_line,
                             result.func2.end_line,
                         )
-                    );
-                    let priority = (result.impact as f64) * result.similarity;
-                    println!(
-                        "  Similarity: {:.2}%, Priority: {:.1} (lines: {})",
-                        result.similarity * 100.0,
-                        priority,
-                        result.impact
                     );
 
                     if print {
@@ -268,7 +268,7 @@ fn check_cross_file_duplicates(
                     println!();
                 }
                 println!("Duplicate functions across files:");
-                println!("{}", "─".repeat(60));
+                println!("{}", "-".repeat(60));
                 
                 // Sort by priority (impact * similarity)
                 let mut sorted_pairs = similar_pairs.clone();
@@ -300,8 +300,15 @@ fn check_cross_file_duplicates(
                         file2.clone()
                     };
 
+                    let priority = (result.impact as f64) * result.similarity;
                     println!(
-                        "\n{}",
+                        "\nSimilarity: {:.2}%, Priority: {:.1} (lines: {})",
+                        result.similarity * 100.0,
+                        priority,
+                        result.impact
+                    );
+                    println!(
+                        "  {}",
                         format_function_output(
                             &relative_path1,
                             &result.func1.name,
@@ -310,20 +317,13 @@ fn check_cross_file_duplicates(
                         )
                     );
                     println!(
-                        "{}",
+                        "  {}",
                         format_function_output(
                             &relative_path2,
                             &result.func2.name,
                             result.func2.start_line,
                             result.func2.end_line,
                         )
-                    );
-                    let priority = (result.impact as f64) * result.similarity;
-                    println!(
-                        "Similarity: {:.2}%, Priority: {:.1} (lines: {})",
-                        result.similarity * 100.0,
-                        priority,
-                        result.impact
                     );
 
                     if print {

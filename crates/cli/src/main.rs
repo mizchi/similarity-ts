@@ -87,11 +87,11 @@ fn main() -> anyhow::Result<()> {
     
     println!("Analyzing code similarity...\n");
     
-    let separator = "─".repeat(60);
+    let separator = "-".repeat(60);
     
     // Run functions analysis if enabled
     if functions_enabled {
-        println!("═══ Function Similarity ═══");
+        println!("=== Function Similarity ===");
         check::check_paths(
             cli.paths.clone(),
             cli.threshold,
@@ -109,7 +109,7 @@ fn main() -> anyhow::Result<()> {
     }
     
     if types_enabled {
-        println!("═══ Type Similarity ═══");
+        println!("=== Type Similarity ===");
         check_types(
             cli.paths,
             cli.threshold,
@@ -298,7 +298,7 @@ fn check_types(
     } else {
         if !similar_pairs.is_empty() {
             println!("\nSimilar types found:");
-            println!("{}", "─".repeat(60));
+            println!("{}", "-".repeat(60));
 
             for pair in &similar_pairs {
                 // Get relative paths
@@ -306,7 +306,13 @@ fn check_types(
                 let relative_path2 = get_relative_path(&pair.type2.file_path);
 
                 println!(
-                    "\n{}:{} | L{}-{} similar-type: {} ({})",
+                    "\nSimilarity: {:.2}% (structural: {:.2}%, naming: {:.2}%)",
+                    pair.result.similarity * 100.0,
+                    pair.result.structural_similarity * 100.0,
+                    pair.result.naming_similarity * 100.0
+                );
+                println!(
+                    "  {}:{} | L{}-{} similar-type: {} ({})",
                     relative_path1,
                     pair.type1.start_line,
                     pair.type1.start_line,
@@ -315,19 +321,13 @@ fn check_types(
                     format_type_kind(&pair.type1.kind)
                 );
                 println!(
-                    "{}:{} | L{}-{} similar-type: {} ({})",
+                    "  {}:{} | L{}-{} similar-type: {} ({})",
                     relative_path2,
                     pair.type2.start_line,
                     pair.type2.start_line,
                     pair.type2.end_line,
                     pair.type2.name,
                     format_type_kind(&pair.type2.kind)
-                );
-                println!(
-                    "Similarity: {:.2}% (structural: {:.2}%, naming: {:.2}%)",
-                    pair.result.similarity * 100.0,
-                    pair.result.structural_similarity * 100.0,
-                    pair.result.naming_similarity * 100.0
                 );
 
                 if print {
@@ -342,33 +342,33 @@ fn check_types(
 
         if !type_literal_pairs.is_empty() {
             println!("\nType literals similar to type definitions:");
-            println!("{}", "─".repeat(60));
+            println!("{}", "-".repeat(60));
 
             for pair in &type_literal_pairs {
                 let literal_path = get_relative_path(&pair.type_literal.file_path);
                 let def_path = get_relative_path(&pair.type_definition.file_path);
 
                 println!(
-                    "\n{}:{} | L{} similar-type-literal: {}",
+                    "\nSimilarity: {:.2}% (structural: {:.2}%, naming: {:.2}%)",
+                    pair.result.similarity * 100.0,
+                    pair.result.structural_similarity * 100.0,
+                    pair.result.naming_similarity * 100.0
+                );
+                println!(
+                    "  {}:{} | L{} similar-type-literal: {}",
                     literal_path,
                     pair.type_literal.start_line,
                     pair.type_literal.start_line,
                     pair.type_literal.name
                 );
                 println!(
-                    "{}:{} | L{}-{} similar-type: {} ({})",
+                    "  {}:{} | L{}-{} similar-type: {} ({})",
                     def_path,
                     pair.type_definition.start_line,
                     pair.type_definition.start_line,
                     pair.type_definition.end_line,
                     pair.type_definition.name,
                     format_type_kind(&pair.type_definition.kind)
-                );
-                println!(
-                    "Similarity: {:.2}% (structural: {:.2}%, naming: {:.2}%)",
-                    pair.result.similarity * 100.0,
-                    pair.result.structural_similarity * 100.0,
-                    pair.result.naming_similarity * 100.0
                 );
 
                 if print {
