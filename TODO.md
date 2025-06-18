@@ -22,8 +22,24 @@
   - Respect .gitignore when expanding paths
   - Use `ignore` crate which already handles .gitignore
 
+### Performance Improvements
+- [ ] Parallel parsing with configurable concurrency
+  - Add `--threads` or `-j` flag to control parallelism
+  - Use `rayon` for parallel file processing
+  - Parse multiple files concurrently
+  - Benchmark performance improvements
+- [ ] Incremental mode with AST caching
+  - Add `--incremental` flag
+  - Cache parsed ASTs to disk (e.g., `.ts-similarity-cache/`)
+  - Use file modification time to invalidate cache
+  - Store serialized AST or extracted function/type signatures
+  - Consider using `serde` for AST serialization
+- [ ] Share parsed AST between function and type analyzers
+  - Parse each file only once when running both analyzers
+  - Pass parsed AST to both extractors
+  - Reduce redundant parsing overhead
+
 ### Other Improvements
 - [ ] Add support for custom ignore patterns via CLI flags
-- [ ] Implement caching for improved performance on repeated runs
 - [ ] Add progress bar for large codebases
 - [ ] Support for more languages (JavaScript without TypeScript types)
