@@ -62,7 +62,7 @@ pub fn check_paths(
     print: bool,
     fast_mode: bool,
 ) -> anyhow::Result<()> {
-    let default_extensions = vec!["ts", "tsx", "js", "jsx"];
+    let default_extensions = vec!["ts", "tsx", "js", "jsx", "mjs", "cjs", "mts", "cts"];
     let exts: Vec<&str> =
         extensions.map_or(default_extensions, |v| v.iter().map(String::as_str).collect());
 

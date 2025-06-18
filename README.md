@@ -11,6 +11,7 @@ High-performance TypeScript/JavaScript code similarity detection tool written in
 - **Configurable thresholds** for similarity detection
 - **VSCode-compatible output** for easy navigation
 - **High performance** with concurrent file processing
+- **Wide file support** for .ts, .tsx, .js, .jsx, .mjs, .cjs, .mts, .cts files
 - **Smart filtering** with minimum line thresholds and size penalties
 
 ## Installation
@@ -88,7 +89,7 @@ ts-similarity ./src --print
 # Filter by minimum function size (default: 5 lines)
 ts-similarity ./src --min-lines 10
 
-# Check specific file extensions
+# Check specific file extensions (default: ts,tsx,js,jsx,mjs,cjs,mts,cts)
 ts-similarity ./src --extensions ts,tsx
 ```
 

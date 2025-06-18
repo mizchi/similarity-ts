@@ -155,7 +155,7 @@ fn check_types(
         find_similar_types, TypeComparisonOptions, TypeKind,
     };
 
-    let default_extensions = vec!["ts", "tsx"];
+    let default_extensions = vec!["ts", "tsx", "mts", "cts"];
     let exts: Vec<&str> =
         extensions.map_or(default_extensions, |v| v.iter().map(String::as_str).collect());
 
