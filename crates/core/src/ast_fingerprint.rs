@@ -1,8 +1,7 @@
 use oxc_allocator::Allocator;
 use oxc_ast::ast::{
     BinaryExpression, BlockStatement, CallExpression, ClassElement, Expression, FormalParameter,
-    FunctionBody, IfStatement, Program, Statement, VariableDeclaration,
-    VariableDeclarator,
+    FunctionBody, IfStatement, Program, Statement, VariableDeclaration, VariableDeclarator,
 };
 use oxc_parser::Parser;
 use oxc_span::SourceType;
@@ -19,10 +18,7 @@ pub struct AstFingerprint {
 
 impl AstFingerprint {
     pub fn new() -> Self {
-        Self {
-            node_counts: HashMap::new(),
-            bloom_bits: 0,
-        }
+        Self { node_counts: HashMap::new(), bloom_bits: 0 }
     }
 
     /// Create fingerprint from source code
@@ -240,7 +236,6 @@ impl AstFingerprint {
         }
     }
 
-
     /// Visit variable declaration
     fn visit_variable_declaration(&mut self, var_decl: &VariableDeclaration) {
         for decl in &var_decl.declarations {
@@ -333,12 +328,12 @@ impl AstFingerprint {
     /// Count a node type and update bloom filter
     fn count_node(&mut self, node_type: &'static str) {
         *self.node_counts.entry(node_type).or_insert(0) += 1;
-        
+
         // Update bloom filter with multiple hash functions
         let hash1 = simple_hash(node_type);
         let hash2 = simple_hash_2(node_type);
         let hash3 = simple_hash_3(node_type);
-        
+
         self.bloom_bits |= 1u128 << (hash1 % 128);
         self.bloom_bits |= 1u128 << (hash2 % 128);
         self.bloom_bits |= 1u128 << (hash3 % 128);
@@ -350,22 +345,22 @@ impl AstFingerprint {
         let overlap = (self.bloom_bits & other.bloom_bits).count_ones();
         let self_bits = self.bloom_bits.count_ones();
         let other_bits = other.bloom_bits.count_ones();
-        
+
         // If either has no bits set, allow comparison
         if self_bits == 0 || other_bits == 0 {
             return true;
         }
-        
+
         // If any overlap exists, allow comparison (very lenient)
         // This ensures identical functions always pass
         if overlap > 0 {
             return true;
         }
-        
+
         // Only reject if there's absolutely no overlap
         false
     }
-    
+
     /// Get bloom filter bits for SIMD comparison
     pub fn bloom_bits(&self) -> u128 {
         self.bloom_bits
@@ -375,19 +370,19 @@ impl AstFingerprint {
     pub fn similarity(&self, other: &Self) -> f64 {
         let mut total_diff = 0.0;
         let mut total_weight = 0.0;
-        
+
         // Get all node types
         let mut all_nodes = std::collections::HashSet::new();
         all_nodes.extend(self.node_counts.keys());
         all_nodes.extend(other.node_counts.keys());
-        
+
         for node_type in all_nodes {
             let count1 = *self.node_counts.get(node_type).unwrap_or(&0) as f64;
             let count2 = *other.node_counts.get(node_type).unwrap_or(&0) as f64;
-            
+
             // Weight by importance of node type
             let weight = get_node_weight(node_type);
-            
+
             if count1 > 0.0 || count2 > 0.0 {
                 let max_count = count1.max(count2);
                 let diff = (count1 - count2).abs() / max_count;
@@ -395,11 +390,11 @@ impl AstFingerprint {
                 total_weight += weight;
             }
         }
-        
+
         if total_weight == 0.0 {
             return 1.0;
         }
-        
+
         1.0 - (total_diff / total_weight)
     }
 
@@ -447,28 +442,28 @@ fn get_node_weight(node_type: &str) -> f64 {
         // Control flow is very important
         "IfStatement" | "ForStatement" | "WhileStatement" | "DoWhileStatement" => 2.0,
         "SwitchStatement" | "ConditionalExpression" => 1.8,
-        
+
         // Function-related nodes
         "FunctionDeclaration" | "ArrowFunctionExpression" | "MethodDefinition" => 1.5,
         "CallExpression" | "NewExpression" => 1.3,
-        
+
         // Error handling
         "TryStatement" | "ThrowStatement" => 1.5,
-        
+
         // Binary operations (differentiated)
         "BinaryOp_Add" | "BinaryOp_Sub" | "BinaryOp_Mul" | "BinaryOp_Div" => 1.2,
         "BinaryOp_Eq" | "BinaryOp_Neq" | "BinaryOp_Lt" | "BinaryOp_Gt" => 1.1,
-        
+
         // Other important expressions
         "AssignmentExpression" | "LogicalExpression" => 1.0,
         "MemberExpression" | "ArrayExpression" | "ObjectExpression" => 0.9,
-        
+
         // Variable declarations
         "VariableDeclaration" | "VariableDeclarator" => 0.8,
-        
+
         // Literals and identifiers
         "Identifier" | "StringLiteral" | "NumericLiteral" | "BooleanLiteral" => 0.5,
-        
+
         // Other nodes
         _ => 0.3,
     }
@@ -483,14 +478,14 @@ mod tests {
         let code1 = "function add(a, b) { return a + b; }";
         let code2 = "function sum(x, y) { return x + y; }";
         let code3 = "function multiply(a, b) { return a * b; }";
-        
+
         let fp1 = AstFingerprint::from_source(code1).unwrap();
         let fp2 = AstFingerprint::from_source(code2).unwrap();
         let fp3 = AstFingerprint::from_source(code3).unwrap();
-        
+
         // Same structure should have high similarity
         assert!(fp1.similarity(&fp2) > 0.9);
-        
+
         // Different operation should have lower similarity
         assert!(fp1.similarity(&fp3) < 0.9);
         assert!(fp1.similarity(&fp3) > 0.5);
@@ -507,9 +502,9 @@ mod tests {
                 }
             }
         "#;
-        
+
         let fp = AstFingerprint::from_source(code).unwrap();
-        
+
         assert_eq!(fp.get_node_count("FunctionDeclaration"), 1);
         assert_eq!(fp.get_node_count("IfStatement"), 1);
         assert_eq!(fp.get_node_count("ReturnStatement"), 2);
@@ -522,14 +517,14 @@ mod tests {
         let code1 = "function test1() { if (x) { return x; } }";
         let code2 = "function test2() { if (y) { return y; } }";
         let code3 = "function test3() { while (true) { break; } }";
-        
+
         let fp1 = AstFingerprint::from_source(code1).unwrap();
         let fp2 = AstFingerprint::from_source(code2).unwrap();
         let fp3 = AstFingerprint::from_source(code3).unwrap();
-        
+
         // Similar code should pass the lenient check
         assert!(fp1.might_be_similar(&fp2, 0.5));
-        
+
         // Different code might still pass (lenient)
         assert!(fp1.might_be_similar(&fp3, 0.5));
     }
@@ -549,7 +544,7 @@ mod tests {
                 return results;
             }
         "#;
-        
+
         let code2 = r#"
             function handleData(elements) {
                 const output = [];
@@ -563,13 +558,13 @@ mod tests {
                 return output;
             }
         "#;
-        
+
         let fp1 = AstFingerprint::from_source(code1).unwrap();
         let fp2 = AstFingerprint::from_source(code2).unwrap();
-        
+
         // Very similar structure should have high similarity
         assert!(fp1.similarity(&fp2) > 0.85);
-        
+
         // Check specific node counts
         assert_eq!(fp1.get_node_count("ForStatement"), 1);
         assert_eq!(fp1.get_node_count("IfStatement"), 1);
@@ -595,7 +590,7 @@ mod tests {
                 return arr;
             }
         "#;
-        
+
         let quick_sort = r#"
             function quickSort(arr) {
                 if (arr.length <= 1) {
@@ -614,15 +609,15 @@ mod tests {
                 return quickSort(left).concat(pivot, quickSort(right));
             }
         "#;
-        
+
         let fp1 = AstFingerprint::from_source(bubble_sort).unwrap();
         let fp2 = AstFingerprint::from_source(quick_sort).unwrap();
-        
+
         // Different algorithms should have lower similarity
         let similarity = fp1.similarity(&fp2);
         assert!(similarity < 0.7);
         assert!(similarity > 0.3); // But still some similarity (both sorting algorithms)
-        
+
         // Bubble sort has nested loops
         assert_eq!(fp1.get_node_count("ForStatement"), 2);
         // Quick sort has recursion

@@ -36,7 +36,7 @@ pub use type_normalizer::{
 };
 
 // Fast similarity exports
-pub use fast_similarity::{
-    find_similar_functions_fast, find_similar_functions_across_files_fast, FastSimilarityOptions,
-};
 pub use ast_fingerprint::AstFingerprint;
+pub use fast_similarity::{
+    find_similar_functions_across_files_fast, find_similar_functions_fast, FastSimilarityOptions,
+};

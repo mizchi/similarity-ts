@@ -10,68 +10,67 @@ struct Cli {
     /// Paths to analyze (files or directories)
     #[arg(default_value = ".")]
     paths: Vec<String>,
-    
+
     /// Print code in output
     #[arg(short, long)]
     print: bool,
-    
+
     /// Similarity threshold (0.0-1.0)
     #[arg(short, long, default_value = "0.8")]
     threshold: f64,
-    
+
     /// Disable function similarity checking
     #[arg(long = "no-functions")]
     no_functions: bool,
-    
+
     /// Disable type similarity checking  
     #[arg(long = "no-types")]
     no_types: bool,
-    
-    
+
     /// File extensions to check
     #[arg(short, long, value_delimiter = ',')]
     extensions: Option<Vec<String>>,
-    
+
     /// Minimum lines for functions to be considered
     #[arg(short, long, default_value = "5")]
     min_lines: u32,
-    
+
     /// Rename cost for APTED algorithm
     #[arg(short, long, default_value = "0.3")]
     rename_cost: f64,
-    
+
     /// Disable size penalty for very different sized functions
     #[arg(long)]
     no_size_penalty: bool,
-    
+
     /// Include both interfaces and type aliases
     #[arg(long)]
     include_types: bool,
-    
+
     /// Only check type aliases (exclude interfaces)
     #[arg(long)]
     types_only: bool,
-    
+
     /// Only check interfaces (exclude type aliases)
     #[arg(long)]
     interfaces_only: bool,
-    
+
     /// Allow comparison between interfaces and type aliases
     #[arg(long, default_value = "true")]
     allow_cross_kind: bool,
-    
+
     /// Weight for structural similarity (0.0-1.0)
     #[arg(long, default_value = "0.6")]
     structural_weight: f64,
-    
+
     /// Weight for naming similarity (0.0-1.0)
     #[arg(long, default_value = "0.4")]
     naming_weight: f64,
-    
+
     /// Include type literals (function return types, parameters, etc.)
     #[arg(long)]
     include_type_literals: bool,
-    
+
     /// Disable fast mode with bloom filter pre-filtering
     #[arg(long = "no-fast")]
     no_fast: bool,
@@ -79,20 +78,20 @@ struct Cli {
 
 fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
-    
+
     let functions_enabled = !cli.no_functions;
     let types_enabled = !cli.no_types;
-    
+
     // Validate that at least one analyzer is enabled
     if !functions_enabled && !types_enabled {
         eprintln!("Error: At least one analyzer must be enabled");
         return Err(anyhow::anyhow!("No analyzer enabled"));
     }
-    
+
     println!("Analyzing code similarity...\n");
-    
+
     let separator = "-".repeat(60);
-    
+
     // Run functions analysis if enabled
     if functions_enabled {
         println!("=== Function Similarity ===");
@@ -107,12 +106,12 @@ fn main() -> anyhow::Result<()> {
             !cli.no_fast,
         )?;
     }
-    
+
     // Run types analysis if enabled
     if types_enabled && functions_enabled {
         println!("\n{}\n", separator);
     }
-    
+
     if types_enabled {
         println!("=== Type Similarity ===");
         check_types(
@@ -165,7 +164,7 @@ fn check_types(
     // Process each path
     for path_str in &paths {
         let path = Path::new(path_str);
-        
+
         if path.is_file() {
             // If it's a file, check extension and add it
             if let Some(ext) = path.extension() {
@@ -182,16 +181,16 @@ fn check_types(
         } else if path.is_dir() {
             // If it's a directory, walk it respecting .gitignore
             let walker = WalkBuilder::new(path).follow_links(false).build();
-            
+
             for entry in walker {
                 let entry = entry?;
                 let entry_path = entry.path();
-                
+
                 // Skip if not a file
                 if !entry_path.is_file() {
                     continue;
                 }
-                
+
                 // Check extension
                 if let Some(ext) = entry_path.extension() {
                     if let Some(ext_str) = ext.to_str() {

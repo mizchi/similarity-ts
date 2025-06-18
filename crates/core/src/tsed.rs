@@ -5,8 +5,8 @@ use std::rc::Rc;
 #[derive(Debug, Clone)]
 pub struct TSEDOptions {
     pub apted_options: APTEDOptions,
-    pub min_lines: u32,  // Minimum number of lines for a function to be considered
-    pub size_penalty: bool,  // Apply penalty for short functions
+    pub min_lines: u32, // Minimum number of lines for a function to be considered
+    pub size_penalty: bool, // Apply penalty for short functions
 }
 
 impl Default for TSEDOptions {
@@ -17,7 +17,7 @@ impl Default for TSEDOptions {
                 delete_cost: 1.0,
                 insert_cost: 1.0,
             },
-            min_lines: 5, // Increased default to better filter trivial matches
+            min_lines: 5,       // Increased default to better filter trivial matches
             size_penalty: true, // Enable size penalty by default
         }
     }
@@ -32,35 +32,31 @@ pub fn calculate_tsed(tree1: &Rc<TreeNode>, tree2: &Rc<TreeNode>, options: &TSED
 
     let size1 = tree1.get_subtree_size() as f64;
     let size2 = tree2.get_subtree_size() as f64;
-    
+
     // TSED normalization: Use the larger tree size
     // This ensures that when comparing trees of different sizes,
     // the similarity reflects how much of the larger tree matches
     let max_size = size1.max(size2);
-    
+
     // Calculate base TSED similarity
-    let tsed_similarity = if max_size > 0.0 {
-        (1.0 - distance / max_size).max(0.0)
-    } else {
-        1.0
-    };
-    
+    let tsed_similarity = if max_size > 0.0 { (1.0 - distance / max_size).max(0.0) } else { 1.0 };
+
     // Apply additional penalties for structural differences
     let mut similarity = tsed_similarity;
-    
+
     // Size ratio penalty: penalize when trees have very different sizes
     let size_ratio = size1.min(size2) / size1.max(size2);
-    
+
     if options.size_penalty {
         // For short functions, make differences more pronounced
         let min_size = size1.min(size2);
-        
+
         if min_size < 20.0 {
             // Short function penalty: the shorter, the more sensitive to differences
             let short_function_factor = (min_size / 20.0).powf(0.5);
             similarity *= short_function_factor;
         }
-        
+
         // Size difference penalty
         if size_ratio < 0.5 {
             // If one tree is less than half the size of the other,
@@ -68,7 +64,7 @@ pub fn calculate_tsed(tree1: &Rc<TreeNode>, tree2: &Rc<TreeNode>, options: &TSED
             similarity *= size_ratio.powf(0.5);
         }
     }
-    
+
     similarity
 }
 

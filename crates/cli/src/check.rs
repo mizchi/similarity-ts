@@ -3,8 +3,9 @@ use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 use ts_similarity_core::{
-    find_similar_functions_across_files, find_similar_functions_in_file, TSEDOptions,
-    find_similar_functions_fast, find_similar_functions_across_files_fast, FastSimilarityOptions,
+    find_similar_functions_across_files, find_similar_functions_across_files_fast,
+    find_similar_functions_fast, find_similar_functions_in_file, FastSimilarityOptions,
+    TSEDOptions,
 };
 
 /// Extract lines from file content within the specified range
@@ -70,7 +71,7 @@ pub fn check_paths(
     // Process each path
     for path_str in &paths {
         let path = Path::new(path_str);
-        
+
         if path.is_file() {
             // If it's a file, check extension and add it
             if let Some(ext) = path.extension() {
@@ -87,16 +88,16 @@ pub fn check_paths(
         } else if path.is_dir() {
             // If it's a directory, walk it respecting .gitignore
             let walker = WalkBuilder::new(path).follow_links(false).build();
-            
+
             for entry in walker {
                 let entry = entry?;
                 let entry_path = entry.path();
-                
+
                 // Skip if not a file
                 if !entry_path.is_file() {
                     continue;
                 }
-                
+
                 // Check extension
                 if let Some(ext) = entry_path.extension() {
                     if let Some(ext_str) = ext.to_str() {
@@ -127,7 +128,7 @@ pub fn check_paths(
 
     // Check both within files and across files
     let mut all_duplicates = Vec::new();
-    
+
     // First check within each file
     for file in &files {
         match check_file_duplicates(file, threshold, &options, print, fast_mode) {
@@ -135,9 +136,16 @@ pub fn check_paths(
             Err(e) => eprintln!("Error checking {}: {}", file.display(), e),
         }
     }
-    
+
     // Then check across files
-    check_cross_file_duplicates(&files, threshold, &options, print, all_duplicates.len() > 0, fast_mode);
+    check_cross_file_duplicates(
+        &files,
+        threshold,
+        &options,
+        print,
+        all_duplicates.len() > 0,
+        fast_mode,
+    );
 
     Ok(())
 }
@@ -165,11 +173,11 @@ fn check_file_duplicates(
         find_similar_functions_in_file(&file_str, &code, threshold, options)
             .map_err(|e| anyhow::anyhow!(e))?
     };
-    
+
     if !similar_pairs.is_empty() {
         println!("Duplicates in {}:", file.display());
         println!("{}", "-".repeat(60));
-        
+
         // Sort by priority (impact * similarity)
         let mut sorted_pairs = similar_pairs.clone();
         sorted_pairs.sort_by(|a, b| {
@@ -181,10 +189,7 @@ fn check_file_duplicates(
         for result in &sorted_pairs {
             // Get relative path from current directory
             let relative_path = if let Ok(current_dir) = std::env::current_dir() {
-                file.strip_prefix(&current_dir)
-                    .unwrap_or(file)
-                    .to_string_lossy()
-                    .to_string()
+                file.strip_prefix(&current_dir).unwrap_or(file).to_string_lossy().to_string()
             } else {
                 file.to_string_lossy().to_string()
             };
@@ -306,17 +311,20 @@ fn check_cross_file_duplicates(
             // Get relative paths
             let path1 = PathBuf::from(file1);
             let path2 = PathBuf::from(file2);
-            
-            let (relative_path1, relative_path2) = if let Ok(current_dir) = std::env::current_dir() {
+
+            let (relative_path1, relative_path2) = if let Ok(current_dir) = std::env::current_dir()
+            {
                 (
-                    path1.strip_prefix(&current_dir)
+                    path1
+                        .strip_prefix(&current_dir)
                         .unwrap_or(&path1)
                         .to_string_lossy()
                         .to_string(),
-                    path2.strip_prefix(&current_dir)
+                    path2
+                        .strip_prefix(&current_dir)
                         .unwrap_or(&path2)
                         .to_string_lossy()
-                        .to_string()
+                        .to_string(),
                 )
             } else {
                 (file1.clone(), file2.clone())

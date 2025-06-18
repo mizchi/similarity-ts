@@ -1,5 +1,7 @@
-use ts_similarity_core::{compare_functions, extract_functions, parse_and_convert_to_tree, calculate_tsed, TSEDOptions};
 use std::rc::Rc;
+use ts_similarity_core::{
+    calculate_tsed, compare_functions, extract_functions, parse_and_convert_to_tree, TSEDOptions,
+};
 
 #[test]
 fn debug_high_similarity_issue() {
@@ -29,19 +31,19 @@ function getNodeLabel(node: TreeNode): string {
     // Parse both functions to trees
     let tree1 = parse_and_convert_to_tree("test1.ts", code1).unwrap();
     let tree2 = parse_and_convert_to_tree("test2.ts", code2).unwrap();
-    
+
     println!("Tree1 size: {}", tree1.get_subtree_size());
     println!("Tree2 size: {}", tree2.get_subtree_size());
-    
+
     // Test with different rename costs
     for rename_cost in &[0.1, 0.3, 0.5, 0.7, 1.0] {
         let mut options = TSEDOptions::default();
         options.apted_options.rename_cost = *rename_cost;
-        
+
         let similarity = calculate_tsed(&tree1, &tree2, &options);
         println!("Rename cost {}: similarity = {:.2}%", rename_cost, similarity * 100.0);
     }
-    
+
     // Print tree structure
     print_tree(&tree1, 0);
     println!("\n---\n");

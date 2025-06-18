@@ -60,21 +60,23 @@ function getNodeLabel(node: TreeNode): string {
 "#;
 
     let mut options = TSEDOptions::default();
-    options.size_penalty = true;  // Enable size penalty
-    
+    options.size_penalty = true; // Enable size penalty
+
     let funcs1 = extract_functions("test1.ts", code1).unwrap();
     let funcs2 = extract_functions("test2.ts", code2).unwrap();
-    
+
     assert!(!funcs1.is_empty(), "Should extract extractTokensFromAST");
     assert!(!funcs2.is_empty(), "Should extract getNodeLabel");
-    
+
     let similarity = compare_functions(&funcs1[0], &funcs2[0], code1, code2, &options).unwrap();
-    
+
     // These are completely different functions - one traverses AST, another returns labels
     // Similarity should be much lower than 83.48%
-    assert!(similarity < 0.50, 
-        "extractTokensFromAST vs getNodeLabel similarity is {:.2}%, expected < 50%", 
-        similarity * 100.0);
+    assert!(
+        similarity < 0.50,
+        "extractTokensFromAST vs getNodeLabel similarity is {:.2}%, expected < 50%",
+        similarity * 100.0
+    );
 }
 
 #[test]
@@ -136,20 +138,22 @@ function computeChildrenAlignment(node1: TreeNode, node2: TreeNode): AlignmentRe
 
     let mut options = TSEDOptions::default();
     options.size_penalty = true;
-    
+
     let funcs1 = extract_functions("test1.ts", code1).unwrap();
     let funcs2 = extract_functions("test2.ts", code2).unwrap();
-    
+
     assert!(!funcs1.is_empty(), "Should extract main function");
     assert!(!funcs2.is_empty(), "Should extract computeChildrenAlignment");
-    
+
     let similarity = compare_functions(&funcs1[0], &funcs2[0], code1, code2, &options).unwrap();
-    
+
     // These serve completely different purposes - CLI main vs algorithm implementation
     // Similarity should be much lower than 88.75%
-    assert!(similarity < 0.40, 
-        "main vs computeChildrenAlignment similarity is {:.2}%, expected < 40%", 
-        similarity * 100.0);
+    assert!(
+        similarity < 0.40,
+        "main vs computeChildrenAlignment similarity is {:.2}%, expected < 40%",
+        similarity * 100.0
+    );
 }
 
 #[test]
@@ -187,18 +191,21 @@ function calculateTotal(items: Item[]): number {
 
     let mut options = TSEDOptions::default();
     options.size_penalty = true;
-    
+
     let funcs1 = extract_functions("test1.ts", traversal_code).unwrap();
     let funcs2 = extract_functions("test2.ts", specific_code).unwrap();
-    
+
     assert!(!funcs1.is_empty() && !funcs2.is_empty());
-    
-    let similarity = compare_functions(&funcs1[0], &funcs2[0], traversal_code, specific_code, &options).unwrap();
-    
+
+    let similarity =
+        compare_functions(&funcs1[0], &funcs2[0], traversal_code, specific_code, &options).unwrap();
+
     // Generic traversal vs specific calculation - should have low similarity
-    assert!(similarity < 0.50, 
-        "Generic traverse vs calculateTotal similarity is {:.2}%, expected < 50%", 
-        similarity * 100.0);
+    assert!(
+        similarity < 0.50,
+        "Generic traverse vs calculateTotal similarity is {:.2}%, expected < 50%",
+        similarity * 100.0
+    );
 }
 
 #[test]
@@ -230,15 +237,17 @@ function countOccurrences(text: string, char: string): number {
 
     let mut options = TSEDOptions::default();
     options.size_penalty = true;
-    
+
     let funcs1 = extract_functions("test1.ts", code1).unwrap();
     let funcs2 = extract_functions("test2.ts", code2).unwrap();
-    
+
     let similarity = compare_functions(&funcs1[0], &funcs2[0], code1, code2, &options).unwrap();
-    
+
     // Similar loop structure but different data types and operations
     // Should have moderate similarity, not high
-    assert!(similarity < 0.60, 
-        "findMax vs countOccurrences similarity is {:.2}%, expected < 60%", 
-        similarity * 100.0);
+    assert!(
+        similarity < 0.60,
+        "findMax vs countOccurrences similarity is {:.2}%, expected < 60%",
+        similarity * 100.0
+    );
 }

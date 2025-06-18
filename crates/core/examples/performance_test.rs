@@ -1,7 +1,6 @@
 use std::time::Instant;
 use ts_similarity_core::{
-    find_similar_functions_in_file, find_similar_functions_fast,
-    TSEDOptions, FastSimilarityOptions,
+    find_similar_functions_fast, find_similar_functions_in_file, FastSimilarityOptions, TSEDOptions,
 };
 
 const TEST_CODE: &str = r#"
@@ -152,75 +151,80 @@ export function linearSearch(arr: number[], target: number): number {
 
 fn main() {
     println!("Performance comparison: Standard vs Fast similarity detection\n");
-    
-    let tsed_options = TSEDOptions {
-        min_lines: 3,
-        ..Default::default()
-    };
-    
-    println!("Test code has {} functions", TEST_CODE.lines().filter(|l| l.contains("export function")).count());
-    
+
+    let tsed_options = TSEDOptions { min_lines: 3, ..Default::default() };
+
+    println!(
+        "Test code has {} functions",
+        TEST_CODE.lines().filter(|l| l.contains("export function")).count()
+    );
+
     let fast_options = FastSimilarityOptions {
         fingerprint_threshold: 0.5,
         similarity_threshold: 0.6,
         tsed_options: tsed_options.clone(),
         debug_stats: true,
     };
-    
+
     // Warm up
     let _ = find_similar_functions_in_file("test.ts", TEST_CODE, 0.6, &tsed_options);
     let _ = find_similar_functions_fast("test.ts", TEST_CODE, &fast_options);
-    
+
     // Standard version
     println!("Running standard similarity detection...");
     let start = Instant::now();
     let standard_results = find_similar_functions_in_file("test.ts", TEST_CODE, 0.6, &tsed_options)
         .expect("Standard analysis failed");
     let standard_time = start.elapsed();
-    
+
     println!("Standard version:");
     println!("  Time: {:?}", standard_time);
     println!("  Found {} similar pairs", standard_results.len());
     if !standard_results.is_empty() {
         for result in &standard_results[..3.min(standard_results.len())] {
-            println!("    {} ~ {} ({:.2}%)", result.func1.name, result.func2.name, result.similarity * 100.0);
+            println!(
+                "    {} ~ {} ({:.2}%)",
+                result.func1.name,
+                result.func2.name,
+                result.similarity * 100.0
+            );
         }
     }
-    
+
     // Fast version
     println!("\nRunning fast similarity detection...");
     let start = Instant::now();
     let fast_results = find_similar_functions_fast("test.ts", TEST_CODE, &fast_options)
         .expect("Fast analysis failed");
     let fast_time = start.elapsed();
-    
+
     println!("\nFast version:");
     println!("  Time: {:?}", fast_time);
     println!("  Found {} similar pairs", fast_results.len());
-    
+
     // Compare results
     let speedup = standard_time.as_secs_f64() / fast_time.as_secs_f64();
     println!("\nSpeedup: {:.2}x", speedup);
-    
+
     // Run multiple iterations for more accurate timing
     println!("\nRunning 100 iterations for accurate timing...");
-    
+
     let start = Instant::now();
     for _ in 0..100 {
         let _ = find_similar_functions_in_file("test.ts", TEST_CODE, 0.6, &tsed_options);
     }
     let standard_100_time = start.elapsed();
-    
+
     let start = Instant::now();
     for _ in 0..100 {
         let _ = find_similar_functions_fast("test.ts", TEST_CODE, &fast_options);
     }
     let fast_100_time = start.elapsed();
-    
+
     println!("\n100 iterations:");
     println!("  Standard: {:?} (avg: {:?})", standard_100_time, standard_100_time / 100);
     println!("  Fast: {:?} (avg: {:?})", fast_100_time, fast_100_time / 100);
-    
+
     let speedup_100 = standard_100_time.as_secs_f64() / fast_100_time.as_secs_f64();
     println!("  Speedup: {:.2}x", speedup_100);
 }
