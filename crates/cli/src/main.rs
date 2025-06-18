@@ -71,6 +71,10 @@ struct Cli {
     /// Include type literals (function return types, parameters, etc.)
     #[arg(long)]
     include_type_literals: bool,
+    
+    /// Disable fast mode with bloom filter pre-filtering
+    #[arg(long = "no-fast")]
+    no_fast: bool,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -100,6 +104,7 @@ fn main() -> anyhow::Result<()> {
             cli.min_lines,
             cli.no_size_penalty,
             cli.print,
+            !cli.no_fast,
         )?;
     }
     

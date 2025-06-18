@@ -1,0 +1,11 @@
+    Finished `bench` profile [optimized] target(s) in 0.04s
+     Running unittests src/lib.rs (target/release/deps/ts_similarity_core-f9e4be796569fb52)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 23 filtered out; finished in 0.00s
+
+     Running benches/function_comparison.rs (target/release/deps/function_comparison-d48bd7340358873b)
+Gnuplot not found, using plotters backend
+     Running benches/tsed_benchmark.rs (target/release/deps/tsed_benchmark-444e570d13af4368)
+Gnuplot not found, using plotters backend

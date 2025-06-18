@@ -16,3 +16,7 @@ criterion = "0.5"
 [[bench]]
 name = "tsed_benchmark"
 harness = false
+
+[[bench]]
+name = "function_comparison"
+harness = false

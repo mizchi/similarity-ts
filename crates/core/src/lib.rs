@@ -1,4 +1,6 @@
 pub mod apted;
+pub mod ast_fingerprint;
+pub mod fast_similarity;
 pub mod function_extractor;
 pub mod parser;
 pub mod tree;
@@ -32,3 +34,9 @@ pub use type_normalizer::{
     calculate_property_similarity, calculate_type_similarity, find_property_matches,
     normalize_type, NormalizationOptions, NormalizedType, PropertyMatch,
 };
+
+// Fast similarity exports
+pub use fast_similarity::{
+    find_similar_functions_fast, find_similar_functions_across_files_fast, FastSimilarityOptions,
+};
+pub use ast_fingerprint::AstFingerprint;
