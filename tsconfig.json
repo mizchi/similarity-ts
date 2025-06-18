@@ -9,12 +9,11 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "skipLibCheck": true,
-    "types": ["vitest/importMeta"],
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "resolveJsonModule": true,
     "allowJs": true,
     "moduleDetection": "force"
   },
-  "exclude": ["test/__fixtures__", "examples"]
+  "exclude": ["test/__fixtures__", "examples", "__deprecated"]
 }
