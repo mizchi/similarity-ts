@@ -12,7 +12,6 @@ High-performance TypeScript/JavaScript code similarity detection tool written in
 - **VSCode-compatible output** for easy navigation
 - **High performance** with concurrent file processing
 - **Smart filtering** with minimum line thresholds and size penalties
-- **Ignore patterns** via `.similarity-ignore` file
 
 ## Installation
 
@@ -122,28 +121,6 @@ Click on the file paths in VSCode's terminal to jump directly to the code.
 2. **Structural Comparison**: Compares properties, methods, and signatures
 3. **Naming Analysis**: Uses Levenshtein distance for identifier similarity
 4. **Weighted Scoring**: Combines structural and naming similarity
-
-## Ignoring Specific Functions
-
-Create a `.similarity-ignore` file in your project root to ignore specific functions:
-
-```gitignore
-# Ignore specific function names
-:function(setUp)
-:function(tearDown)
-:function(beforeEach)
-:function(afterEach)
-
-# Ignore test helpers
-:function(test*)
-:function(expect*)
-
-# Ignore generated code
-:function(*Generated)
-:function(*_pb)
-```
-
-The `:function()` syntax allows you to specify function names to ignore. Wildcards (`*`) are supported.
 
 ## Examples
 
