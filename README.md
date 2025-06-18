@@ -17,6 +17,10 @@ High-performance TypeScript code similarity calculation using oxc-parser, a Rust
 - Command-line tool for function-level similarity analysis
 - Support for all TypeScript language features
 - Configurable operation costs for APTED algorithm
+- Smart filtering to reduce false positives:
+  - Minimum line threshold (default: 5 lines)
+  - Size penalty for short functions
+  - Configurable similarity thresholds
 - Simple and efficient API
 
 ## Dual Implementation: TypeScript & Rust
@@ -55,17 +59,48 @@ See [docs/rust-ts-compare.md](./docs/rust-ts-compare.md) for detailed comparison
 pnpm install
 ```
 
-### Rust Version
+### Rust Version (Recommended)
+
+The Rust implementation is the main version with better performance and accuracy.
+
+#### From Source
 
 ```bash
+# Clone the repository
+git clone https://github.com/mizchi/ts-similarity.git
+cd ts-similarity
+
 # Build the Rust CLI
 cargo build --release
 
-# Run benchmarks
-cargo bench
+# Install locally (optional)
+cargo install --path crates/cli
 
-# Use the Rust CLI
-./target/release/ts-similarity file1.ts file2.ts
+# Or use directly
+./target/release/ts-similarity --help
+```
+
+#### Using cargo install
+
+```bash
+# Install directly from GitHub
+cargo install --git https://github.com/mizchi/ts-similarity ts-similarity-cli
+
+# Use the installed binary
+ts-similarity --help
+```
+
+#### Using the Binary
+
+```bash
+# Check directory for duplicates
+ts-similarity check ./src
+
+# Compare specific files
+ts-similarity cross-file file1.ts file2.ts
+
+# With options
+ts-similarity check ./src --min-lines 10 --threshold 0.8
 ```
 
 ## CLI Usage
@@ -85,15 +120,27 @@ npx ts-similarity ./src -t 0.8
 npx ts-similarity ./src -j -o results.json
 ```
 
-### Rust CLI
+### Rust CLI (Recommended)
 
 ```bash
-# Compare two files
-./target/release/ts-similarity file1.ts file2.ts
+# Check directory for code duplication (default command)
+ts-similarity ./src
 
-# Output:
-# TSED Similarity: 83.33%
-# Distance: 0.1667
+# Find similar functions within a single file
+ts-similarity functions file.ts --threshold 0.8
+
+# Compare functions across specific files
+ts-similarity cross-file file1.ts file2.ts --min-lines 5
+
+# Compare two entire files
+ts-similarity compare file1.ts file2.ts
+
+# Advanced options
+ts-similarity check ./src \
+  --threshold 0.7 \           # Similarity threshold (default: 0.8)
+  --min-lines 10 \            # Minimum function size (default: 5)
+  --no-size-penalty \         # Disable penalty for short functions
+  --extensions ts,tsx,js      # File extensions to check
 ```
 
 See [CLI.md](./CLI.md) for detailed TypeScript CLI documentation.
