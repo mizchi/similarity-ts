@@ -23,9 +23,9 @@ struct Cli {
     #[arg(long = "no-functions")]
     no_functions: bool,
 
-    /// Disable type similarity checking  
-    #[arg(long = "no-types")]
-    no_types: bool,
+    /// Enable type similarity checking (experimental)
+    #[arg(long = "types")]
+    types: bool,
 
     /// File extensions to check
     #[arg(short, long, value_delimiter = ',')]
@@ -80,11 +80,11 @@ fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     let functions_enabled = !cli.no_functions;
-    let types_enabled = !cli.no_types;
+    let types_enabled = cli.types;
 
     // Validate that at least one analyzer is enabled
     if !functions_enabled && !types_enabled {
-        eprintln!("Error: At least one analyzer must be enabled");
+        eprintln!("Error: At least one analyzer must be enabled. Use --types to enable type checking or remove --no-functions.");
         return Err(anyhow::anyhow!("No analyzer enabled"));
     }
 

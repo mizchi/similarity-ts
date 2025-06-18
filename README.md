@@ -55,14 +55,19 @@ ts-similarity . -t 0.9
 # Print code details
 ts-similarity . --print
 
-# Only check functions or types
-ts-similarity . --no-types      # Functions only
-ts-similarity . --no-functions  # Types only
+# Check functions only (default)
+ts-similarity .
+
+# Enable type checking (experimental)
+ts-similarity . --types
+
+# Check types only
+ts-similarity . --no-functions --types
 ```
 
 ## Usage
 
-By default, `ts-similarity` runs both function and type similarity detection. You can disable either analyzer using flags.
+By default, `ts-similarity` runs function similarity detection only. Type similarity detection is experimental and can be enabled with the `--types` flag.
 
 ### Function Similarity Detection
 
@@ -87,24 +92,27 @@ ts-similarity ./src --min-lines 10
 ts-similarity ./src --extensions ts,tsx
 ```
 
-### Type Similarity Detection
+### Type Similarity Detection (Experimental)
 
 ```bash
+# Enable type checking along with functions
+ts-similarity ./src --types
+
 # Check for similar type definitions (types only)
-ts-similarity ./src --no-functions
+ts-similarity ./src --no-functions --types
 
 # Print type definitions in output
-ts-similarity ./src --no-functions --print
+ts-similarity ./src --no-functions --types --print
 
 # Check only interfaces or type aliases
-ts-similarity ./src --interfaces-only
-ts-similarity ./src --types-only
+ts-similarity ./src --types --interfaces-only
+ts-similarity ./src --types --types-only
 
 # Include type literals (function parameters, return types, etc.)
-ts-similarity ./src --include-type-literals
+ts-similarity ./src --types --include-type-literals
 
 # Adjust weights for structural vs naming similarity
-ts-similarity ./src --structural-weight 0.7 --naming-weight 0.3
+ts-similarity ./src --types --structural-weight 0.7 --naming-weight 0.3
 ```
 
 ## Output Format

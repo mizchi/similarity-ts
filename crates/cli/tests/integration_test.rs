@@ -40,7 +40,6 @@ export function computeTotal(values: number[]): number {
     // Run the CLI
     let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
     cmd.arg(dir.path())
-        .arg("--no-types")
         .assert()
         .success()
         .stdout(predicate::str::contains("calculateSum"))
@@ -91,7 +90,6 @@ export function calculateTotal(elements: any[]): number {
     // Run the CLI with lower threshold
     let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
     cmd.arg(dir.path())
-        .arg("--no-types")
         .arg("-t")
         .arg("0.6")
         .assert()
@@ -133,6 +131,7 @@ type UserData = {
     let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
     cmd.arg(dir.path())
         .arg("--no-functions")
+        .arg("--types")
         .assert()
         .success()
         .stdout(predicate::str::contains("User"))
@@ -142,7 +141,7 @@ type UserData = {
 }
 
 #[test]
-fn test_default_command_runs_both() {
+fn test_default_command_runs_functions_only() {
     let dir = tempdir().unwrap();
     let test_file = dir.path().join("test.ts");
 
@@ -179,7 +178,7 @@ interface IPerson {
     )
     .unwrap();
 
-    // Run without subcommand (default behavior)
+    // Run default (functions only)
     let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
     cmd.arg(dir.path())
         .arg("--min-lines")
@@ -187,10 +186,11 @@ interface IPerson {
         .assert()
         .success()
         .stdout(predicate::str::contains("Function Similarity"))
-        .stdout(predicate::str::contains("Type Similarity"))
         .stdout(predicate::str::contains("Checking 1 files for duplicates"))
-        .stdout(predicate::str::contains("IUser"))
-        .stdout(predicate::str::contains("IPerson"));
+        // Should NOT contain type analysis
+        .stdout(predicate::str::contains("Type Similarity").not())
+        .stdout(predicate::str::contains("IUser").not())
+        .stdout(predicate::str::contains("IPerson").not());
 }
 
 #[test]
@@ -228,7 +228,6 @@ export function handleList(list: number[]): number {
     // With low threshold - should find similarity
     let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
     cmd.arg(dir.path())
-        .arg("--no-types")
         .arg("--threshold")
         .arg("0.5")
         .assert()
@@ -239,7 +238,6 @@ export function handleList(list: number[]): number {
     // With high threshold - should not find similarity
     let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
     cmd.arg(dir.path())
-        .arg("--no-types")
         .arg("--threshold")
         .arg("0.9")
         .assert()
@@ -286,7 +284,6 @@ export function twice(num: number): number {
     let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
     cmd.arg(&dir1)
         .arg(&dir2)
-        .arg("--no-types")
         .arg("-t")
         .arg("0.6")
         .assert()
@@ -325,7 +322,6 @@ export function found() {
     // Run the CLI
     let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
     cmd.arg(dir.path())
-        .arg("--no-types")
         .assert()
         .success()
         .stdout(predicate::str::contains("No duplicate functions found"));
