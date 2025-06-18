@@ -15,6 +15,13 @@
   - Build tool artifacts (__webpack*, etc.)
   - Common boilerplate (main, init, constructor)
 
+### CLI Improvements
+- [ ] Support multiple file/directory arguments with glob expansion
+  - Accept multiple paths: `ts-similarity functions src/ lib/ tests/`
+  - Expand glob patterns in arguments
+  - Respect .gitignore when expanding paths
+  - Use `ignore` crate which already handles .gitignore
+
 ### Other Improvements
 - [ ] Add support for custom ignore patterns via CLI flags
 - [ ] Implement caching for improved performance on repeated runs
