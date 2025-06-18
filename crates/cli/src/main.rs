@@ -15,8 +15,9 @@ struct Cli {
 enum Commands {
     /// Check for duplicate functions
     Functions {
-        /// Directory to analyze
-        directory: String,
+        /// Paths to analyze (files or directories)
+        #[arg(default_value = ".")]
+        paths: Vec<String>,
 
         /// Similarity threshold (0.0-1.0)
         #[arg(short, long, default_value = "0.7")]
@@ -49,8 +50,9 @@ enum Commands {
 
     /// Check for similar type definitions
     Types {
-        /// Directory to analyze
-        directory: String,
+        /// Paths to analyze (files or directories)
+        #[arg(default_value = ".")]
+        paths: Vec<String>,
 
         /// Similarity threshold (0.0-1.0)
         #[arg(short, long, default_value = "0.7")]
@@ -103,7 +105,7 @@ fn main() -> anyhow::Result<()> {
 
     match cli.command {
         Commands::Functions {
-            directory,
+            paths,
             threshold,
             rename_cost,
             cross_file,
@@ -112,8 +114,8 @@ fn main() -> anyhow::Result<()> {
             no_size_penalty,
             show,
         } => {
-            check::check_directory(
-                directory,
+            check::check_paths(
+                paths,
                 threshold,
                 rename_cost,
                 cross_file,
@@ -124,7 +126,7 @@ fn main() -> anyhow::Result<()> {
             )?;
         }
         Commands::Types {
-            directory,
+            paths,
             threshold,
             cross_file,
             extensions,
@@ -138,7 +140,7 @@ fn main() -> anyhow::Result<()> {
             include_type_literals,
         } => {
             check_types(
-                directory,
+                paths,
                 threshold,
                 cross_file,
                 extensions.as_ref(),
@@ -158,7 +160,7 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn check_types(
-    directory: String,
+    paths: Vec<String>,
     threshold: f64,
     cross_file: bool,
     extensions: Option<&Vec<String>>,
@@ -174,6 +176,7 @@ fn check_types(
     use ignore::WalkBuilder;
     use std::collections::HashSet;
     use std::fs;
+    use std::path::Path;
     use ts_similarity_core::{
         extract_type_literals_from_code, extract_types_from_code, find_similar_type_literals,
         find_similar_types, TypeComparisonOptions, TypeKind,
@@ -186,35 +189,57 @@ fn check_types(
     let mut files = Vec::new();
     let mut visited = HashSet::new();
 
-    // Walk directory respecting .gitignore
-    let walker = WalkBuilder::new(&directory).follow_links(false).build();
-
-    for entry in walker {
-        let entry = entry?;
-        let path = entry.path();
-
-        // Skip if not a file
-        if !path.is_file() {
-            continue;
-        }
-
-        // Check extension
-        if let Some(ext) = path.extension() {
-            if let Some(ext_str) = ext.to_str() {
-                if exts.contains(&ext_str) {
-                    // Get canonical path to avoid duplicates
-                    if let Ok(canonical) = path.canonicalize() {
-                        if visited.insert(canonical.clone()) {
-                            files.push(path.to_path_buf());
+    // Process each path
+    for path_str in &paths {
+        let path = Path::new(path_str);
+        
+        if path.is_file() {
+            // If it's a file, check extension and add it
+            if let Some(ext) = path.extension() {
+                if let Some(ext_str) = ext.to_str() {
+                    if exts.contains(&ext_str) {
+                        if let Ok(canonical) = path.canonicalize() {
+                            if visited.insert(canonical.clone()) {
+                                files.push(path.to_path_buf());
+                            }
                         }
                     }
                 }
             }
+        } else if path.is_dir() {
+            // If it's a directory, walk it respecting .gitignore
+            let walker = WalkBuilder::new(path).follow_links(false).build();
+            
+            for entry in walker {
+                let entry = entry?;
+                let entry_path = entry.path();
+                
+                // Skip if not a file
+                if !entry_path.is_file() {
+                    continue;
+                }
+                
+                // Check extension
+                if let Some(ext) = entry_path.extension() {
+                    if let Some(ext_str) = ext.to_str() {
+                        if exts.contains(&ext_str) {
+                            // Get canonical path to avoid duplicates
+                            if let Ok(canonical) = entry_path.canonicalize() {
+                                if visited.insert(canonical.clone()) {
+                                    files.push(entry_path.to_path_buf());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            eprintln!("Warning: Path not found: {}", path_str);
         }
     }
 
     if files.is_empty() {
-        println!("No TypeScript files found in {directory}");
+        println!("No TypeScript files found in specified paths");
         return Ok(());
     }
 

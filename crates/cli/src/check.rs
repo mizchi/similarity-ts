@@ -49,8 +49,8 @@ fn show_function_code(file_path: &str, function_name: &str, start_line: u32, end
     }
 }
 
-pub fn check_directory(
-    directory: String,
+pub fn check_paths(
+    paths: Vec<String>,
     threshold: f64,
     rename_cost: f64,
     cross_file: bool,
@@ -66,35 +66,57 @@ pub fn check_directory(
     let mut files = Vec::new();
     let mut visited = HashSet::new();
 
-    // Walk directory respecting .gitignore
-    let walker = WalkBuilder::new(&directory).follow_links(false).build();
-
-    for entry in walker {
-        let entry = entry?;
-        let path = entry.path();
-
-        // Skip if not a file
-        if !path.is_file() {
-            continue;
-        }
-
-        // Check extension
-        if let Some(ext) = path.extension() {
-            if let Some(ext_str) = ext.to_str() {
-                if exts.contains(&ext_str) {
-                    // Get canonical path to avoid duplicates
-                    if let Ok(canonical) = path.canonicalize() {
-                        if visited.insert(canonical.clone()) {
-                            files.push(path.to_path_buf());
+    // Process each path
+    for path_str in &paths {
+        let path = Path::new(path_str);
+        
+        if path.is_file() {
+            // If it's a file, check extension and add it
+            if let Some(ext) = path.extension() {
+                if let Some(ext_str) = ext.to_str() {
+                    if exts.contains(&ext_str) {
+                        if let Ok(canonical) = path.canonicalize() {
+                            if visited.insert(canonical.clone()) {
+                                files.push(path.to_path_buf());
+                            }
                         }
                     }
                 }
             }
+        } else if path.is_dir() {
+            // If it's a directory, walk it respecting .gitignore
+            let walker = WalkBuilder::new(path).follow_links(false).build();
+            
+            for entry in walker {
+                let entry = entry?;
+                let entry_path = entry.path();
+                
+                // Skip if not a file
+                if !entry_path.is_file() {
+                    continue;
+                }
+                
+                // Check extension
+                if let Some(ext) = entry_path.extension() {
+                    if let Some(ext_str) = ext.to_str() {
+                        if exts.contains(&ext_str) {
+                            // Get canonical path to avoid duplicates
+                            if let Ok(canonical) = entry_path.canonicalize() {
+                                if visited.insert(canonical.clone()) {
+                                    files.push(entry_path.to_path_buf());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            eprintln!("Warning: Path not found: {}", path_str);
         }
     }
 
     if files.is_empty() {
-        println!("No TypeScript/JavaScript files found in {directory}");
+        println!("No TypeScript/JavaScript files found in specified paths");
         return Ok(());
     }
 

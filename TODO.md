@@ -16,7 +16,7 @@
   - Common boilerplate (main, init, constructor)
 
 ### CLI Improvements
-- [ ] Support multiple file/directory arguments with glob expansion
+- [x] Support multiple file/directory arguments with glob expansion
   - Accept multiple paths: `ts-similarity functions src/ lib/ tests/`
   - Expand glob patterns in arguments
   - Respect .gitignore when expanding paths
