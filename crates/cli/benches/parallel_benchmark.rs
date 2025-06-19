@@ -2,11 +2,11 @@ use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criteri
 use std::fs;
 use std::path::PathBuf;
 use std::time::Duration;
-use ts_similarity_cli::parallel::{
+use similarity_ts::parallel::{
     check_cross_file_duplicates_parallel, check_within_file_duplicates_parallel,
     load_files_parallel,
 };
-use ts_similarity_cli::sequential::{
+use similarity_ts::sequential::{
     check_cross_file_duplicates_sequential, check_within_file_duplicates_sequential,
     load_files_sequential,
 };

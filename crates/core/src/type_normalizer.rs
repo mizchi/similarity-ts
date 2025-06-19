@@ -90,9 +90,26 @@ pub fn normalize_type_name(type_name: &str) -> String {
     ];
 
     // Normalize array syntax: T[] vs Array<T> - do this before type replacements
-    if let Some(captures) = regex::Regex::new(r"Array<([^>]+)>").unwrap().captures(&normalized) {
-        if let Some(element_type) = captures.get(1) {
-            normalized = format!("{}[]", element_type.as_str());
+    if normalized.starts_with("Array<") && normalized.ends_with(">") {
+        let inner = &normalized[6..normalized.len() - 1];
+        // Check if the inner type contains balanced angle brackets
+        let mut bracket_count = 0;
+        let mut valid = true;
+        for ch in inner.chars() {
+            match ch {
+                '<' => bracket_count += 1,
+                '>' => {
+                    bracket_count -= 1;
+                    if bracket_count < 0 {
+                        valid = false;
+                        break;
+                    }
+                }
+                _ => {}
+            }
+        }
+        if valid && bracket_count == 0 {
+            normalized = format!("{}[]", inner);
         }
     }
 
@@ -393,6 +410,7 @@ mod tests {
     fn test_normalize_type_name() {
         assert_eq!(normalize_type_name("String"), "string");
         assert_eq!(normalize_type_name("Array<string>"), "string[]");
+        assert_eq!(normalize_type_name("Array<number>"), "number[]");
         assert_eq!(normalize_type_name("number | string"), "number | string");
         assert_eq!(normalize_type_name("string | number"), "number | string"); // sorted
     }
