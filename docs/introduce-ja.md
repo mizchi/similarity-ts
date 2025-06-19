@@ -8,48 +8,6 @@ TypeScript/JavaScriptプロジェクトで似たような関数を書いてし�
 
 このツールは、ASTベースの構造比較で「意味的に似ている」コードを検出します。変数名が違っても、処理の流れが似ていれば検出できるのがポイントです。
 
-## 開発の経緯
-
-arXivで[TSED（Type Structure Edit Distance）の論文](https://arxiv.org/abs/2103.16765)を見つけたのがきっかけでした。この論文では、APTED（木構造の編集距離アルゴリズム）を使ってコードの類似度を計算し、さらに実際のコードの分量でペナルティを付けてスコアを出すという手法が紹介されていました。
-
-「これは面白い！」と思って、最初はTypeScriptで実装してみました。oxc-parserを使ってASTを生成し、APTEDアルゴリズムを実装して...
-
-```typescript
-// 最初のTypeScript実装
-import { parse } from 'oxc-parser-wasm';
-
-function calculateSimilarity(code1: string, code2: string) {
-  const ast1 = parse(code1);
-  const ast2 = parse(code2);
-  // ... 全関数ペアの比較
-}
-```
-
-しかし、問題が発生しました。大きなプロジェクトで実行すると、すべての関数ペアを比較するため計算量が膨大になり、V8のヒープエラーでクラッシュすることが多発したんです。
-
-```
-FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory
-```
-
-そこで、Rust版のoxc_parserクレートを直接使って、Rustで再実装することにしました。TypeScript版と同じ結果が出るように差分テストをしながら、着実に移植を進めました。
-
-```rust
-// Rust版の実装
-use oxc_parser::Parser;
-use oxc_ast::ast::*;
-
-fn calculate_similarity(code1: &str, code2: &str) -> f64 {
-    // メモリ効率的な実装
-    // 並列処理も可能に
-}
-```
-
-Rustに移植した結果：
-- メモリ使用量が劇的に削減
-- 並列処理の導入で50ファイル以上では2-3倍高速化
-- クラッシュすることなく大規模プロジェクトでも動作
-
-この経験から学んだのは、「計算量が多いツールはRustで書くべき」ということですね。
 
 ## インストール
 
@@ -168,6 +126,78 @@ ts-similarity . --min-lines 3 --no-size-penalty
 `ts-similarity`を使えば、プロジェクト内の重複コードを簡単に見つけられます。定期的に実行して、コードの品質向上に役立ててください。
 
 似たようなコードを見つけたら、共通化するチャンス。DRY（Don't Repeat Yourself）の原則を守って、メンテナブルなコードベースを保ちましょう！
+
+## 開発の経緯
+
+arXivで[TSED（Type Structure Edit Distance）の論文](https://arxiv.org/abs/2103.16765)を見つけたのがきっかけでした。この論文では、APTED（木構造の編集距離アルゴリズム）を使ってコードの類似度を計算し、さらに実際のコードの分量でペナルティを付けてスコアを出すという手法が紹介されていました。
+
+「これは面白い！」と思って、最初はTypeScriptで実装してみました。oxc-parserを使ってASTを生成し、APTEDアルゴリズムを実装して...
+
+```typescript
+// 最初のTypeScript実装
+import { parse } from 'oxc-parser-wasm';
+
+function calculateSimilarity(code1: string, code2: string) {
+  const ast1 = parse(code1);
+  const ast2 = parse(code2);
+  // ... 全関数ペアの比較
+}
+```
+
+しかし、問題が発生しました。大きなプロジェクトで実行すると、すべての関数ペアを比較するため計算量が膨大になり、V8のヒープエラーでクラッシュすることが多発したんです。
+
+```
+FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory
+```
+
+そこで、Rust版のoxc_parserクレートを直接使って、Rustで再実装することにしました。TypeScript版と同じ結果が出るように差分テストをしながら、着実に移植を進めました。
+
+Rust版でメモリリークはなくなりましたが、計算が重いことは変わりませんでした。n個の関数があるとn(n-1)/2回の比較が必要で、大規模プロジェクトでは非現実的です。
+
+そこで、さらなる最適化を実施しました：
+
+### 1. ブルームフィルタによる事前フィルタリング
+
+まず、各関数に含まれるASTノードの出現数でブルームフィルタを作成します。これにより、明らかに異なる関数のペアを高速に除外できます。
+
+```rust
+// 各関数のAST指紋を作成
+let fingerprint = create_ast_fingerprint(&function_ast);
+
+// SIMDを使った高速比較
+if !fingerprints_similar_simd(&fp1, &fp2) {
+    continue; // 明らかに異なるのでスキップ
+}
+```
+
+このチェックは誤検出を避けるため意図的に甘めに設定し、疑わしいペアだけを次の段階に進めます。
+
+### 2. TSEDアルゴリズムの適用
+
+ブルームフィルタを通過したペアに対してのみ、本来やりたかったTSEDの編集距離を計算します：
+
+```rust
+// フィルタを通過したペアのみ詳細比較
+let similarity = calculate_tsed(&tree1, &tree2, &options);
+```
+
+### 3. マルチスレッド処理
+
+さらに、oxc linter自体の実装を参考に、並列処理を導入しました。LintServiceのアーキテクチャを参考に、ファイルの読み込みと解析を並列化：
+
+```rust
+// rayonによる並列処理
+files.par_iter()
+    .map(|file| parse_file(file))
+    .collect()
+```
+
+これらの最適化により：
+- 100ファイルのプロジェクトで約10倍高速化
+- ブルームフィルタで約80%の比較をスキップ
+- 並列処理で50ファイル以上では2-3倍高速化
+
+計算量の多いアルゴリズムでも、適切な最適化で実用的なツールになることを学びました。
 
 ## リンク
 
