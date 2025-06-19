@@ -3,6 +3,13 @@ name = "ts-similarity-core"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
+description = "Core library for TypeScript/JavaScript code similarity detection using AST-based comparison"
+authors = ["mizchi"]
+repository = "https://github.com/mizchi/ts-similarity"
+homepage = "https://github.com/mizchi/ts-similarity"
+documentation = "https://docs.rs/ts-similarity-core"
+keywords = ["typescript", "javascript", "similarity", "ast", "refactoring"]
+categories = ["development-tools", "parser-implementations"]
 
 [dependencies]
 oxc_parser = { workspace = true }

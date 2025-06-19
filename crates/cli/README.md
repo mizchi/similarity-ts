@@ -1,96 +1,30 @@
-# ts-similarity CLI (Rust Version)
+# ts-similarity-cli
 
-A command-line tool for calculating TypeScript code similarity and detecting duplicate functions.
+CLI tool for detecting code duplication in TypeScript/JavaScript projects.
 
 ## Installation
 
-### Local Installation (Recommended)
-
 ```bash
-# Install globally from the repository root
-cargo install --path ./crates/cli
-
-# Now you can use it anywhere
-ts-similarity check src
-```
-
-### Build Only
-
-```bash
-# Build from the repository root
-cargo build --release
-
-# The binary will be generated at:
-./target/release/ts-similarity
+cargo install ts-similarity-cli
 ```
 
 ## Usage
 
-### Default Behavior: Check Directory for Duplicates
-
 ```bash
-# Check current directory
+# Check for duplicate functions in current directory
 ts-similarity
 
-# Check specific directory
-ts-similarity src
+# Check specific files or directories
+ts-similarity src/ lib/
 
-# Or use the check subcommand explicitly
-ts-similarity check src
+# Set similarity threshold (0.0 to 1.0)
+ts-similarity --threshold 0.8
 
-# With custom threshold (default: 80%)
-ts-similarity check src -t 0.9
+# Filter by minimum tokens (recommended: 20-30)
+ts-similarity --min-tokens 25
 
-# Check only within files (default is across files)
-ts-similarity check src --within-file
-
-# Specify file extensions
-ts-similarity check src --extensions ts,tsx
-```
-
-### Compare Two Files
-
-```bash
-# Compare with default parameters
-ts-similarity compare file1.ts file2.ts
-
-# With custom costs
-ts-similarity compare file1.ts file2.ts \
-  --rename-cost 0.3 \
-  --delete-cost 1.0 \
-  --insert-cost 1.0
-```
-
-### Advanced Parameters
-
-```bash
-./target/release/ts-similarity compare file1.ts file2.ts \
-  --rename-cost 0.3 \
-  --delete-cost 1.0 \
-  --insert-cost 1.0
-```
-
-### Find Similar Functions in a Single File
-
-```bash
-# Detect with default threshold (70%)
-./target/release/ts-similarity functions src/utils.ts
-
-# Specify threshold (80% or higher similarity)
-./target/release/ts-similarity functions src/utils.ts -t 0.8
-
-# Also adjust rename cost
-./target/release/ts-similarity functions src/utils.ts -t 0.8 --rename-cost 0.2
-```
-
-### Find Similar Functions Across Multiple Files
-
-```bash
-# Detect similar functions across multiple files
-./target/release/ts-similarity cross-file src/file1.ts src/file2.ts src/file3.ts
-
-# Specify threshold
-./target/release/ts-similarity cross-file src/*.ts -t 0.85
+# Show actual code snippets
+ts-similarity --print
 ```
 
 ## Subcommands

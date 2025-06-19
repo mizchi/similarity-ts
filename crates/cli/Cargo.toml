@@ -3,6 +3,13 @@ name = "ts-similarity-cli"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
+description = "CLI tool for detecting code duplication in TypeScript/JavaScript projects"
+authors = ["mizchi"]
+repository = "https://github.com/mizchi/ts-similarity"
+homepage = "https://github.com/mizchi/ts-similarity"
+documentation = "https://docs.rs/ts-similarity-cli"
+keywords = ["typescript", "javascript", "duplicate", "detection", "cli"]
+categories = ["command-line-utilities", "development-tools"]
 
 [[bin]]
 name = "ts-similarity"
