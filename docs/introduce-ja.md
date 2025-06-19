@@ -8,6 +8,49 @@ TypeScript/JavaScriptプロジェクトで似たような関数を書いてし�
 
 このツールは、ASTベースの構造比較で「意味的に似ている」コードを検出します。変数名が違っても、処理の流れが似ていれば検出できるのがポイントです。
 
+## 開発の経緯
+
+arXivで[TSED（Type Structure Edit Distance）の論文](https://arxiv.org/abs/2103.16765)を見つけたのがきっかけでした。この論文では、APTED（木構造の編集距離アルゴリズム）を使ってコードの類似度を計算し、さらに実際のコードの分量でペナルティを付けてスコアを出すという手法が紹介されていました。
+
+「これは面白い！」と思って、最初はTypeScriptで実装してみました。oxc-parserを使ってASTを生成し、APTEDアルゴリズムを実装して...
+
+```typescript
+// 最初のTypeScript実装
+import { parse } from 'oxc-parser-wasm';
+
+function calculateSimilarity(code1: string, code2: string) {
+  const ast1 = parse(code1);
+  const ast2 = parse(code2);
+  // ... 全関数ペアの比較
+}
+```
+
+しかし、問題が発生しました。大きなプロジェクトで実行すると、すべての関数ペアを比較するため計算量が膨大になり、V8のヒープエラーでクラッシュすることが多発したんです。
+
+```
+FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory
+```
+
+そこで、Rust版のoxc_parserクレートを直接使って、Rustで再実装することにしました。TypeScript版と同じ結果が出るように差分テストをしながら、着実に移植を進めました。
+
+```rust
+// Rust版の実装
+use oxc_parser::Parser;
+use oxc_ast::ast::*;
+
+fn calculate_similarity(code1: &str, code2: &str) -> f64 {
+    // メモリ効率的な実装
+    // 並列処理も可能に
+}
+```
+
+Rustに移植した結果：
+- メモリ使用量が劇的に削減
+- 並列処理の導入で50ファイル以上では2-3倍高速化
+- クラッシュすることなく大規模プロジェクトでも動作
+
+この経験から学んだのは、「計算量が多いツールはRustで書くべき」ということですね。
+
 ## インストール
 
 Rustの環境があれば、cargoで簡単にインストールできます：
