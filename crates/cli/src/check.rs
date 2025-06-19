@@ -57,7 +57,9 @@ struct DuplicateResult {
 
 impl DuplicateResult {
     fn priority(&self) -> f64 {
-        (self.result.impact as f64) * self.result.similarity
+        // Score = Similarity × Average lines
+        let avg_lines = (self.result.func1.line_count() + self.result.func2.line_count()) as f64 / 2.0;
+        self.result.similarity * avg_lines
     }
 }
 
@@ -101,11 +103,19 @@ fn display_all_results(
             )
         };
 
+        // Calculate the line range
+        let min_line = dup.result.func1.start_line.min(dup.result.func2.start_line);
+        let max_line = dup.result.func1.end_line.max(dup.result.func2.end_line);
+        let avg_lines = (dup.result.func1.line_count() + dup.result.func2.line_count()) as f64 / 2.0;
+        let score = dup.result.similarity * avg_lines;
+        
         println!(
-            "\nSimilarity: {:.2}%, Priority: {:.1} (lines: {})",
+            "\nSimilarity: {:.2}%, Score: {:.1} points (lines {}-{}, avg: {:.1})",
             dup.result.similarity * 100.0,
-            dup.priority(),
-            dup.result.impact
+            score,
+            min_line,
+            max_line,
+            avg_lines
         );
         println!(
             "  {}",
