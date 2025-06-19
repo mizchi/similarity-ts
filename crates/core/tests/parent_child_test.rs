@@ -31,42 +31,36 @@ function anotherSimilar() {
 }
 "#;
 
-    let options = TSEDOptions {
-        min_lines: 1,
-        size_penalty: false,
-        ..Default::default()
-    };
+    let options = TSEDOptions { min_lines: 1, size_penalty: false, ..Default::default() };
 
     let result = find_similar_functions_in_file("test.ts", code, 0.7, &options).unwrap();
 
     // Should NOT find parent-child pairs
     for pair in &result {
         println!("Found pair: {} vs {}", pair.func1.name, pair.func2.name);
-        
+
         // Assert no parent-child relationships
         assert!(
-            !(pair.func1.name == "parentFunction" && pair.func2.name == "childArrow") &&
-            !(pair.func1.name == "childArrow" && pair.func2.name == "parentFunction"),
+            !(pair.func1.name == "parentFunction" && pair.func2.name == "childArrow" || pair.func1.name == "childArrow" && pair.func2.name == "parentFunction"),
             "Should not find parent-child relationship between parentFunction and childArrow"
         );
-        
+
         assert!(
-            !(pair.func1.name == "parentFunction" && pair.func2.name == "childFunction") &&
-            !(pair.func1.name == "childFunction" && pair.func2.name == "parentFunction"),
+            !(pair.func1.name == "parentFunction" && pair.func2.name == "childFunction" || pair.func1.name == "childFunction" && pair.func2.name == "parentFunction"),
             "Should not find parent-child relationship between parentFunction and childFunction"
         );
     }
 
     // Should find similarities between non-nested functions
     let child_similar = result.iter().any(|pair| {
-        (pair.func1.name == "childArrow" && pair.func2.name == "similarToChild") ||
-        (pair.func1.name == "similarToChild" && pair.func2.name == "childArrow")
+        (pair.func1.name == "childArrow" && pair.func2.name == "similarToChild")
+            || (pair.func1.name == "similarToChild" && pair.func2.name == "childArrow")
     });
     assert!(child_similar, "Should find similarity between childArrow and similarToChild");
 
     let child_another = result.iter().any(|pair| {
-        (pair.func1.name == "childFunction" && pair.func2.name == "anotherSimilar") ||
-        (pair.func1.name == "anotherSimilar" && pair.func2.name == "childFunction")
+        (pair.func1.name == "childFunction" && pair.func2.name == "anotherSimilar")
+            || (pair.func1.name == "anotherSimilar" && pair.func2.name == "childFunction")
     });
     assert!(child_another, "Should find similarity between childFunction and anotherSimilar");
 }
@@ -98,14 +92,10 @@ const countData = (arr: number[]): number => {
 };
 "#;
 
-    let options = TSEDOptions {
-        min_lines: 1,
-        size_penalty: false,
-        ..Default::default()
-    };
+    let options = TSEDOptions { min_lines: 1, size_penalty: false, ..Default::default() };
 
     let result = find_similar_functions_in_file("test.ts", code, 0.7, &options).unwrap();
-    
+
     // Debug: print all results
     println!("\nAll comparisons found:");
     for pair in &result {
@@ -114,10 +104,10 @@ const countData = (arr: number[]): number => {
 
     // Should find similarity between processData and handleData
     let process_handle = result.iter().find(|pair| {
-        (pair.func1.name == "processData" && pair.func2.name == "handleData") ||
-        (pair.func1.name == "handleData" && pair.func2.name == "processData")
+        (pair.func1.name == "processData" && pair.func2.name == "handleData")
+            || (pair.func1.name == "handleData" && pair.func2.name == "processData")
     });
-    
+
     assert!(process_handle.is_some(), "Should find similarity between processData and handleData");
     assert!(
         process_handle.unwrap().similarity > 0.8,
@@ -126,10 +116,10 @@ const countData = (arr: number[]): number => {
 
     // Should not find high similarity with countData
     let process_count = result.iter().find(|pair| {
-        (pair.func1.name == "processData" && pair.func2.name == "countData") ||
-        (pair.func1.name == "countData" && pair.func2.name == "processData")
+        (pair.func1.name == "processData" && pair.func2.name == "countData")
+            || (pair.func1.name == "countData" && pair.func2.name == "processData")
     });
-    
+
     if let Some(pair) = process_count {
         println!("processData vs countData similarity: {}", pair.similarity);
         // Relax the constraint - functions are structurally similar even if logic differs
@@ -160,25 +150,24 @@ const standaloneArrow = (z: number) => {
 };
 "#;
 
-    let options = TSEDOptions {
-        min_lines: 1,
-        size_penalty: false,
-        ..Default::default()
-    };
+    let options = TSEDOptions { min_lines: 1, size_penalty: false, ..Default::default() };
 
     let result = find_similar_functions_in_file("test.ts", code, 0.7, &options).unwrap();
 
     // Should NOT find outerArrow vs innerArrow (parent-child)
     let outer_inner = result.iter().any(|pair| {
-        (pair.func1.name == "outerArrow" && pair.func2.name == "innerArrow") ||
-        (pair.func1.name == "innerArrow" && pair.func2.name == "outerArrow")
+        (pair.func1.name == "outerArrow" && pair.func2.name == "innerArrow")
+            || (pair.func1.name == "innerArrow" && pair.func2.name == "outerArrow")
     });
     assert!(!outer_inner, "Should not find parent-child arrow functions");
 
     // Should find innerArrow vs standaloneArrow
     let inner_standalone = result.iter().any(|pair| {
-        (pair.func1.name == "innerArrow" && pair.func2.name == "standaloneArrow") ||
-        (pair.func1.name == "standaloneArrow" && pair.func2.name == "innerArrow")
+        (pair.func1.name == "innerArrow" && pair.func2.name == "standaloneArrow")
+            || (pair.func1.name == "standaloneArrow" && pair.func2.name == "innerArrow")
     });
-    assert!(inner_standalone, "Should find similarity between nested and standalone arrow functions");
+    assert!(
+        inner_standalone,
+        "Should find similarity between nested and standalone arrow functions"
+    );
 }

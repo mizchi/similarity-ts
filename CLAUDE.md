@@ -20,6 +20,7 @@ Calculate code similarity between TypeScript/JavaScript functions and types.
 - Follow standard Rust conventions
 - Use clippy for linting
 - Run tests with `cargo test`
+- push する前には .github/workflows/rust.yaml 相当の確認のテストを実行して確認
 
 ## Directory Patterns
 
@@ -38,3 +39,5 @@ __deprecated/    # Deprecated TypeScript prototype
 - Configurable similarity thresholds
 - Cross-file analysis support
 - VSCode-compatible output format
+
+```

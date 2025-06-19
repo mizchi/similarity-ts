@@ -32,27 +32,28 @@ pub struct FunctionDefinition {
     pub end_line: u32,
     pub class_name: Option<String>,
     pub parent_function: Option<String>,
+    pub node_count: Option<u32>,
 }
 
 impl FunctionDefinition {
     pub fn line_count(&self) -> u32 {
         self.end_line - self.start_line + 1
     }
-    
+
     /// Check if this function is a parent or child of another function
     pub fn is_parent_child_relationship(&self, other: &FunctionDefinition) -> bool {
         // Check if 'other' is inside 'self' (self is parent of other)
-        let other_inside_self = self.start_line <= other.start_line && 
-                               self.end_line >= other.end_line &&
-                               self.body_span.start < other.body_span.start &&
-                               self.body_span.end > other.body_span.end;
-        
+        let other_inside_self = self.start_line <= other.start_line
+            && self.end_line >= other.end_line
+            && self.body_span.start < other.body_span.start
+            && self.body_span.end > other.body_span.end;
+
         // Check if 'self' is inside 'other' (other is parent of self)
-        let self_inside_other = other.start_line <= self.start_line && 
-                               other.end_line >= self.end_line &&
-                               other.body_span.start < self.body_span.start &&
-                               other.body_span.end > self.body_span.end;
-        
+        let self_inside_other = other.start_line <= self.start_line
+            && other.end_line >= self.end_line
+            && other.body_span.start < self.body_span.start
+            && other.body_span.end > self.body_span.end;
+
         other_inside_self || self_inside_other
     }
 }
@@ -83,9 +84,9 @@ pub fn extract_functions(
     }
 
     let mut functions = Vec::new();
-    let mut context = ExtractionContext { 
-        functions: &mut functions, 
-        source_text, 
+    let mut context = ExtractionContext {
+        functions: &mut functions,
+        source_text,
         class_name: None,
         parent_function: None,
     };
@@ -122,8 +123,9 @@ fn extract_from_statement(stmt: &Statement, ctx: &mut ExtractionContext) {
                     end_line: get_line_number(func.span.end, ctx.source_text),
                     class_name: None,
                     parent_function: ctx.parent_function.clone(),
+                    node_count: count_function_nodes(func.span, ctx.source_text),
                 });
-                
+
                 // Extract nested functions within the function body
                 if let Some(body) = &func.body {
                     let saved_parent = ctx.parent_function.clone();
@@ -158,7 +160,7 @@ fn extract_from_statement(stmt: &Statement, ctx: &mut ExtractionContext) {
                     } else {
                         method_name.clone()
                     };
-                    
+
                     ctx.functions.push(FunctionDefinition {
                         name: method_name.clone(),
                         function_type,
@@ -168,8 +170,9 @@ fn extract_from_statement(stmt: &Statement, ctx: &mut ExtractionContext) {
                         end_line: get_line_number(method.span.end, ctx.source_text),
                         class_name: class_name.clone(),
                         parent_function: ctx.parent_function.clone(),
+                        node_count: count_function_nodes(method.span, ctx.source_text),
                     });
-                    
+
                     // Extract nested functions within method body
                     if let Some(body) = &method.value.body {
                         let saved_parent = ctx.parent_function.clone();
@@ -197,8 +200,9 @@ fn extract_from_statement(stmt: &Statement, ctx: &mut ExtractionContext) {
                             end_line: get_line_number(arrow.span.end, ctx.source_text),
                             class_name: None,
                             parent_function: ctx.parent_function.clone(),
+                            node_count: count_function_nodes(arrow.span, ctx.source_text),
                         });
-                        
+
                         // Extract nested functions within arrow function body
                         if !arrow.expression {
                             let saved_parent = ctx.parent_function.clone();
@@ -233,8 +237,9 @@ fn extract_from_statement(stmt: &Statement, ctx: &mut ExtractionContext) {
                     end_line: get_line_number(func.span.end, ctx.source_text),
                     class_name: None,
                     parent_function: ctx.parent_function.clone(),
+                    node_count: count_function_nodes(func.span, ctx.source_text),
                 });
-                
+
                 // Extract nested functions within the function body
                 if let Some(body) = &func.body {
                     let saved_parent = ctx.parent_function.clone();
@@ -263,8 +268,9 @@ fn extract_from_declaration(decl: &Declaration, ctx: &mut ExtractionContext) {
                     end_line: get_line_number(func.span.end, ctx.source_text),
                     class_name: None,
                     parent_function: ctx.parent_function.clone(),
+                    node_count: count_function_nodes(func.span, ctx.source_text),
                 });
-                
+
                 // Extract nested functions within the function body
                 if let Some(body) = &func.body {
                     let saved_parent = ctx.parent_function.clone();
@@ -299,7 +305,7 @@ fn extract_from_declaration(decl: &Declaration, ctx: &mut ExtractionContext) {
                     } else {
                         method_name.clone()
                     };
-                    
+
                     ctx.functions.push(FunctionDefinition {
                         name: method_name.clone(),
                         function_type,
@@ -309,8 +315,9 @@ fn extract_from_declaration(decl: &Declaration, ctx: &mut ExtractionContext) {
                         end_line: get_line_number(method.span.end, ctx.source_text),
                         class_name: class_name.clone(),
                         parent_function: ctx.parent_function.clone(),
+                        node_count: count_function_nodes(method.span, ctx.source_text),
                     });
-                    
+
                     // Extract nested functions within method body
                     if let Some(body) = &method.value.body {
                         let saved_parent = ctx.parent_function.clone();
@@ -338,8 +345,9 @@ fn extract_from_declaration(decl: &Declaration, ctx: &mut ExtractionContext) {
                             end_line: get_line_number(arrow.span.end, ctx.source_text),
                             class_name: None,
                             parent_function: ctx.parent_function.clone(),
+                            node_count: count_function_nodes(arrow.span, ctx.source_text),
                         });
-                        
+
                         // Extract nested functions within arrow function body
                         if !arrow.expression {
                             let saved_parent = ctx.parent_function.clone();
@@ -426,6 +434,67 @@ fn extract_body_text(func: &FunctionDefinition, source: &str) -> String {
     source[start..end].to_string()
 }
 
+/// Count the number of AST nodes in a function body
+fn count_function_nodes(body_span: Span, source_text: &str) -> Option<u32> {
+    let start = body_span.start as usize;
+    let end = body_span.end as usize;
+    if start >= end || end > source_text.len() {
+        return None;
+    }
+
+    let body_text = &source_text[start..end];
+
+    // For now, try to parse the text as-is
+    // If it fails, try wrapping it in a way that makes it valid TypeScript
+    match parse_and_convert_to_tree("temp.ts", body_text) {
+        Ok(tree) => Some(tree.get_subtree_size() as u32),
+        Err(_) => {
+            // If direct parsing fails, try wrapping in a minimal context
+            // This handles cases like "constructor(private x: number) {}" or method definitions
+            let wrapped = if body_text.starts_with("constructor") {
+                format!("class C {{ {} }}", body_text)
+            } else if body_text.contains("(") && body_text.contains(")") && body_text.contains("{")
+            {
+                // Likely a method or function - wrap it appropriately
+                if body_text.trim().starts_with(|c: char| c.is_alphabetic() || c == '_' || c == '#')
+                {
+                    // Method-like syntax
+                    format!("class C {{ {} }}", body_text)
+                } else {
+                    // Arrow function or other expression
+                    format!("const x = {}", body_text)
+                }
+            } else {
+                // Default fallback
+                body_text.to_string()
+            };
+
+            match parse_and_convert_to_tree("temp.ts", &wrapped) {
+                Ok(tree) => {
+                    // Subtract nodes added by wrapping (approximation)
+                    let base_nodes = if wrapped.starts_with("class C") {
+                        3 // class node + body node + wrapping
+                    } else if wrapped.starts_with("const x") {
+                        2 // const declaration + wrapping
+                    } else {
+                        0
+                    };
+                    Some((tree.get_subtree_size().saturating_sub(base_nodes)) as u32)
+                }
+                Err(_) => {
+                    // If all else fails, make a rough estimate based on the text
+                    // Count common syntax elements as a fallback
+                    let node_count = body_text
+                        .matches(['{', '}', '(', ')', ';'])
+                        .count() as u32
+                        + 1;
+                    Some(node_count.max(1))
+                }
+            }
+        }
+    }
+}
+
 /// Find similar functions within the same file
 pub fn find_similar_functions_in_file(
     filename: &str,
@@ -440,12 +509,22 @@ pub fn find_similar_functions_in_file(
     for i in 0..functions.len() {
         for j in (i + 1)..functions.len() {
             // Skip if either function is too short
-            if functions[i].line_count() < options.min_lines
-                || functions[j].line_count() < options.min_lines
-            {
-                continue;
+            if let Some(min_tokens) = options.min_tokens {
+                // If min_tokens is specified, use token count instead of line count
+                let tokens_i = functions[i].node_count.unwrap_or(0);
+                let tokens_j = functions[j].node_count.unwrap_or(0);
+                if tokens_i < min_tokens || tokens_j < min_tokens {
+                    continue;
+                }
+            } else {
+                // Otherwise use line count
+                if functions[i].line_count() < options.min_lines
+                    || functions[j].line_count() < options.min_lines
+                {
+                    continue;
+                }
             }
-            
+
             // Skip if functions have parent-child relationship
             if functions[i].is_parent_child_relationship(&functions[j]) {
                 continue;
@@ -504,10 +583,21 @@ pub fn find_similar_functions_across_files(
             }
 
             // Skip if either function is too short
-            if func1.line_count() < options.min_lines || func2.line_count() < options.min_lines {
-                continue;
+            if let Some(min_tokens) = options.min_tokens {
+                // If min_tokens is specified, use token count instead of line count
+                let tokens1 = func1.node_count.unwrap_or(0);
+                let tokens2 = func2.node_count.unwrap_or(0);
+                if tokens1 < min_tokens || tokens2 < min_tokens {
+                    continue;
+                }
+            } else {
+                // Otherwise use line count
+                if func1.line_count() < options.min_lines || func2.line_count() < options.min_lines
+                {
+                    continue;
+                }
             }
-            
+
             // Skip if functions have parent-child relationship (across files)
             if func1.is_parent_child_relationship(func2) {
                 continue;
@@ -589,6 +679,51 @@ mod tests {
         let constructor = functions.iter().find(|f| f.name == "constructor").unwrap();
         assert_eq!(constructor.function_type, FunctionType::Constructor);
         assert_eq!(constructor.class_name, Some("Calculator".to_string()));
+
+        // Check that node_count is populated for all functions
+        for func in &functions {
+            assert!(
+                func.node_count.is_some(),
+                "Function {} should have node_count populated",
+                func.name
+            );
+            // Node count should be reasonable (greater than 0)
+            assert!(
+                func.node_count.unwrap() > 0,
+                "Function {} should have positive node_count",
+                func.name
+            );
+        }
+    }
+
+    #[test]
+    fn test_node_count_calculation() {
+        let code = r#"
+            function simple() {
+                return 42;
+            }
+            
+            function complex(a: number, b: number): number {
+                if (a > b) {
+                    return a - b;
+                } else {
+                    return a + b;
+                }
+            }
+        "#;
+
+        let functions = extract_functions("test.ts", code).unwrap();
+
+        let simple = functions.iter().find(|f| f.name == "simple").unwrap();
+        let complex = functions.iter().find(|f| f.name == "complex").unwrap();
+
+        println!("Simple function node count: {:?}", simple.node_count);
+        println!("Complex function node count: {:?}", complex.node_count);
+
+        // Simple function should have fewer nodes than complex
+        assert!(simple.node_count.is_some());
+        assert!(complex.node_count.is_some());
+        assert!(simple.node_count.unwrap() < complex.node_count.unwrap());
     }
 
     #[test]

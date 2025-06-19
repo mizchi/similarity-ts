@@ -47,8 +47,17 @@ pub fn find_similar_functions_fast(
     let mut fingerprinted = Vec::new();
     for func in functions {
         // Skip short functions
-        if func.line_count() < options.tsed_options.min_lines {
-            continue;
+        if let Some(min_tokens) = options.tsed_options.min_tokens {
+            // If min_tokens is specified, use token count instead of line count
+            let tokens = func.node_count.unwrap_or(0);
+            if tokens < min_tokens {
+                continue;
+            }
+        } else {
+            // Otherwise use line count
+            if func.line_count() < options.tsed_options.min_lines {
+                continue;
+            }
         }
 
         // Extract function body
@@ -141,8 +150,17 @@ pub fn find_similar_functions_across_files_fast(
     for (filename, source) in files {
         let functions = extract_functions(filename, source)?;
         for func in functions {
-            if func.line_count() < options.tsed_options.min_lines {
-                continue;
+            if let Some(min_tokens) = options.tsed_options.min_tokens {
+                // If min_tokens is specified, use token count instead of line count
+                let tokens = func.node_count.unwrap_or(0);
+                if tokens < min_tokens {
+                    continue;
+                }
+            } else {
+                // Otherwise use line count
+                if func.line_count() < options.tsed_options.min_lines {
+                    continue;
+                }
             }
 
             let start = func.body_span.start as usize;

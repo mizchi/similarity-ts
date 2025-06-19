@@ -37,9 +37,11 @@ export function computeTotal(values: number[]): number {
     )
     .unwrap();
 
-    // Run the CLI
+    // Run the CLI with lower threshold since these functions are ~82% similar
     let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
     cmd.arg(dir.path())
+        .arg("-t")
+        .arg("0.8")
         .assert()
         .success()
         .stdout(predicate::str::contains("calculateSum"))
@@ -131,7 +133,7 @@ type UserData = {
     let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
     cmd.arg(dir.path())
         .arg("--no-functions")
-        .arg("--types")
+        .arg("--experimental-types")
         .assert()
         .success()
         .stdout(predicate::str::contains("User"))

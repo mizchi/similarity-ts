@@ -25,7 +25,7 @@ struct Cli {
     no_functions: bool,
 
     /// Enable type similarity checking (experimental)
-    #[arg(long = "types")]
+    #[arg(long = "experimental-types")]
     types: bool,
 
     /// File extensions to check
@@ -33,8 +33,12 @@ struct Cli {
     extensions: Option<Vec<String>>,
 
     /// Minimum lines for functions to be considered
-    #[arg(short, long, default_value = "5")]
-    min_lines: u32,
+    #[arg(short, long, default_value = "3")]
+    min_lines: Option<u32>,
+
+    /// Minimum tokens for functions to be considered
+    #[arg(long)]
+    min_tokens: Option<u32>,
 
     /// Rename cost for APTED algorithm
     #[arg(short, long, default_value = "0.3")]
@@ -89,6 +93,18 @@ fn main() -> anyhow::Result<()> {
         return Err(anyhow::anyhow!("No analyzer enabled"));
     }
 
+    // Handle mutual exclusion of min_lines and min_tokens
+    let (min_lines, min_tokens) = match (cli.min_lines, cli.min_tokens) {
+        (Some(_), Some(tokens)) => {
+            eprintln!(
+                "Warning: Both --min-lines and --min-tokens specified. Using --min-tokens={}",
+                tokens
+            );
+            (None, Some(tokens))
+        }
+        (lines, tokens) => (lines, tokens),
+    };
+
     println!("Analyzing code similarity...\n");
 
     let separator = "-".repeat(60);
@@ -101,7 +117,8 @@ fn main() -> anyhow::Result<()> {
             cli.threshold,
             cli.rename_cost,
             cli.extensions.as_ref(),
-            cli.min_lines,
+            min_lines.unwrap_or(3),
+            min_tokens,
             cli.no_size_penalty,
             cli.print,
             !cli.no_fast,

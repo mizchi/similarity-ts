@@ -344,11 +344,7 @@ const processDataArrow = (data: number[]): number => {
 };
 "#;
 
-    let options = TSEDOptions {
-        min_lines: 1,
-        size_penalty: false,
-        ..Default::default()
-    };
+    let options = TSEDOptions { min_lines: 1, size_penalty: false, ..Default::default() };
 
     let result = find_similar_functions_in_file("test.ts", code, 0.7, &options).unwrap();
 
@@ -394,9 +390,6 @@ const processDataArrow = (data: number[]): number => {
             || (r.func1.name == "multiply" && r.func2.name == "add")
     });
     if let Some(pair) = add_multiply {
-        assert!(
-            pair.similarity < 0.9,
-            "Different functions should not have very high similarity"
-        );
+        assert!(pair.similarity < 0.9, "Different functions should not have very high similarity");
     }
 }

@@ -1,4 +1,7 @@
-use crate::parallel::{check_cross_file_duplicates_parallel, check_within_file_duplicates_parallel, load_files_parallel};
+use crate::parallel::{
+    check_cross_file_duplicates_parallel, check_within_file_duplicates_parallel,
+    load_files_parallel,
+};
 use ignore::WalkBuilder;
 use std::collections::HashSet;
 use std::fs;
@@ -25,10 +28,7 @@ fn format_function_output(
     start_line: u32,
     end_line: u32,
 ) -> String {
-    format!(
-        "{}:{}-{} {}",
-        file_path, start_line, end_line, function_name
-    )
+    format!("{}:{}-{} {}", file_path, start_line, end_line, function_name)
 }
 
 /// Display code content for a function
@@ -58,16 +58,14 @@ struct DuplicateResult {
 impl DuplicateResult {
     fn priority(&self) -> f64 {
         // Score = Similarity × Average lines
-        let avg_lines = (self.result.func1.line_count() + self.result.func2.line_count()) as f64 / 2.0;
+        let avg_lines =
+            (self.result.func1.line_count() + self.result.func2.line_count()) as f64 / 2.0;
         self.result.similarity * avg_lines
     }
 }
 
 /// Display similarity results
-fn display_all_results(
-    mut all_results: Vec<DuplicateResult>,
-    print: bool,
-) {
+fn display_all_results(mut all_results: Vec<DuplicateResult>, print: bool) {
     if all_results.is_empty() {
         println!("\nNo duplicate functions found!");
         return;
@@ -97,10 +95,7 @@ fn display_all_results(
                     .to_string(),
             )
         } else {
-            (
-                dup.file1.to_string_lossy().to_string(),
-                dup.file2.to_string_lossy().to_string(),
-            )
+            (dup.file1.to_string_lossy().to_string(), dup.file2.to_string_lossy().to_string())
         };
 
         // Calculate the line counts
@@ -110,7 +105,7 @@ fn display_all_results(
         let max_lines = line_count1.max(line_count2);
         let avg_lines = (line_count1 + line_count2) as f64 / 2.0;
         let score = dup.result.similarity * avg_lines;
-        
+
         println!(
             "\nSimilarity: {:.2}%, Score: {:.1} points (lines {}~{}, avg: {:.1})",
             dup.result.similarity * 100.0,
@@ -162,6 +157,7 @@ pub fn check_paths(
     rename_cost: f64,
     extensions: Option<&Vec<String>>,
     min_lines: u32,
+    min_tokens: Option<u32>,
     no_size_penalty: bool,
     print: bool,
     fast_mode: bool,
@@ -234,28 +230,27 @@ pub fn check_paths(
     let mut options = TSEDOptions::default();
     options.apted_options.rename_cost = rename_cost;
     options.min_lines = min_lines;
+    options.min_tokens = min_tokens;
     options.size_penalty = !no_size_penalty;
 
     let mut all_results = Vec::new();
 
     // Check within each file in parallel
-    let within_file_results = check_within_file_duplicates_parallel(&files, threshold, &options, fast_mode);
-    
+    let within_file_results =
+        check_within_file_duplicates_parallel(&files, threshold, &options, fast_mode);
+
     // Collect within-file duplicates
     for (file, similar_pairs) in within_file_results {
         for result in similar_pairs {
-            all_results.push(DuplicateResult {
-                file1: file.clone(),
-                file2: file.clone(),
-                result,
-            });
+            all_results.push(DuplicateResult { file1: file.clone(), file2: file.clone(), result });
         }
     }
 
     // Check across files in parallel
     let file_data = load_files_parallel(&files);
-    let cross_file_results = check_cross_file_duplicates_parallel(&file_data, threshold, &options, fast_mode);
-    
+    let cross_file_results =
+        check_cross_file_duplicates_parallel(&file_data, threshold, &options, fast_mode);
+
     // Collect cross-file duplicates
     for (file1, result, file2) in cross_file_results {
         all_results.push(DuplicateResult {

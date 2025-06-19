@@ -14,6 +14,10 @@ High-performance TypeScript/JavaScript code similarity detection tool written in
 - **Wide file support** for .ts, .tsx, .js, .jsx, .mjs, .cjs, .mts, .cts files
 - **Smart filtering** with minimum line thresholds and size penalties
 
+## Documentation
+
+- [AI Assistant Guide](.claude/commands/check-similarity.md) - Refactoring workflow and best practices
+
 ## Installation
 
 ### From source

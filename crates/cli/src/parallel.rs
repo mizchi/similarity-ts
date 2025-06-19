@@ -2,7 +2,7 @@ use rayon::prelude::*;
 use std::fs;
 use std::path::PathBuf;
 use ts_similarity_core::{
-    extract_functions, find_similar_functions_in_file, find_similar_functions_fast, 
+    extract_functions, find_similar_functions_fast, find_similar_functions_in_file,
     FastSimilarityOptions, FunctionDefinition, SimilarityResult, TSEDOptions,
 };
 
@@ -24,11 +24,7 @@ pub fn load_files_parallel(files: &[PathBuf]) -> Vec<FileData> {
                     let filename = file.to_string_lossy();
                     // Extract functions, skip if parse error
                     match extract_functions(&filename, &content) {
-                        Ok(functions) => Some(FileData {
-                            path: file.clone(),
-                            content,
-                            functions,
-                        }),
+                        Ok(functions) => Some(FileData { path: file.clone(), content, functions }),
                         Err(_) => None, // Skip files with parse errors
                     }
                 }
@@ -50,33 +46,31 @@ pub fn check_within_file_duplicates_parallel(
 ) -> Vec<(PathBuf, Vec<SimilarityResult>)> {
     files
         .par_iter()
-        .filter_map(|file| {
-            match fs::read_to_string(file) {
-                Ok(code) => {
-                    let file_str = file.to_string_lossy();
-                    
-                    let similar_pairs = if fast_mode {
-                        let fast_options = FastSimilarityOptions {
-                            fingerprint_threshold: 0.3,
-                            similarity_threshold: threshold,
-                            tsed_options: options.clone(),
-                            debug_stats: false,
-                        };
-                        find_similar_functions_fast(&file_str, &code, &fast_options).ok()
-                    } else {
-                        find_similar_functions_in_file(&file_str, &code, threshold, options).ok()
+        .filter_map(|file| match fs::read_to_string(file) {
+            Ok(code) => {
+                let file_str = file.to_string_lossy();
+
+                let similar_pairs = if fast_mode {
+                    let fast_options = FastSimilarityOptions {
+                        fingerprint_threshold: 0.3,
+                        similarity_threshold: threshold,
+                        tsed_options: options.clone(),
+                        debug_stats: false,
                     };
-                    
-                    similar_pairs.and_then(|pairs| {
-                        if pairs.is_empty() {
-                            None
-                        } else {
-                            Some((file.clone(), pairs))
-                        }
-                    })
-                }
-                Err(_) => None,
+                    find_similar_functions_fast(&file_str, &code, &fast_options).ok()
+                } else {
+                    find_similar_functions_in_file(&file_str, &code, threshold, options).ok()
+                };
+
+                similar_pairs.and_then(|pairs| {
+                    if pairs.is_empty() {
+                        None
+                    } else {
+                        Some((file.clone(), pairs))
+                    }
+                })
             }
+            Err(_) => None,
         })
         .collect()
 }
@@ -96,28 +90,28 @@ pub fn check_cross_file_duplicates_parallel(
             all_functions.push((filename.clone(), data.content.clone(), func.clone()));
         }
     }
-    
+
     // Generate all cross-file pairs
     let mut pairs_to_check = Vec::new();
     for i in 0..all_functions.len() {
         for j in (i + 1)..all_functions.len() {
             let (file1, _, _) = &all_functions[i];
             let (file2, _, _) = &all_functions[j];
-            
+
             // Only check across different files
             if file1 != file2 {
                 pairs_to_check.push((i, j));
             }
         }
     }
-    
+
     // Process pairs in parallel
     pairs_to_check
         .into_par_iter()
         .filter_map(|(i, j)| {
             let (file1, content1, func1) = &all_functions[i];
             let (file2, content2, func2) = &all_functions[j];
-            
+
             // Use core's compare_functions
             match ts_similarity_core::compare_functions(func1, func2, content1, content2, options) {
                 Ok(similarity) => {

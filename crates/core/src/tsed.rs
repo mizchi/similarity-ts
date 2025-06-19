@@ -6,7 +6,8 @@ use std::rc::Rc;
 pub struct TSEDOptions {
     pub apted_options: APTEDOptions,
     pub min_lines: u32, // Minimum number of lines for a function to be considered
-    pub size_penalty: bool, // Apply penalty for short functions
+    pub min_tokens: Option<u32>, // Minimum number of tokens (AST nodes) for a function to be considered
+    pub size_penalty: bool,      // Apply penalty for short functions
 }
 
 impl Default for TSEDOptions {
@@ -18,6 +19,7 @@ impl Default for TSEDOptions {
                 insert_cost: 1.0,
             },
             min_lines: 5,       // Increased default to better filter trivial matches
+            min_tokens: None,   // No token limit by default
             size_penalty: true, // Enable size penalty by default
         }
     }
