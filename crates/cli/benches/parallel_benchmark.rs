@@ -1,7 +1,4 @@
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
-use std::fs;
-use std::path::PathBuf;
-use std::time::Duration;
 use similarity_ts::parallel::{
     check_cross_file_duplicates_parallel, check_within_file_duplicates_parallel,
     load_files_parallel,
@@ -11,6 +8,9 @@ use similarity_ts::sequential::{
     load_files_sequential,
 };
 use similarity_ts_core::TSEDOptions;
+use std::fs;
+use std::path::PathBuf;
+use std::time::Duration;
 
 /// Generate sample TypeScript code for benchmarking
 fn generate_sample_code(num_functions: usize) -> String {

@@ -1,10 +1,10 @@
 use crate::parallel::FileData;
-use std::fs;
-use std::path::PathBuf;
 use similarity_ts_core::{
     compare_functions, extract_functions, find_similar_functions_fast,
     find_similar_functions_in_file, FastSimilarityOptions, SimilarityResult, TSEDOptions,
 };
+use std::fs;
+use std::path::PathBuf;
 
 /// Load files sequentially (for benchmark comparison)
 pub fn load_files_sequential(files: &[PathBuf]) -> Vec<FileData> {

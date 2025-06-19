@@ -1,10 +1,10 @@
 use rayon::prelude::*;
-use std::fs;
-use std::path::PathBuf;
 use similarity_ts_core::{
     extract_functions, find_similar_functions_fast, find_similar_functions_in_file,
     FastSimilarityOptions, FunctionDefinition, SimilarityResult, TSEDOptions,
 };
+use std::fs;
+use std::path::PathBuf;
 
 /// File with its content and extracted functions
 #[derive(Debug)]

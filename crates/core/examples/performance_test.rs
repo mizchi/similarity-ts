@@ -1,7 +1,7 @@
-use std::time::Instant;
 use similarity_ts_core::{
     find_similar_functions_fast, find_similar_functions_in_file, FastSimilarityOptions, TSEDOptions,
 };
+use std::time::Instant;
 
 const TEST_CODE: &str = r#"
 // 20 functions with varying similarity

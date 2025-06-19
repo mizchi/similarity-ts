@@ -165,13 +165,13 @@ fn check_types(
     include_type_literals: bool,
 ) -> anyhow::Result<()> {
     use ignore::WalkBuilder;
-    use std::collections::HashSet;
-    use std::fs;
-    use std::path::Path;
     use similarity_ts_core::{
         extract_type_literals_from_code, extract_types_from_code, find_similar_type_literals,
         find_similar_types, TypeComparisonOptions, TypeKind,
     };
+    use std::collections::HashSet;
+    use std::fs;
+    use std::path::Path;
 
     let default_extensions = vec!["ts", "tsx", "mts", "cts"];
     let exts: Vec<&str> =

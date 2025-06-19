@@ -1,5 +1,5 @@
-use std::rc::Rc;
 use similarity_ts_core::{calculate_tsed, parse_and_convert_to_tree, TSEDOptions};
+use std::rc::Rc;
 
 #[test]
 fn debug_high_similarity_issue() {

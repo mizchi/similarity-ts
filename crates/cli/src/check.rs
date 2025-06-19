@@ -3,10 +3,10 @@ use crate::parallel::{
     load_files_parallel,
 };
 use ignore::WalkBuilder;
+use similarity_ts_core::TSEDOptions;
 use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
-use similarity_ts_core::TSEDOptions;
 
 /// Extract lines from file content within the specified range
 fn extract_lines_from_content(content: &str, start_line: u32, end_line: u32) -> String {

@@ -34,12 +34,14 @@ similarity-ts --print
 Recursively checks a directory for duplicate functions across all files, respecting .gitignore files.
 
 **Options:**
+
 - `-t, --threshold` (default: 0.8) - Similarity threshold (0.0-1.0)
 - `--rename-cost` (default: 0.3) - Cost for renaming nodes
 - `--within-file` - Only check for duplicates within individual files (default: check across files)
 - `--extensions` - Comma-separated list of file extensions (default: ts,tsx,js,jsx)
 
 **Example Output:**
+
 ```
 Checking 25 files for duplicates...
 
@@ -56,11 +58,13 @@ Total duplicate pairs found: 3
 Calculates the similarity between two complete TypeScript files.
 
 **Options:**
+
 - `--rename-cost` (default: 0.3) - Cost for renaming nodes
 - `--delete-cost` (default: 1.0) - Cost for deleting nodes
 - `--insert-cost` (default: 1.0) - Cost for inserting nodes
 
 **Example Output:**
+
 ```
 TSED Similarity: 85.50%
 Distance: 0.1450
@@ -71,10 +75,12 @@ Distance: 0.1450
 Detects similar functions within a single file.
 
 **Options:**
+
 - `-t, --threshold` (default: 0.7) - Similarity threshold (0.0-1.0)
 - `--rename-cost` (default: 0.3) - Cost for renaming nodes
 
 **Example Output:**
+
 ```
 Similar functions in src/utils.ts:
 ============================================================
@@ -91,10 +97,12 @@ Similarity: 90.00%
 Detects similar functions across multiple files.
 
 **Options:**
+
 - `-t, --threshold` (default: 0.7) - Similarity threshold (0.0-1.0)
 - `--rename-cost` (default: 0.3) - Cost for renaming nodes
 
 **Example Output:**
+
 ```
 Similar functions across files:
 ============================================================
@@ -116,6 +124,7 @@ This tool uses the following algorithms:
 ## Performance
 
 Compared to the TypeScript implementation:
+
 - Medium files: ~16x faster
 - Large files: Better memory efficiency, can handle cases where TypeScript version runs out of memory
 
