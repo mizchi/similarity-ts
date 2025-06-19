@@ -10,6 +10,7 @@ oxc_ast = { workspace = true }
 oxc_span = { workspace = true }
 oxc_allocator = { workspace = true }
 regex = "1.10"
+rayon = "1.10"
 
 [dev-dependencies]
 criterion = "0.5"

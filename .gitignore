@@ -152,3 +152,4 @@ dist
 # Added by cargo
 
 /target
+reference/
