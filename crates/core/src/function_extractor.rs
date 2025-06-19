@@ -31,11 +31,29 @@ pub struct FunctionDefinition {
     pub start_line: u32,
     pub end_line: u32,
     pub class_name: Option<String>,
+    pub parent_function: Option<String>,
 }
 
 impl FunctionDefinition {
     pub fn line_count(&self) -> u32 {
         self.end_line - self.start_line + 1
+    }
+    
+    /// Check if this function is a parent or child of another function
+    pub fn is_parent_child_relationship(&self, other: &FunctionDefinition) -> bool {
+        // Check if 'other' is inside 'self' (self is parent of other)
+        let other_inside_self = self.start_line <= other.start_line && 
+                               self.end_line >= other.end_line &&
+                               self.body_span.start < other.body_span.start &&
+                               self.body_span.end > other.body_span.end;
+        
+        // Check if 'self' is inside 'other' (other is parent of self)
+        let self_inside_other = other.start_line <= self.start_line && 
+                               other.end_line >= self.end_line &&
+                               other.body_span.start < self.body_span.start &&
+                               other.body_span.end > self.body_span.end;
+        
+        other_inside_self || self_inside_other
     }
 }
 
@@ -65,8 +83,12 @@ pub fn extract_functions(
     }
 
     let mut functions = Vec::new();
-    let mut context =
-        ExtractionContext { functions: &mut functions, source_text, class_name: None };
+    let mut context = ExtractionContext { 
+        functions: &mut functions, 
+        source_text, 
+        class_name: None,
+        parent_function: None,
+    };
 
     extract_from_program(&ret.program, &mut context);
     Ok(functions)
@@ -76,6 +98,7 @@ struct ExtractionContext<'a> {
     functions: &'a mut Vec<FunctionDefinition>,
     source_text: &'a str,
     class_name: Option<String>,
+    parent_function: Option<String>,
 }
 
 fn extract_from_program(program: &Program, ctx: &mut ExtractionContext) {
@@ -88,16 +111,26 @@ fn extract_from_statement(stmt: &Statement, ctx: &mut ExtractionContext) {
     match stmt {
         Statement::FunctionDeclaration(func) => {
             if let Some(name) = &func.id {
+                let func_name = name.name.to_string();
                 let params = extract_parameters(&func.params);
                 ctx.functions.push(FunctionDefinition {
-                    name: name.name.to_string(),
+                    name: func_name.clone(),
                     function_type: FunctionType::Function,
                     parameters: params,
                     body_span: func.span,
                     start_line: get_line_number(func.span.start, ctx.source_text),
                     end_line: get_line_number(func.span.end, ctx.source_text),
                     class_name: None,
+                    parent_function: ctx.parent_function.clone(),
                 });
+                
+                // Extract nested functions within the function body
+                if let Some(body) = &func.body {
+                    let saved_parent = ctx.parent_function.clone();
+                    ctx.parent_function = Some(func_name);
+                    extract_from_function_body(body, ctx);
+                    ctx.parent_function = saved_parent;
+                }
             }
         }
         Statement::ClassDeclaration(class) => {
@@ -120,15 +153,30 @@ fn extract_from_statement(stmt: &Statement, ctx: &mut ExtractionContext) {
                         FunctionType::Method
                     };
 
+                    let method_full_name = if let Some(ref class) = class_name {
+                        format!("{}.{}", class, method_name)
+                    } else {
+                        method_name.clone()
+                    };
+                    
                     ctx.functions.push(FunctionDefinition {
-                        name: method_name,
+                        name: method_name.clone(),
                         function_type,
                         parameters: params,
                         body_span: method.span,
                         start_line: get_line_number(method.span.start, ctx.source_text),
                         end_line: get_line_number(method.span.end, ctx.source_text),
                         class_name: class_name.clone(),
+                        parent_function: ctx.parent_function.clone(),
                     });
+                    
+                    // Extract nested functions within method body
+                    if let Some(body) = &method.value.body {
+                        let saved_parent = ctx.parent_function.clone();
+                        ctx.parent_function = Some(method_full_name);
+                        extract_from_function_body(body, ctx);
+                        ctx.parent_function = saved_parent;
+                    }
                 }
             }
 
@@ -139,15 +187,25 @@ fn extract_from_statement(stmt: &Statement, ctx: &mut ExtractionContext) {
                 if let Some(Expression::ArrowFunctionExpression(arrow)) = &decl.init {
                     if let BindingPatternKind::BindingIdentifier(ident) = &decl.id.kind {
                         let params = extract_parameters(&arrow.params);
+                        let arrow_name = ident.name.to_string();
                         ctx.functions.push(FunctionDefinition {
-                            name: ident.name.to_string(),
+                            name: arrow_name.clone(),
                             function_type: FunctionType::Arrow,
                             parameters: params,
                             body_span: arrow.span,
                             start_line: get_line_number(arrow.span.start, ctx.source_text),
                             end_line: get_line_number(arrow.span.end, ctx.source_text),
                             class_name: None,
+                            parent_function: ctx.parent_function.clone(),
                         });
+                        
+                        // Extract nested functions within arrow function body
+                        if !arrow.expression {
+                            let saved_parent = ctx.parent_function.clone();
+                            ctx.parent_function = Some(arrow_name);
+                            extract_from_function_body(&arrow.body, ctx);
+                            ctx.parent_function = saved_parent;
+                        }
                     }
                 }
             }
@@ -165,15 +223,25 @@ fn extract_from_statement(stmt: &Statement, ctx: &mut ExtractionContext) {
                     .map(|id| id.name.to_string())
                     .unwrap_or_else(|| "default".to_string());
                 let params = extract_parameters(&func.params);
+                let func_name = name.clone();
                 ctx.functions.push(FunctionDefinition {
-                    name,
+                    name: func_name.clone(),
                     function_type: FunctionType::Function,
                     parameters: params,
                     body_span: func.span,
                     start_line: get_line_number(func.span.start, ctx.source_text),
                     end_line: get_line_number(func.span.end, ctx.source_text),
                     class_name: None,
+                    parent_function: ctx.parent_function.clone(),
                 });
+                
+                // Extract nested functions within the function body
+                if let Some(body) = &func.body {
+                    let saved_parent = ctx.parent_function.clone();
+                    ctx.parent_function = Some(func_name);
+                    extract_from_function_body(body, ctx);
+                    ctx.parent_function = saved_parent;
+                }
             }
         }
         _ => {}
@@ -184,16 +252,26 @@ fn extract_from_declaration(decl: &Declaration, ctx: &mut ExtractionContext) {
     match decl {
         Declaration::FunctionDeclaration(func) => {
             if let Some(name) = &func.id {
+                let func_name = name.name.to_string();
                 let params = extract_parameters(&func.params);
                 ctx.functions.push(FunctionDefinition {
-                    name: name.name.to_string(),
+                    name: func_name.clone(),
                     function_type: FunctionType::Function,
                     parameters: params,
                     body_span: func.span,
                     start_line: get_line_number(func.span.start, ctx.source_text),
                     end_line: get_line_number(func.span.end, ctx.source_text),
                     class_name: None,
+                    parent_function: ctx.parent_function.clone(),
                 });
+                
+                // Extract nested functions within the function body
+                if let Some(body) = &func.body {
+                    let saved_parent = ctx.parent_function.clone();
+                    ctx.parent_function = Some(func_name);
+                    extract_from_function_body(body, ctx);
+                    ctx.parent_function = saved_parent;
+                }
             }
         }
         Declaration::ClassDeclaration(class) => {
@@ -216,15 +294,30 @@ fn extract_from_declaration(decl: &Declaration, ctx: &mut ExtractionContext) {
                         FunctionType::Method
                     };
 
+                    let method_full_name = if let Some(ref class) = class_name {
+                        format!("{}.{}", class, method_name)
+                    } else {
+                        method_name.clone()
+                    };
+                    
                     ctx.functions.push(FunctionDefinition {
-                        name: method_name,
+                        name: method_name.clone(),
                         function_type,
                         parameters: params,
                         body_span: method.span,
                         start_line: get_line_number(method.span.start, ctx.source_text),
                         end_line: get_line_number(method.span.end, ctx.source_text),
                         class_name: class_name.clone(),
+                        parent_function: ctx.parent_function.clone(),
                     });
+                    
+                    // Extract nested functions within method body
+                    if let Some(body) = &method.value.body {
+                        let saved_parent = ctx.parent_function.clone();
+                        ctx.parent_function = Some(method_full_name);
+                        extract_from_function_body(body, ctx);
+                        ctx.parent_function = saved_parent;
+                    }
                 }
             }
 
@@ -235,15 +328,25 @@ fn extract_from_declaration(decl: &Declaration, ctx: &mut ExtractionContext) {
                 if let Some(Expression::ArrowFunctionExpression(arrow)) = &decl.init {
                     if let BindingPatternKind::BindingIdentifier(ident) = &decl.id.kind {
                         let params = extract_parameters(&arrow.params);
+                        let arrow_name = ident.name.to_string();
                         ctx.functions.push(FunctionDefinition {
-                            name: ident.name.to_string(),
+                            name: arrow_name.clone(),
                             function_type: FunctionType::Arrow,
                             parameters: params,
                             body_span: arrow.span,
                             start_line: get_line_number(arrow.span.start, ctx.source_text),
                             end_line: get_line_number(arrow.span.end, ctx.source_text),
                             class_name: None,
+                            parent_function: ctx.parent_function.clone(),
                         });
+                        
+                        // Extract nested functions within arrow function body
+                        if !arrow.expression {
+                            let saved_parent = ctx.parent_function.clone();
+                            ctx.parent_function = Some(arrow_name);
+                            extract_from_function_body(&arrow.body, ctx);
+                            ctx.parent_function = saved_parent;
+                        }
                     }
                 }
             }
@@ -261,6 +364,12 @@ fn extract_parameters(params: &oxc_ast::ast::FormalParameters) -> Vec<String> {
             _ => None,
         })
         .collect()
+}
+
+fn extract_from_function_body(body: &FunctionBody, ctx: &mut ExtractionContext) {
+    for stmt in &body.statements {
+        extract_from_statement(stmt, ctx);
+    }
 }
 
 fn get_line_number(offset: u32, source_text: &str) -> u32 {
@@ -336,6 +445,11 @@ pub fn find_similar_functions_in_file(
             {
                 continue;
             }
+            
+            // Skip if functions have parent-child relationship
+            if functions[i].is_parent_child_relationship(&functions[j]) {
+                continue;
+            }
 
             let similarity =
                 compare_functions(&functions[i], &functions[j], source_text, source_text, options)?;
@@ -391,6 +505,11 @@ pub fn find_similar_functions_across_files(
 
             // Skip if either function is too short
             if func1.line_count() < options.min_lines || func2.line_count() < options.min_lines {
+                continue;
+            }
+            
+            // Skip if functions have parent-child relationship (across files)
+            if func1.is_parent_child_relationship(func2) {
                 continue;
             }
 
