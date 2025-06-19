@@ -1,6 +1,6 @@
 # Specification Examples
 
-These examples demonstrate the core functionality of ts-similarity.
+These examples demonstrate the core functionality of similarity-ts.
 
 ## Files
 
@@ -11,7 +11,7 @@ These examples demonstrate the core functionality of ts-similarity.
 
 ### Function Detection
 ```bash
-ts-similarity duplicate-functions.ts --threshold 0.8 --min-tokens 20
+similarity-ts duplicate-functions.ts --threshold 0.8 --min-tokens 20
 ```
 Should detect:
 - calculateUserAge vs calculateCustomerAge (~95% similarity)
@@ -20,7 +20,7 @@ Should detect:
 
 ### Type Detection
 ```bash
-ts-similarity duplicate-types.ts --experimental-types --threshold 0.8
+similarity-ts duplicate-types.ts --experimental-types --threshold 0.8
 ```
 Should detect:
 - User vs Customer (100% similarity)

@@ -131,19 +131,19 @@ Compared to the TypeScript implementation:
 
 ```bash
 # Detect duplicate code in your project
-./target/release/ts-similarity functions src/main.ts -t 0.9
+./target/release/similarity-ts functions src/main.ts -t 0.9
 ```
 
 ### Compare Before and After Refactoring
 
 ```bash
 # Check code similarity before and after refactoring
-./target/release/ts-similarity compare old_version.ts new_version.ts
+./target/release/similarity-ts compare old_version.ts new_version.ts
 ```
 
 ### Check for Duplicate Functions Across Multiple Files
 
 ```bash
 # Check all files in utils directory for duplicate functions
-./target/release/ts-similarity cross-file src/utils/*.ts -t 0.85
+./target/release/similarity-ts cross-file src/utils/*.ts -t 0.85
 ```

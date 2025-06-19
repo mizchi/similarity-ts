@@ -1,4 +1,4 @@
-# Visitor Pattern Implementation Example for ts-similarity
+# Visitor Pattern Implementation Example for similarity-ts
 
 ## Concrete Implementation with oxc_ast
 

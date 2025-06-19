@@ -2,7 +2,7 @@
 
 ## Current Implementation
 
-Currently, the ts-similarity tool processes files sequentially:
+Currently, the similarity-ts tool processes files sequentially:
 
 1. Collect all files from given paths
 2. For each file:
@@ -49,13 +49,13 @@ let parsed_files: Vec<_> = files
 
 **Implementation approach:**
 - Add `--incremental` flag
-- Cache directory: `.ts-similarity-cache/`
+- Cache directory: `.similarity-ts-cache/`
 - Cache key: file path + modification time + file hash
 - Cache value: Extracted functions/types (not full AST)
 
 **Cache structure:**
 ```
-.ts-similarity-cache/
+.similarity-ts-cache/
 ├── manifest.json  # Version, settings
 ├── functions/
 │   ├── <hash>.json  # Cached function definitions
@@ -209,11 +209,11 @@ traverse_ast(&ast, &mut chain);
 
 ```bash
 # Parallel processing with 8 threads
-ts-similarity -j 8 src/
+similarity-ts -j 8 src/
 
 # Incremental mode (uses cache)
-ts-similarity --incremental src/
+similarity-ts --incremental src/
 
 # Combined for maximum performance
-ts-similarity --incremental -j 8 src/
+similarity-ts --incremental -j 8 src/
 ```

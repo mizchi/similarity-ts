@@ -48,7 +48,7 @@ const comparison = compareFunctions(func1, func2, {
 
 ## Real-World Patterns
 
-These fixtures are based on actual duplication patterns found in the ts-similarity codebase and common patterns from TypeScript projects:
+These fixtures are based on actual duplication patterns found in the similarity-ts codebase and common patterns from TypeScript projects:
 
 1. **Service Classes**: The UserService/ProductService pattern is extremely common in REST APIs
 2. **Error Handling**: Repeated try-catch blocks around fetch calls

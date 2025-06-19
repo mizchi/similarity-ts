@@ -1,18 +1,18 @@
-# ts-similarity: TypeScript/JavaScript の重複コードを見つけるツール
+# similarity-ts: TypeScript/JavaScript の重複コードを見つけるツール
 
 AI に TypeScript を書かせていると、 `_enhanced` だとか `_fixed` だとか、似たようなファイルが増え続けます。
 
 それらを検知するツールを作りました。
 
-https://github.com/mizchi/ts-similarity
+https://github.com/mizchi/similarity-ts
 
-ts-similarity は AST ベースの構造比較で意味的に似ている関数同士を検出します。現時点では、まず関数(+アロー関数)の比較をターゲットにしています。
+similarity-ts は AST ベースの構造比較で意味的に似ている関数同士を検出します。現時点では、まず関数(+アロー関数)の比較をターゲットにしています。
 
-Rust で書きました。 `cargo install --git` でインストールできます：
+Rust で書きました。 `cargo install` でインストールできます：
 
 ```bash
-# GitHubから直接インストール
-cargo install --git https://github.com/mizchi/ts-similarity
+# crates.ioからインストール
+cargo install similarity-ts
 ```
 
 ## 使ってみる
@@ -20,7 +20,7 @@ cargo install --git https://github.com/mizchi/ts-similarity
 プロジェクトのルートで実行するだけです。
 
 ```bash
-$ ts-similarity
+$ similarity-ts
 ```
 
 実際の出力例を見てみましょう：
@@ -50,7 +50,7 @@ Similarity: 87.50%, Score: 10.5 points (lines 12~12, avg: 12.0)
 見つかった重複コードの詳細を見たい場合は`--print`オプションを使います：
 
 ```bash
-$ ts-similarity . --print
+$ similarity-ts . --print
 
 Similarity: 89.09%, Score: 8.0 points (lines 9~9, avg: 9.0)
   src/utils/getUserById.ts:4-12 getUserById
@@ -182,8 +182,8 @@ Claude Code とのペアプログラミングは、特に Rust のような型�
 
 ## まとめ
 
-`ts-similarity`を使えば、プロジェクト内の重複コードを簡単に見つけられます。定期的に実行して、コードの品質向上に役立ててください。
+`similarity-ts`を使えば、プロジェクト内の重複コードを簡単に見つけられます。定期的に実行して、コードの品質向上に役立ててください。
 
 機能要望があれば以下まで。
 
-https://github.com/mizchi/ts-similarity/issues
+https://github.com/mizchi/similarity-ts/issues

@@ -2,7 +2,7 @@ import { extractFunctions, findDuplicateFunctions, compareFunctions } from "../s
 import { readFileSync, readdirSync, statSync } from "fs";
 import { join } from "path";
 
-console.log("=== Analyzing ts-similarity source code for refactoring opportunities ===\n");
+console.log("=== Analyzing similarity-ts source code for refactoring opportunities ===\n");
 
 // Collect all TypeScript files from src directory
 function collectTsFiles(dir: string): string[] {

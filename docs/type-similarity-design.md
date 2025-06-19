@@ -153,9 +153,9 @@ export function compareTypes(
 新しいオプション追加:
 
 ```bash
-ts-similarity ./src --include-types
-ts-similarity ./src --types-only
-ts-similarity ./src --type-threshold 0.8
+similarity-ts ./src --include-types
+similarity-ts ./src --types-only
+similarity-ts ./src --type-threshold 0.8
 ```
 
 **出力フォーマット**:

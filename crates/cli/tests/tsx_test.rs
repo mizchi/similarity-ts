@@ -30,7 +30,7 @@ export function PrimaryButton({ label, onClick }: ButtonProps) {
     )
     .unwrap();
 
-    // Run ts-similarity on .tsx file
+    // Run similarity-ts on .tsx file
     let mut cmd = Command::cargo_bin("similarity-ts").unwrap();
     cmd.arg(dir.path())
         .arg("--min-lines")
@@ -77,7 +77,7 @@ export function NameDisplay({ name }: { name: string }) {
     )
     .unwrap();
 
-    // Run ts-similarity on both files
+    // Run similarity-ts on both files
     let mut cmd = Command::cargo_bin("similarity-ts").unwrap();
     cmd.arg(dir.path())
         .arg("--threshold")

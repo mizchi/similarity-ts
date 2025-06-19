@@ -13,13 +13,13 @@ This directory contains performance benchmarking data and complex test cases.
 
 ```bash
 # Basic performance test
-time ts-similarity benchmarks/data/ --threshold 0.8
+time similarity-ts benchmarks/data/ --threshold 0.8
 
 # Memory usage test
-/usr/bin/time -v ts-similarity benchmarks/data/ --threshold 0.8
+/usr/bin/time -v similarity-ts benchmarks/data/ --threshold 0.8
 
 # Stress test with many files
-ts-similarity benchmarks/data/ --threshold 0.7 --min-tokens 10
+similarity-ts benchmarks/data/ --threshold 0.7 --min-tokens 10
 ```
 
 ## Notes

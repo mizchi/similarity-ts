@@ -1,7 +1,7 @@
 import { extractFunctions, compareFunctions } from "../src/core/function_extractor.ts";
 import { readFileSync } from "fs";
 
-console.log("=== Analyzing visitNode pattern in ts-similarity ===\n");
+console.log("=== Analyzing visitNode pattern in similarity-ts ===\n");
 
 // Files containing visitNode
 const files = [

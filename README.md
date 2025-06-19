@@ -1,4 +1,4 @@
-# ts-similarity
+# similarity-ts
 
 High-performance TypeScript/JavaScript code similarity detection tool written in Rust. Detects duplicate functions and similar type definitions across your codebase.
 
@@ -24,8 +24,8 @@ High-performance TypeScript/JavaScript code similarity detection tool written in
 
 ```bash
 # Clone the repository
-git clone https://github.com/mizchi/ts-similarity.git
-cd ts-similarity
+git clone https://github.com/mizchi/similarity-ts.git
+cd similarity-ts
 
 # Build and install
 cargo install --path crates/cli

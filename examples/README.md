@@ -1,6 +1,6 @@
 # Examples
 
-Simple, clear examples to understand ts-similarity functionality.
+Simple, clear examples to understand similarity-ts functionality.
 
 ## Directory Structure
 
@@ -14,13 +14,13 @@ Simple, clear examples to understand ts-similarity functionality.
 
 ```bash
 # Test function detection
-ts-similarity examples/specs/duplicate-functions.ts --threshold 0.8 --min-tokens 20
+similarity-ts examples/specs/duplicate-functions.ts --threshold 0.8 --min-tokens 20
 
 # Test type detection
-ts-similarity examples/specs/duplicate-types.ts --experimental-types --threshold 0.8
+similarity-ts examples/specs/duplicate-types.ts --experimental-types --threshold 0.8
 
 # Test multi-file project
-ts-similarity examples/specs/sample_project/ --threshold 0.85
+similarity-ts examples/specs/sample_project/ --threshold 0.85
 ```
 
 See `specs/README.md` for expected results.

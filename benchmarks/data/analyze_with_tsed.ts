@@ -4,7 +4,7 @@ import { parseTypeScript } from "../src/parser.ts";
 import { readFileSync } from "fs";
 
 async function analyzeTSSimilarityProject() {
-  console.log("=== Analyzing ts-similarity Project with TSED ===\n");
+  console.log("=== Analyzing similarity-ts Project with TSED ===\n");
 
   const repo = buildRepoAnalyzer();
 

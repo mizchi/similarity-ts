@@ -17,7 +17,7 @@
 
 ### CLI Improvements
 - [x] Support multiple file/directory arguments with glob expansion
-  - Accept multiple paths: `ts-similarity functions src/ lib/ tests/`
+  - Accept multiple paths: `similarity-ts functions src/ lib/ tests/`
   - Expand glob patterns in arguments
   - Respect .gitignore when expanding paths
   - Use `ignore` crate which already handles .gitignore
@@ -30,7 +30,7 @@
   - Benchmark performance improvements
 - [ ] Incremental mode with AST caching
   - Add `--incremental` flag
-  - Cache parsed ASTs to disk (e.g., `.ts-similarity-cache/`)
+  - Cache parsed ASTs to disk (e.g., `.similarity-ts-cache/`)
   - Use file modification time to invalidate cache
   - Store serialized AST or extracted function/type signatures
   - Consider using `serde` for AST serialization

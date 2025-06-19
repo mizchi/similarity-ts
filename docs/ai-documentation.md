@@ -1,8 +1,8 @@
-# ts-similarity: AI-Oriented Documentation
+# similarity-ts: AI-Oriented Documentation
 
 ## Project Overview
 
-ts-similarity is a high-performance code similarity detection tool for TypeScript/JavaScript codebases, written in Rust. It uses AST-based structural comparison to find duplicate or similar code patterns.
+similarity-ts is a high-performance code similarity detection tool for TypeScript/JavaScript codebases, written in Rust. It uses AST-based structural comparison to find duplicate or similar code patterns.
 
 ## Core Purpose
 
@@ -58,28 +58,28 @@ The tool implements the TSED algorithm from academic research:
 ### Basic Function Similarity
 ```bash
 # Analyze current directory with default settings
-ts-similarity
+similarity-ts
 
 # Analyze specific directory with custom threshold
-ts-similarity ./src --threshold 0.9
+similarity-ts ./src --threshold 0.9
 ```
 
 ### Type Similarity (Experimental)
 ```bash
 # Enable type checking
-ts-similarity ./src --types
+similarity-ts ./src --types
 
 # Types only
-ts-similarity ./src --no-functions --types
+similarity-ts ./src --no-functions --types
 ```
 
 ### Advanced Options
 ```bash
 # Cross-file analysis with detailed output
-ts-similarity ./src --cross-file --print
+similarity-ts ./src --cross-file --print
 
 # Fast mode control
-ts-similarity ./src --no-fast  # Disable bloom filter optimization
+similarity-ts ./src --no-fast  # Disable bloom filter optimization
 ```
 
 ## Output Interpretation
@@ -142,14 +142,14 @@ Similarity: 89.09%, Score: 8.0 points (lines 9~9, avg: 9.0)
 # Example GitHub Action
 - name: Check code duplication
   run: |
-    cargo install --git https://github.com/mizchi/ts-similarity
-    ts-similarity ./src --threshold 0.8
+    cargo install --git https://github.com/mizchi/similarity-ts
+    similarity-ts ./src --threshold 0.8
 ```
 
 ### Pre-commit Hook
 ```bash
 #!/bin/bash
-ts-similarity --threshold 0.9 || {
+similarity-ts --threshold 0.9 || {
   echo "High code duplication detected!"
   exit 1
 }
