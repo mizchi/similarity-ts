@@ -1,7 +1,7 @@
 use crate::parallel::FileData;
 use std::fs;
 use std::path::PathBuf;
-use ts_similarity_core::{
+use similarity_ts_core::{
     compare_functions, extract_functions, find_similar_functions_fast,
     find_similar_functions_in_file, FastSimilarityOptions, SimilarityResult, TSEDOptions,
 };

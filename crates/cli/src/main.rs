@@ -4,7 +4,7 @@ mod check;
 pub mod parallel;
 
 #[derive(Parser)]
-#[command(name = "ts-similarity")]
+#[command(name = "similarity-ts")]
 #[command(about = "TypeScript/JavaScript code similarity analyzer")]
 #[command(version)]
 struct Cli {
@@ -168,7 +168,7 @@ fn check_types(
     use std::collections::HashSet;
     use std::fs;
     use std::path::Path;
-    use ts_similarity_core::{
+    use similarity_ts_core::{
         extract_type_literals_from_code, extract_types_from_code, find_similar_type_literals,
         find_similar_types, TypeComparisonOptions, TypeKind,
     };
@@ -422,15 +422,15 @@ fn get_relative_path(file_path: &str) -> String {
     }
 }
 
-fn format_type_kind(kind: &ts_similarity_core::TypeKind) -> &'static str {
+fn format_type_kind(kind: &similarity_ts_core::TypeKind) -> &'static str {
     match kind {
-        ts_similarity_core::TypeKind::Interface => "interface",
-        ts_similarity_core::TypeKind::TypeAlias => "type",
-        ts_similarity_core::TypeKind::TypeLiteral => "type literal",
+        similarity_ts_core::TypeKind::Interface => "interface",
+        similarity_ts_core::TypeKind::TypeAlias => "type",
+        similarity_ts_core::TypeKind::TypeLiteral => "type literal",
     }
 }
 
-fn show_type_details(type_def: &ts_similarity_core::TypeDefinition) {
+fn show_type_details(type_def: &similarity_ts_core::TypeDefinition) {
     println!("\n\x1b[36m--- {} ({}) ---\x1b[0m", type_def.name, format_type_kind(&type_def.kind));
 
     if !type_def.generics.is_empty() {
@@ -451,7 +451,7 @@ fn show_type_details(type_def: &ts_similarity_core::TypeDefinition) {
     }
 }
 
-fn show_type_literal_details(type_literal: &ts_similarity_core::TypeLiteralDefinition) {
+fn show_type_literal_details(type_literal: &similarity_ts_core::TypeLiteralDefinition) {
     println!("\n\x1b[36m--- {} (type literal) ---\x1b[0m", type_literal.name);
 
     println!("Context: {}", format_type_literal_context(&type_literal.context));
@@ -466,24 +466,24 @@ fn show_type_literal_details(type_literal: &ts_similarity_core::TypeLiteralDefin
     }
 }
 
-fn format_type_literal_context(context: &ts_similarity_core::TypeLiteralContext) -> String {
+fn format_type_literal_context(context: &similarity_ts_core::TypeLiteralContext) -> String {
     match context {
-        ts_similarity_core::TypeLiteralContext::FunctionReturn(name) => {
+        similarity_ts_core::TypeLiteralContext::FunctionReturn(name) => {
             format!("Function '{}' return type", name)
         }
-        ts_similarity_core::TypeLiteralContext::FunctionParameter(func_name, param_name) => {
+        similarity_ts_core::TypeLiteralContext::FunctionParameter(func_name, param_name) => {
             format!("Function '{}' parameter '{}'", func_name, param_name)
         }
-        ts_similarity_core::TypeLiteralContext::VariableDeclaration(name) => {
+        similarity_ts_core::TypeLiteralContext::VariableDeclaration(name) => {
             format!("Variable '{}' type annotation", name)
         }
-        ts_similarity_core::TypeLiteralContext::ArrowFunctionReturn(name) => {
+        similarity_ts_core::TypeLiteralContext::ArrowFunctionReturn(name) => {
             format!("Arrow function '{}' return type", name)
         }
     }
 }
 
-fn show_comparison_details(result: &ts_similarity_core::TypeComparisonResult) {
+fn show_comparison_details(result: &similarity_ts_core::TypeComparisonResult) {
     if !result.differences.missing_properties.is_empty() {
         println!("Missing properties: {}", result.differences.missing_properties.join(", "));
     }

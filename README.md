@@ -32,92 +32,92 @@ cargo install --path crates/cli
 
 # Or use directly after building
 cargo build --release
-./target/release/ts-similarity --help
+./target/release/similarity-ts --help
 ```
 
 ### Using cargo install
 
 ```bash
-# Install directly from GitHub
-cargo install --git https://github.com/mizchi/ts-similarity ts-similarity-cli
+# Install from crates.io
+cargo install similarity-ts
 
 # Use the installed binary
-ts-similarity --help
+similarity-ts --help
 ```
 
 ## Quick Start
 
 ```bash
 # Just run it! Zero configuration needed
-ts-similarity
+similarity-ts
 
 # Analyze specific paths
-ts-similarity src/ lib/
+similarity-ts src/ lib/
 
 # Use custom threshold
-ts-similarity . -t 0.9
+similarity-ts . -t 0.9
 
 # Print code details
-ts-similarity . --print
+similarity-ts . --print
 
 # Check functions only (default)
-ts-similarity .
+similarity-ts .
 
 # Enable type checking (experimental)
-ts-similarity . --types
+similarity-ts . --experimental-types
 
 # Check types only
-ts-similarity . --no-functions --types
+similarity-ts . --no-functions --experimental-types
 ```
 
 ## Usage
 
-By default, `ts-similarity` runs function similarity detection only. Type similarity detection is experimental and can be enabled with the `--types` flag.
+By default, `similarity-ts` runs function similarity detection only. Type similarity detection is experimental and can be enabled with the `--experimental-types` flag.
 
 ### Function Similarity Detection
 
 ```bash
 # Check for duplicate functions in a directory (default: current directory)
 # Fast mode with AST-based bloom filter is enabled by default
-ts-similarity ./src
+similarity-ts ./src
 
 # Disable fast mode (use traditional comparison)
-ts-similarity ./src --no-fast
+similarity-ts ./src --no-fast
 
 # Adjust similarity threshold (0.0-1.0, default: 0.8)
-ts-similarity ./src --threshold 0.9
+similarity-ts ./src --threshold 0.9
 
 # Print function code in output
-ts-similarity ./src --print
+similarity-ts ./src --print
 
 # Filter by minimum function size (default: 5 lines)
-ts-similarity ./src --min-lines 10
+similarity-ts ./src --min-lines 10
 
 # Check specific file extensions (default: ts,tsx,js,jsx,mjs,cjs,mts,cts)
-ts-similarity ./src --extensions ts,tsx
+similarity-ts ./src --extensions ts,tsx
 ```
 
 ### Type Similarity Detection (Experimental)
 
 ```bash
 # Enable type checking along with functions
-ts-similarity ./src --types
+similarity-ts ./src --experimental-types
 
 # Check for similar type definitions (types only)
-ts-similarity ./src --no-functions --types
+similarity-ts ./src --no-functions --experimental-types
 
 # Print type definitions in output
-ts-similarity ./src --no-functions --types --print
+similarity-ts ./src --no-functions --experimental-types --print
 
 # Check only interfaces or type aliases
-ts-similarity ./src --types --interfaces-only
-ts-similarity ./src --types --types-only
+similarity-ts ./src --experimental-types --interfaces-only
+similarity-ts ./src --experimental-types --types-only
 
 # Include type literals (function parameters, return types, etc.)
-ts-similarity ./src --types --include-type-literals
+similarity-ts ./src --experimental-types --include-type-literals
 
 # Adjust weights for structural vs naming similarity
-ts-similarity ./src --types --structural-weight 0.7 --naming-weight 0.3
+similarity-ts ./src --experimental-types --structural-weight 0.7 --naming-weight 0.3
 ```
 
 ## Output Format
@@ -157,13 +157,13 @@ Results are sorted by priority (lines × similarity) to help you focus on the mo
 
 ```bash
 # Find duplicate functions in your project
-ts-similarity ./src --threshold 0.7 --print
+similarity-ts ./src --threshold 0.7 --print
 
 # Find similar types across files
-ts-similarity ./src --no-functions --cross-file --print
+similarity-ts ./src --no-functions --experimental-types --cross-file --print
 
 # Comprehensive analysis with custom settings
-ts-similarity ./src \
+similarity-ts ./src \
   --threshold 0.8 \
   --min-lines 10 \
   --cross-file \

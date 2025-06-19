@@ -10,7 +10,7 @@ use ts_similarity_cli::sequential::{
     check_cross_file_duplicates_sequential, check_within_file_duplicates_sequential,
     load_files_sequential,
 };
-use ts_similarity_core::TSEDOptions;
+use similarity_ts_core::TSEDOptions;
 
 /// Generate sample TypeScript code for benchmarking
 fn generate_sample_code(num_functions: usize) -> String {

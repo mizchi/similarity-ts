@@ -1,5 +1,5 @@
 use std::rc::Rc;
-use ts_similarity_core::{calculate_tsed, parse_and_convert_to_tree, TSEDOptions};
+use similarity_ts_core::{calculate_tsed, parse_and_convert_to_tree, TSEDOptions};
 
 #[test]
 fn debug_high_similarity_issue() {
@@ -48,7 +48,7 @@ function getNodeLabel(node: TreeNode): string {
     print_tree(&tree2, 0);
 }
 
-fn print_tree(node: &Rc<ts_similarity_core::tree::TreeNode>, depth: usize) {
+fn print_tree(node: &Rc<similarity_ts_core::tree::TreeNode>, depth: usize) {
     let indent = "  ".repeat(depth);
     println!("{}{}", indent, node.label);
     for child in &node.children {

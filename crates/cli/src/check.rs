@@ -6,7 +6,7 @@ use ignore::WalkBuilder;
 use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
-use ts_similarity_core::TSEDOptions;
+use similarity_ts_core::TSEDOptions;
 
 /// Extract lines from file content within the specified range
 fn extract_lines_from_content(content: &str, start_line: u32, end_line: u32) -> String {
@@ -52,7 +52,7 @@ fn show_function_code(file_path: &str, function_name: &str, start_line: u32, end
 struct DuplicateResult {
     file1: PathBuf,
     file2: PathBuf,
-    result: ts_similarity_core::SimilarityResult,
+    result: similarity_ts_core::SimilarityResult,
 }
 
 impl DuplicateResult {

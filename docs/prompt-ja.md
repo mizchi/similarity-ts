@@ -1,16 +1,16 @@
-# ts-similarity: AIアシスタントガイド
+# similarity-ts: AIアシスタントガイド
 
 ## 目的
 ASTベースの比較でTypeScript/JavaScriptの重複コードを検出し、リファクタリングを支援します。
 
 ## インストール
 ```bash
-cargo install --git https://github.com/mizchi/ts-similarity
+cargo install similarity-ts
 ```
 
 ## コマンド形式
 ```bash
-ts-similarity [パス...] [オプション]
+similarity-ts [パス...] [オプション]
 ```
 
 ## 主要オプション
@@ -23,20 +23,20 @@ ts-similarity [パス...] [オプション]
 ### 1. 広範囲スキャン
 コードベース全体の重複を発見：
 ```bash
-ts-similarity src/ --threshold 0.85 --min-tokens 25
+similarity-ts src/ --threshold 0.85 --min-tokens 25
 ```
 
 ### 2. 詳細分析
 特定のファイルペアを調査：
 ```bash
-ts-similarity file1.ts file2.ts --threshold 0.8 --min-tokens 20 --print
+similarity-ts file1.ts file2.ts --threshold 0.8 --min-tokens 20 --print
 ```
 
 ### 3. しきい値調整
 結果がない場合は段階的に下げる：
 ```bash
-ts-similarity file1.ts file2.ts --threshold 0.75 --min-tokens 20
-ts-similarity file1.ts file2.ts --threshold 0.7 --min-tokens 20
+similarity-ts file1.ts file2.ts --threshold 0.75 --min-tokens 20
+similarity-ts file1.ts file2.ts --threshold 0.7 --min-tokens 20
 ```
 
 ## 出力形式

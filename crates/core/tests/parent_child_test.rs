@@ -1,4 +1,4 @@
-use ts_similarity_core::{find_similar_functions_in_file, TSEDOptions};
+use similarity_ts_core::{find_similar_functions_in_file, TSEDOptions};
 
 #[test]
 fn test_parent_child_exclusion() {

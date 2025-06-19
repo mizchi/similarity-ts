@@ -1,4 +1,4 @@
-use ts_similarity_core::{
+use similarity_ts_core::{
     find_similar_functions_across_files, find_similar_functions_in_file, TSEDOptions,
 };
 

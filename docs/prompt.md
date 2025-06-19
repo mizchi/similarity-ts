@@ -1,4 +1,4 @@
-# ts-similarity: AI Assistant Guide
+# similarity-ts: AI Assistant Guide
 
 ## Purpose
 
@@ -7,9 +7,9 @@ Detects duplicate TypeScript/JavaScript code using AST comparison for refactorin
 ## Installation
 
 ```bash
-cargo install --git https://github.com/mizchi/ts-similarity
+cargo install similarity-ts
 # check options
-ts-similarity --help
+similarity-ts --help
 ```
 
 ## Key Options
@@ -25,7 +25,7 @@ ts-similarity --help
 Find all duplicates in codebase:
 
 ```bash
-ts-similarity src/ --threshold 0.85 --min-tokens 25
+similarity-ts src/ --threshold 0.85 --min-tokens 25
 ```
 
 ### 2. Focused Analysis
@@ -33,7 +33,7 @@ ts-similarity src/ --threshold 0.85 --min-tokens 25
 Examine specific file pairs:
 
 ```bash
-ts-similarity file1.ts file2.ts --threshold 0.8 --min-tokens 20 --print
+similarity-ts file1.ts file2.ts --threshold 0.8 --min-tokens 20 --print
 ```
 
 ### 3. Threshold Tuning
@@ -41,8 +41,8 @@ ts-similarity file1.ts file2.ts --threshold 0.8 --min-tokens 20 --print
 If no results, progressively lower:
 
 ```bash
-ts-similarity file1.ts file2.ts --threshold 0.75 --min-tokens 20
-ts-similarity file1.ts file2.ts --threshold 0.7 --min-tokens 20
+similarity-ts file1.ts file2.ts --threshold 0.75 --min-tokens 20
+similarity-ts file1.ts file2.ts --threshold 0.7 --min-tokens 20
 ```
 
 ## Output Format

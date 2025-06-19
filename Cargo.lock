@@ -1009,6 +1009,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "similarity-ts"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "assert_cmd",
+ "clap",
+ "criterion",
+ "ignore",
+ "predicates",
+ "rayon",
+ "similarity-ts-core",
+ "tempfile",
+ "walkdir",
+]
+
+[[package]]
+name = "similarity-ts-core"
+version = "0.1.0"
+dependencies = [
+ "criterion",
+ "oxc_allocator",
+ "oxc_ast",
+ "oxc_parser",
+ "oxc_span",
+ "regex",
+]
+
+[[package]]
 name = "siphasher"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1101,34 +1129,6 @@ checksum = "be4d6b5f19ff7664e8c98d03e2139cb510db9b0a60b55f8e8709b689d939b6bc"
 dependencies = [
  "serde",
  "serde_json",
-]
-
-[[package]]
-name = "ts-similarity-cli"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "assert_cmd",
- "clap",
- "criterion",
- "ignore",
- "predicates",
- "rayon",
- "tempfile",
- "ts-similarity-core",
- "walkdir",
-]
-
-[[package]]
-name = "ts-similarity-core"
-version = "0.1.0"
-dependencies = [
- "criterion",
- "oxc_allocator",
- "oxc_ast",
- "oxc_parser",
- "oxc_span",
- "regex",
 ]
 
 [[package]]

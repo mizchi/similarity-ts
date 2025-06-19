@@ -1,5 +1,5 @@
 [package]
-name = "ts-similarity-cli"
+name = "similarity-ts"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
@@ -7,16 +7,16 @@ description = "CLI tool for detecting code duplication in TypeScript/JavaScript 
 authors = ["mizchi"]
 repository = "https://github.com/mizchi/ts-similarity"
 homepage = "https://github.com/mizchi/ts-similarity"
-documentation = "https://docs.rs/ts-similarity-cli"
+documentation = "https://docs.rs/similarity-ts"
 keywords = ["typescript", "javascript", "duplicate", "detection", "cli"]
 categories = ["command-line-utilities", "development-tools"]
 
 [[bin]]
-name = "ts-similarity"
+name = "similarity-ts"
 path = "src/main.rs"
 
 [dependencies]
-ts-similarity-core = { version = "0.1.0", path = "../core" }
+similarity-ts-core = { version = "0.1.0", path = "../core" }
 clap = { version = "4.0", features = ["derive"] }
 anyhow = "1.0"
 walkdir = "2.5"

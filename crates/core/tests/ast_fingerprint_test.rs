@@ -1,4 +1,4 @@
-use ts_similarity_core::AstFingerprint;
+use similarity_ts_core::AstFingerprint;
 
 #[test]
 fn test_ast_fingerprint_usage() {

@@ -1,7 +1,7 @@
 use rayon::prelude::*;
 use std::fs;
 use std::path::PathBuf;
-use ts_similarity_core::{
+use similarity_ts_core::{
     extract_functions, find_similar_functions_fast, find_similar_functions_in_file,
     FastSimilarityOptions, FunctionDefinition, SimilarityResult, TSEDOptions,
 };
@@ -113,7 +113,7 @@ pub fn check_cross_file_duplicates_parallel(
             let (file2, content2, func2) = &all_functions[j];
 
             // Use core's compare_functions
-            match ts_similarity_core::compare_functions(func1, func2, content1, content2, options) {
+            match similarity_ts_core::compare_functions(func1, func2, content1, content2, options) {
                 Ok(similarity) => {
                     if similarity >= threshold {
                         Some((

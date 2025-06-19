@@ -38,7 +38,7 @@ export function computeTotal(values: number[]): number {
     .unwrap();
 
     // Run the CLI with lower threshold since these functions are ~82% similar
-    let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
+    let mut cmd = Command::cargo_bin("similarity-ts").unwrap();
     cmd.arg(dir.path())
         .arg("-t")
         .arg("0.8")
@@ -90,7 +90,7 @@ export function calculateTotal(elements: any[]): number {
     .unwrap();
 
     // Run the CLI with lower threshold
-    let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
+    let mut cmd = Command::cargo_bin("similarity-ts").unwrap();
     cmd.arg(dir.path())
         .arg("-t")
         .arg("0.6")
@@ -130,7 +130,7 @@ type UserData = {
     .unwrap();
 
     // Run the CLI for types
-    let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
+    let mut cmd = Command::cargo_bin("similarity-ts").unwrap();
     cmd.arg(dir.path())
         .arg("--no-functions")
         .arg("--experimental-types")
@@ -181,7 +181,7 @@ interface IPerson {
     .unwrap();
 
     // Run default (functions only)
-    let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
+    let mut cmd = Command::cargo_bin("similarity-ts").unwrap();
     cmd.arg(dir.path())
         .arg("--min-lines")
         .arg("3")
@@ -228,7 +228,7 @@ export function handleList(list: number[]): number {
     .unwrap();
 
     // With low threshold - should find similarity
-    let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
+    let mut cmd = Command::cargo_bin("similarity-ts").unwrap();
     cmd.arg(dir.path())
         .arg("--threshold")
         .arg("0.5")
@@ -238,7 +238,7 @@ export function handleList(list: number[]): number {
         .stdout(predicate::str::contains("handleList"));
 
     // With high threshold - should not find similarity
-    let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
+    let mut cmd = Command::cargo_bin("similarity-ts").unwrap();
     cmd.arg(dir.path())
         .arg("--threshold")
         .arg("0.9")
@@ -283,7 +283,7 @@ export function twice(num: number): number {
     .unwrap();
 
     // Run with multiple paths
-    let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
+    let mut cmd = Command::cargo_bin("similarity-ts").unwrap();
     cmd.arg(&dir1)
         .arg(&dir2)
         .arg("-t")
@@ -322,7 +322,7 @@ export function found() {
     .unwrap();
 
     // Run the CLI
-    let mut cmd = Command::cargo_bin("ts-similarity").unwrap();
+    let mut cmd = Command::cargo_bin("similarity-ts").unwrap();
     cmd.arg(dir.path())
         .assert()
         .success()

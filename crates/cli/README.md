@@ -1,30 +1,30 @@
-# ts-similarity-cli
+# similarity-ts
 
 CLI tool for detecting code duplication in TypeScript/JavaScript projects.
 
 ## Installation
 
 ```bash
-cargo install ts-similarity-cli
+cargo install similarity-ts
 ```
 
 ## Usage
 
 ```bash
 # Check for duplicate functions in current directory
-ts-similarity
+similarity-ts
 
 # Check specific files or directories
-ts-similarity src/ lib/
+similarity-ts src/ lib/
 
 # Set similarity threshold (0.0 to 1.0)
-ts-similarity --threshold 0.8
+similarity-ts --threshold 0.8
 
 # Filter by minimum tokens (recommended: 20-30)
-ts-similarity --min-tokens 25
+similarity-ts --min-tokens 25
 
 # Show actual code snippets
-ts-similarity --print
+similarity-ts --print
 ```
 
 ## Subcommands

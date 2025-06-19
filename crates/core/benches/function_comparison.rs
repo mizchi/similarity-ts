@@ -1,5 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use ts_similarity_core::{
+use similarity_ts_core::{
     find_similar_functions_across_files, find_similar_functions_across_files_fast,
     find_similar_functions_fast, find_similar_functions_in_file, FastSimilarityOptions,
     TSEDOptions,

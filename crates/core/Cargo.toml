@@ -1,5 +1,5 @@
 [package]
-name = "ts-similarity-core"
+name = "similarity-ts-core"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
@@ -7,7 +7,7 @@ description = "Core library for TypeScript/JavaScript code similarity detection 
 authors = ["mizchi"]
 repository = "https://github.com/mizchi/ts-similarity"
 homepage = "https://github.com/mizchi/ts-similarity"
-documentation = "https://docs.rs/ts-similarity-core"
+documentation = "https://docs.rs/similarity-ts-core"
 keywords = ["typescript", "javascript", "similarity", "ast", "refactoring"]
 categories = ["development-tools", "parser-implementations"]
 
