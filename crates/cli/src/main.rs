@@ -48,6 +48,14 @@ struct Cli {
     #[arg(long)]
     no_size_penalty: bool,
 
+    /// Filter functions by name (substring match)
+    #[arg(long)]
+    filter_function: Option<String>,
+
+    /// Filter functions by body content (substring match)
+    #[arg(long)]
+    filter_function_body: Option<String>,
+
     /// Include both interfaces and type aliases
     #[arg(long)]
     include_types: bool,
@@ -122,6 +130,8 @@ fn main() -> anyhow::Result<()> {
             cli.no_size_penalty,
             cli.print,
             !cli.no_fast,
+            cli.filter_function.as_ref(),
+            cli.filter_function_body.as_ref(),
         )?;
     }
 

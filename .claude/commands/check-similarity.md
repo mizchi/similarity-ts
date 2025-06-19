@@ -20,6 +20,8 @@ similarity-ts --help
 - `--min-tokens <n>`: Skip functions with <n AST nodes (recommended: 20-30)
 - `--print`: Show actual code snippets
 - `--experimental-types`: Enable type similarity detection (interfaces, type aliases)
+- `--filter-function <name>`: Filter results by function name (substring match)
+- `--filter-function-body <text>`: Filter results by function body content (substring match)
 
 ## AI Refactoring Workflow
 

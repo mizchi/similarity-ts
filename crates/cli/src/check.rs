@@ -65,9 +65,71 @@ impl DuplicateResult {
 }
 
 /// Display similarity results
-fn display_all_results(mut all_results: Vec<DuplicateResult>, print: bool) {
+fn display_all_results(
+    mut all_results: Vec<DuplicateResult>,
+    print: bool,
+    filter_function: Option<&String>,
+    filter_function_body: Option<&String>,
+) {
     if all_results.is_empty() {
         println!("\nNo duplicate functions found!");
+        return;
+    }
+
+    // Apply filters if specified
+    if filter_function.is_some() || filter_function_body.is_some() {
+        all_results.retain(|dup| {
+            // Check function name filter
+            if let Some(filter) = filter_function {
+                if !dup.result.func1.name.contains(filter)
+                    && !dup.result.func2.name.contains(filter)
+                {
+                    return false;
+                }
+            }
+
+            // Check function body filter
+            if let Some(filter) = filter_function_body {
+                // Need to read the file content to check body
+                let mut match_found = false;
+
+                // Check first function
+                if let Ok(content) = fs::read_to_string(&dup.file1) {
+                    let func1_body = extract_lines_from_content(
+                        &content,
+                        dup.result.func1.start_line,
+                        dup.result.func1.end_line,
+                    );
+                    if func1_body.contains(filter) {
+                        match_found = true;
+                    }
+                }
+
+                // Check second function if no match yet
+                if !match_found {
+                    if let Ok(content) = fs::read_to_string(&dup.file2) {
+                        let func2_body = extract_lines_from_content(
+                            &content,
+                            dup.result.func2.start_line,
+                            dup.result.func2.end_line,
+                        );
+                        if func2_body.contains(filter) {
+                            match_found = true;
+                        }
+                    }
+                }
+
+                if !match_found {
+                    return false;
+                }
+            }
+
+            true
+        });
+    }
+
+    if all_results.is_empty() {
+        println!("\nNo duplicate functions found matching the filters!");
         return;
     }
 
@@ -161,6 +223,8 @@ pub fn check_paths(
     no_size_penalty: bool,
     print: bool,
     fast_mode: bool,
+    filter_function: Option<&String>,
+    filter_function_body: Option<&String>,
 ) -> anyhow::Result<()> {
     let default_extensions = vec!["ts", "tsx", "js", "jsx", "mjs", "cjs", "mts", "cts"];
     let exts: Vec<&str> =
@@ -261,7 +325,7 @@ pub fn check_paths(
     }
 
     // Display all results together
-    display_all_results(all_results, print);
+    display_all_results(all_results, print, filter_function, filter_function_body);
 
     Ok(())
 }
