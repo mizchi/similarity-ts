@@ -103,18 +103,20 @@ fn display_all_results(
             )
         };
 
-        // Calculate the line range
-        let min_line = dup.result.func1.start_line.min(dup.result.func2.start_line);
-        let max_line = dup.result.func1.end_line.max(dup.result.func2.end_line);
-        let avg_lines = (dup.result.func1.line_count() + dup.result.func2.line_count()) as f64 / 2.0;
+        // Calculate the line counts
+        let line_count1 = dup.result.func1.line_count();
+        let line_count2 = dup.result.func2.line_count();
+        let min_lines = line_count1.min(line_count2);
+        let max_lines = line_count1.max(line_count2);
+        let avg_lines = (line_count1 + line_count2) as f64 / 2.0;
         let score = dup.result.similarity * avg_lines;
         
         println!(
-            "\nSimilarity: {:.2}%, Score: {:.1} points (lines {}-{}, avg: {:.1})",
+            "\nSimilarity: {:.2}%, Score: {:.1} points (lines {}~{}, avg: {:.1})",
             dup.result.similarity * 100.0,
             score,
-            min_line,
-            max_line,
+            min_lines,
+            max_lines,
             avg_lines
         );
         println!(
