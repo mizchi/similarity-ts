@@ -92,7 +92,8 @@ pub fn check_cross_file_duplicates_sequential(
 
             // Only check across different files
             if file1 != file2 {
-                if let Ok(similarity) = compare_functions(func1, func2, content1, content2, options) {
+                if let Ok(similarity) = compare_functions(func1, func2, content1, content2, options)
+                {
                     if similarity >= threshold {
                         results.push((
                             file1.clone(),

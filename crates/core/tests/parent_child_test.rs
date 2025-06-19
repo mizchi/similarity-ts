@@ -41,12 +41,14 @@ function anotherSimilar() {
 
         // Assert no parent-child relationships
         assert!(
-            !(pair.func1.name == "parentFunction" && pair.func2.name == "childArrow" || pair.func1.name == "childArrow" && pair.func2.name == "parentFunction"),
+            !(pair.func1.name == "parentFunction" && pair.func2.name == "childArrow"
+                || pair.func1.name == "childArrow" && pair.func2.name == "parentFunction"),
             "Should not find parent-child relationship between parentFunction and childArrow"
         );
 
         assert!(
-            !(pair.func1.name == "parentFunction" && pair.func2.name == "childFunction" || pair.func1.name == "childFunction" && pair.func2.name == "parentFunction"),
+            !(pair.func1.name == "parentFunction" && pair.func2.name == "childFunction"
+                || pair.func1.name == "childFunction" && pair.func2.name == "parentFunction"),
             "Should not find parent-child relationship between parentFunction and childFunction"
         );
     }

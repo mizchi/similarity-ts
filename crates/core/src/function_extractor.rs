@@ -484,10 +484,8 @@ fn count_function_nodes(body_span: Span, source_text: &str) -> Option<u32> {
                 Err(_) => {
                     // If all else fails, make a rough estimate based on the text
                     // Count common syntax elements as a fallback
-                    let node_count = body_text
-                        .matches(['{', '}', '(', ')', ';'])
-                        .count() as u32
-                        + 1;
+                    let node_count =
+                        body_text.matches(['{', '}', '(', ')', ';']).count() as u32 + 1;
                     Some(node_count.max(1))
                 }
             }

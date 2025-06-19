@@ -236,7 +236,9 @@ fn expression_to_tree_node(expr: &Expression, id_counter: &mut usize) -> Option<
             // Add body
             if arrow.expression {
                 // Expression body (e.g., => x + 1)
-                if let Some(Statement::ExpressionStatement(expr_stmt)) = arrow.body.statements.first() {
+                if let Some(Statement::ExpressionStatement(expr_stmt)) =
+                    arrow.body.statements.first()
+                {
                     if let Some(expr_node) =
                         expression_to_tree_node(&expr_stmt.expression, id_counter)
                     {
