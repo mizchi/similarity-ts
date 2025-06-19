@@ -130,51 +130,18 @@ The Rust implementation handles more node types and preserves more structural in
 
 ## Performance Comparison
 
-### Test Results
+For detailed performance benchmarks and comparisons between different algorithms, see [`benchmark_results.md`](./benchmark_results.md).
 
-| File Size | TypeScript | Rust | Speedup |
-|-----------|------------|------|---------|
-| Small (~500B) | 2.89ms | 3.93ms | 0.74x (TS faster) |
-| Medium (~5KB) | 77.60ms | 4.86ms | 15.96x (Rust faster) |
-| Large (~20KB) | Memory issues | ~10ms | N/A |
+### TypeScript vs Rust Performance Summary
 
-### Performance Analysis
-
-1. **Small Files**: TypeScript is slightly faster due to:
-   - No process spawn overhead
-   - JIT compilation benefits for small inputs
-   - Rust CLI has ~3ms process startup cost
-
-2. **Medium Files**: Rust is ~16x faster due to:
-   - Native compiled code efficiency
-   - Better memory management
-   - Optimized tree algorithms
-
-3. **Large Files**: Only Rust can handle reliably:
-   - TypeScript has memory leak issues
-   - Rust maintains consistent performance
-   - Linear scaling with file size
+- **Small Files**: TypeScript is slightly faster (0.74x) due to no process spawn overhead
+- **Medium Files**: Rust is ~16x faster due to native code efficiency
+- **Large Files**: Only Rust can handle reliably (TypeScript has memory issues)
 
 ### Memory Usage
 
 - **TypeScript**: Exponential memory growth, OOM errors on large files
 - **Rust**: Constant memory usage with Rc (Reference Counting)
-
-### Rust Micro-benchmarks (cargo bench)
-
-Detailed performance characteristics using Criterion benchmark:
-
-| Operation | Small Files | Medium Files |
-|-----------|-------------|--------------|
-| Full TSED Calculation | 16.6 µs | 13.6 µs |
-| Parsing Only | 2.3 µs | 6.5 µs |
-| Tree Edit Distance Only | 11.1 µs | 0.22 µs |
-| 100 Comparisons | 1.73 ms | - |
-
-Key insights:
-- Parsing takes only ~14% of total time for small files
-- Tree edit distance calculation is surprisingly fast for medium files (213ns)
-- Linear scaling: 100 comparisons take ~100x single comparison time (no hidden overhead)
 
 ## Conclusion
 
