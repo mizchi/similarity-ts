@@ -17,7 +17,7 @@ struct Cli {
     print: bool,
 
     /// Similarity threshold (0.0-1.0)
-    #[arg(short, long, default_value = "0.9")]
+    #[arg(short, long, default_value = "0.87")]
     threshold: f64,
 
     /// Disable function similarity checking
