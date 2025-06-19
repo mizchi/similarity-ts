@@ -307,3 +307,96 @@ fn test_fixtures_files() {
         }
     }
 }
+
+#[test]
+fn test_function_vs_arrow_function_similarity() {
+    let code = r#"
+// Regular function declaration
+function add(a: number, b: number): number {
+    return a + b;
+}
+
+// Arrow function with same logic
+const addArrow = (a: number, b: number): number => {
+    return a + b;
+};
+
+// Expression body arrow function
+const addArrowShort = (a: number, b: number): number => a + b;
+
+// Different function
+function multiply(x: number, y: number): number {
+    return x * y;
+}
+
+// Complex function
+function processData(data: number[]): number {
+    const result = data.map(item => item * 2);
+    const filtered = result.filter(x => x > 10);
+    return filtered.reduce((a, b) => a + b, 0);
+}
+
+// Same as arrow function
+const processDataArrow = (data: number[]): number => {
+    const result = data.map(item => item * 2);
+    const filtered = result.filter(x => x > 10);
+    return filtered.reduce((a, b) => a + b, 0);
+};
+"#;
+
+    let options = TSEDOptions {
+        min_lines: 1,
+        size_penalty: false,
+        ..Default::default()
+    };
+
+    let result = find_similar_functions_in_file("test.ts", code, 0.7, &options).unwrap();
+
+    // Find add vs addArrow
+    let add_arrow = result.iter().find(|r| {
+        (r.func1.name == "add" && r.func2.name == "addArrow")
+            || (r.func1.name == "addArrow" && r.func2.name == "add")
+    });
+    assert!(add_arrow.is_some(), "Should find add vs addArrow similarity");
+    assert!(
+        add_arrow.unwrap().similarity > 0.9,
+        "Function and arrow function with same logic should have high similarity"
+    );
+
+    // Find add vs addArrowShort
+    let add_arrow_short = result.iter().find(|r| {
+        (r.func1.name == "add" && r.func2.name == "addArrowShort")
+            || (r.func1.name == "addArrowShort" && r.func2.name == "add")
+    });
+    assert!(add_arrow_short.is_some(), "Should find add vs addArrowShort similarity");
+    let add_arrow_short_sim = add_arrow_short.unwrap().similarity;
+    println!("add vs addArrowShort similarity: {}", add_arrow_short_sim);
+    assert!(
+        add_arrow_short_sim > 0.7,
+        "Function and expression arrow function should have good similarity (got {})",
+        add_arrow_short_sim
+    );
+
+    // Find processData vs processDataArrow
+    let process_arrow = result.iter().find(|r| {
+        (r.func1.name == "processData" && r.func2.name == "processDataArrow")
+            || (r.func1.name == "processDataArrow" && r.func2.name == "processData")
+    });
+    assert!(process_arrow.is_some(), "Should find processData vs processDataArrow similarity");
+    assert!(
+        process_arrow.unwrap().similarity > 0.95,
+        "Complex function and arrow function with same logic should have very high similarity"
+    );
+
+    // Check that different functions don't match
+    let add_multiply = result.iter().find(|r| {
+        (r.func1.name == "add" && r.func2.name == "multiply")
+            || (r.func1.name == "multiply" && r.func2.name == "add")
+    });
+    if let Some(pair) = add_multiply {
+        assert!(
+            pair.similarity < 0.9,
+            "Different functions should not have very high similarity"
+        );
+    }
+}
