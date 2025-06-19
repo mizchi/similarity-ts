@@ -2,8 +2,6 @@ pub mod apted;
 pub mod ast_fingerprint;
 pub mod fast_similarity;
 pub mod function_extractor;
-pub mod parallel_function_extractor;
-pub mod parallel_parser;
 pub mod parser;
 pub mod tree;
 pub mod tsed;
@@ -41,13 +39,4 @@ pub use type_normalizer::{
 pub use ast_fingerprint::AstFingerprint;
 pub use fast_similarity::{
     find_similar_functions_across_files_fast, find_similar_functions_fast, FastSimilarityOptions,
-};
-
-// Parallel parsing exports
-pub use parallel_parser::{parse_files_batched, parse_files_parallel, ParseResult};
-
-// Parallel function extraction exports
-pub use parallel_function_extractor::{
-    extract_functions_parallel, find_similar_functions_across_files_parallel,
-    find_similar_functions_in_file_parallel, FileWithFunctions,
 };

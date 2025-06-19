@@ -1110,8 +1110,10 @@ dependencies = [
  "anyhow",
  "assert_cmd",
  "clap",
+ "criterion",
  "ignore",
  "predicates",
+ "rayon",
  "tempfile",
  "ts-similarity-core",
  "walkdir",
@@ -1126,7 +1128,6 @@ dependencies = [
  "oxc_ast",
  "oxc_parser",
  "oxc_span",
- "rayon",
  "regex",
 ]
 

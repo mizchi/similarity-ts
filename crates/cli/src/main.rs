@@ -1,6 +1,7 @@
 use clap::Parser;
 
 mod check;
+pub mod parallel;
 
 #[derive(Parser)]
 #[command(name = "ts-similarity")]
