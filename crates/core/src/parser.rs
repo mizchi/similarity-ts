@@ -218,6 +218,40 @@ fn expression_to_tree_node(expr: &Expression, id_counter: &mut usize) -> Option<
 
             Some(Rc::new(node))
         }
+        Expression::ArrowFunctionExpression(arrow) => {
+            let mut node = TreeNode::new(
+                "ArrowFunction".to_string(),
+                "ArrowFunctionExpression".to_string(),
+                *id_counter,
+            );
+            *id_counter += 1;
+
+            // Add parameters
+            for param in &arrow.params.items {
+                if let Some(param_node) = formal_parameter_to_tree_node(param, id_counter) {
+                    node.add_child(param_node);
+                }
+            }
+
+            // Add body
+            if arrow.expression {
+                // Expression body (e.g., => x + 1)
+                if let Some(stmt) = arrow.body.statements.first() {
+                    if let Statement::ExpressionStatement(expr_stmt) = stmt {
+                        if let Some(expr_node) = expression_to_tree_node(&expr_stmt.expression, id_counter) {
+                            node.add_child(expr_node);
+                        }
+                    }
+                }
+            } else {
+                // Block body (e.g., => { return x + 1; })
+                if let Some(body_node) = function_body_to_tree_node(&arrow.body, id_counter) {
+                    node.add_child(body_node);
+                }
+            }
+
+            Some(Rc::new(node))
+        }
         _ => {
             // For other expression types, create a generic node
             let node =
