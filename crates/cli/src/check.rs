@@ -26,7 +26,7 @@ fn format_function_output(
     end_line: u32,
 ) -> String {
     format!(
-        "{}:{} | L{}-{} similar-function: {}",
+        "{}:{} | L{}-{} {}",
         file_path, start_line, start_line, end_line, function_name
     )
 }
