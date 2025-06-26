@@ -43,3 +43,40 @@
 - [ ] Add support for custom ignore patterns via CLI flags
 - [ ] Add progress bar for large codebases
 - [ ] Support for more languages (JavaScript without TypeScript types)
+
+## Cross-Language Duplicate Detection Plan
+
+Currently, we have implemented a Python parser using tree-sitter, but cross-language duplicate detection is not yet implemented.
+
+### Implementation Plan
+
+1. **AST Normalization**
+   - Convert different language AST structures to a common intermediate representation
+   - Map language-specific syntax to generic structures
+   - Example: Treat Python's `for item in items` and JavaScript's `for (const item of items)` as the same structure
+
+2. **Semantic Equivalence Detection**
+   - Array operations: `map`, `filter`, `reduce` and other higher-order functions
+   - Loop structures: Equivalence of for, while, do-while
+   - Conditional branches: Unify if-else, switch-case, ternary operators
+
+3. **Type System Abstraction**
+   - Bridge dynamic typing (Python) and static typing (TypeScript)
+   - Enable comparison regardless of type annotations
+
+4. **Implementation Priority**
+   - Phase 1: Basic loop and conditional branch detection
+   - Phase 2: Array and object operation detection
+   - Phase 3: Class and method detection
+
+### Technical Challenges
+
+- Performance: tree-sitter is about 10x slower than oxc_parser
+- AST structure differences: Different node types and property names per language
+- Semantic differences: Same operations may have different meanings in different languages
+
+### Future Extensions
+
+- Support for other languages: Rust, Go, Java, etc.
+- Cross-language refactoring suggestions
+- Automatic code translation features

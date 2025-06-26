@@ -1,7 +1,8 @@
 [workspace]
 members = [
     "crates/core",
-    "crates/cli",
+    "crates/similarity-ts",
+    "crates/similarity-py",
 ]
 resolver = "2"
 
