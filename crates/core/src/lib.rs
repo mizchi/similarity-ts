@@ -4,10 +4,20 @@ pub mod fast_similarity;
 pub mod function_extractor;
 pub mod parser;
 pub mod tree;
+pub mod tree_sitter_parser;
+// pub mod tree_sitter_function_extractor;
+pub mod language_parser;
+pub mod oxc_parser_adapter;
+pub mod python_parser;
 pub mod tsed;
 pub mod type_comparator;
 pub mod type_extractor;
 pub mod type_normalizer;
+
+// CLI utilities
+pub mod cli_file_utils;
+pub mod cli_output;
+pub mod cli_parallel;
 
 pub use apted::{compute_edit_distance, APTEDOptions};
 pub use function_extractor::{
