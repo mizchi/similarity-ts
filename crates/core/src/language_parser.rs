@@ -25,7 +25,7 @@ impl Language {
     }
 
     pub fn from_filename(filename: &str) -> Option<Self> {
-        filename.split('.').last().and_then(Self::from_extension)
+        filename.split('.').next_back().and_then(Self::from_extension)
     }
 }
 

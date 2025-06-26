@@ -16,6 +16,12 @@ impl OxcParserAdapter {
     }
 }
 
+impl Default for OxcParserAdapter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl LanguageParser for OxcParserAdapter {
     fn parse(&mut self, source: &str, filename: &str) -> Result<Rc<TreeNode>, Box<dyn Error>> {
         parse_and_convert_to_tree(filename, source).map_err(|e| e.into())
@@ -35,8 +41,8 @@ impl LanguageParser for OxcParserAdapter {
                 name: f.name,
                 start_line: f.start_line,
                 end_line: f.end_line,
-                body_start_line: f.body_span.start as u32,
-                body_end_line: f.body_span.end as u32,
+                body_start_line: f.body_span.start,
+                body_end_line: f.body_span.end,
                 parameters: f.parameters,
                 is_method: matches!(
                     f.function_type,

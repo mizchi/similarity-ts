@@ -18,6 +18,7 @@ impl PythonParser {
         Ok(Self { parser })
     }
 
+    #[allow(clippy::only_used_in_recursion)]
     fn convert_node(&self, node: Node, source: &str, id_counter: &mut usize) -> TreeNode {
         let current_id = *id_counter;
         *id_counter += 1;

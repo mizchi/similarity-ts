@@ -127,6 +127,6 @@ mod tests {
         let duration = start.elapsed();
 
         println!("Tree-sitter parsing took: {:?}", duration);
-        assert!(tree.children.len() > 0);
+        assert!(!tree.children.is_empty());
     }
 }
