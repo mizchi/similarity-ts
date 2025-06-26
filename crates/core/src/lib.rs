@@ -1,11 +1,11 @@
 pub mod apted;
 pub mod ast_fingerprint;
+pub mod enhanced_similarity;
 pub mod fast_similarity;
 pub mod function_extractor;
+pub mod language_parser;
 pub mod parser;
 pub mod tree;
-pub mod enhanced_similarity;
-pub mod language_parser;
 pub mod tsed;
 pub mod type_comparator;
 pub mod type_extractor;
