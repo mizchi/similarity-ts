@@ -58,7 +58,7 @@ impl LanguageParser for OxcParserAdapter {
         source: &str,
         filename: &str,
     ) -> Result<Vec<GenericTypeDef>, Box<dyn Error>> {
-        let types = extract_types_from_code(filename, source)
+        let types = extract_types_from_code(source, filename)
             .map_err(|e| -> Box<dyn Error> { e.into() })?;
 
         Ok(types
