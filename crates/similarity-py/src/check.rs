@@ -20,7 +20,8 @@ impl DuplicateResult {
     fn priority(&self) -> f64 {
         // Score = Similarity × Average lines
         let avg_lines = ((self.result.func1.end_line - self.result.func1.start_line + 1)
-            + (self.result.func2.end_line - self.result.func2.start_line + 1)) as f64
+            + (self.result.func2.end_line - self.result.func2.start_line + 1))
+            as f64
             / 2.0;
         self.result.similarity * avg_lines
     }
@@ -62,17 +63,12 @@ pub fn check_paths(
     let mut all_results = Vec::new();
 
     // Check within each file
-    let within_file_results =
-        check_within_file_duplicates_parallel(&files, threshold, &options);
+    let within_file_results = check_within_file_duplicates_parallel(&files, threshold, &options);
 
     // Collect within-file duplicates
     for (file, similar_pairs) in within_file_results {
         for result in similar_pairs {
-            all_results.push(DuplicateResult { 
-                file1: file.clone(), 
-                file2: file.clone(), 
-                result 
-            });
+            all_results.push(DuplicateResult { file1: file.clone(), file2: file.clone(), result });
         }
     }
 
@@ -117,19 +113,14 @@ fn display_all_results(
 
     // Sort by priority (higher similarity × larger functions first)
     all_results.sort_by(|a, b| {
-        b.priority()
-            .partial_cmp(&a.priority())
-            .unwrap_or(std::cmp::Ordering::Equal)
+        b.priority().partial_cmp(&a.priority()).unwrap_or(std::cmp::Ordering::Equal)
     });
 
     // Group by file
     let mut file_groups = std::collections::HashMap::new();
     for dup in all_results {
         let file_path = dup.file1.to_string_lossy().to_string();
-        file_groups
-            .entry(file_path)
-            .or_insert_with(Vec::new)
-            .push(dup);
+        file_groups.entry(file_path).or_insert_with(Vec::new).push(dup);
     }
 
     // Display results grouped by file
@@ -146,13 +137,21 @@ fn display_all_results(
                 "  {} <-> {}",
                 format_function_output(
                     &file_path,
-                    &format!("{} {}", if func1.is_method { "method" } else { "function" }, &func1.name),
+                    &format!(
+                        "{} {}",
+                        if func1.is_method { "method" } else { "function" },
+                        &func1.name
+                    ),
                     func1.start_line,
                     func1.end_line
                 ),
                 format_function_output(
                     &file_path,
-                    &format!("{} {}", if func2.is_method { "method" } else { "function" }, &func2.name),
+                    &format!(
+                        "{} {}",
+                        if func2.is_method { "method" } else { "function" },
+                        &func2.name
+                    ),
                     func2.start_line,
                     func2.end_line
                 )

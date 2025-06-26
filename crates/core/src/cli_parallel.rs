@@ -1,5 +1,5 @@
-use rayon::prelude::*;
 use crate::TSEDOptions;
+use rayon::prelude::*;
 use std::fs;
 use std::path::PathBuf;
 
@@ -14,8 +14,12 @@ pub struct FileData<F> {
 /// Trait for extracting functions from source code
 pub trait FunctionExtractor {
     type Function: Clone + Send + Sync;
-    
-    fn extract_functions(&self, filename: &str, content: &str) -> Result<Vec<Self::Function>, Box<dyn std::error::Error>>;
+
+    fn extract_functions(
+        &self,
+        filename: &str,
+        content: &str,
+    ) -> Result<Vec<Self::Function>, Box<dyn std::error::Error>>;
 }
 
 /// Generic similarity result
@@ -35,7 +39,7 @@ impl<F> SimilarityResult<F> {
 /// Trait for finding similar functions
 pub trait SimilarityChecker {
     type Function: Clone + Send + Sync;
-    
+
     fn find_similar_in_file(
         &self,
         filename: &str,
@@ -44,7 +48,7 @@ pub trait SimilarityChecker {
         options: &TSEDOptions,
         fast_mode: bool,
     ) -> Result<Vec<SimilarityResult<Self::Function>>, Box<dyn std::error::Error>>;
-    
+
     fn compare_functions(
         &self,
         func1: &Self::Function,
@@ -99,7 +103,8 @@ where
             Ok(code) => {
                 let file_str = file.to_string_lossy();
 
-                match checker.find_similar_in_file(&file_str, &code, threshold, options, fast_mode) {
+                match checker.find_similar_in_file(&file_str, &code, threshold, options, fast_mode)
+                {
                     Ok(pairs) if !pairs.is_empty() => Some((file.clone(), pairs)),
                     _ => None,
                 }

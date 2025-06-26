@@ -3,10 +3,7 @@ use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 
 /// Collect files from paths with given extensions
-pub fn collect_files(
-    paths: &[String],
-    extensions: &[&str],
-) -> anyhow::Result<Vec<PathBuf>> {
+pub fn collect_files(paths: &[String], extensions: &[&str]) -> anyhow::Result<Vec<PathBuf>> {
     let mut files = Vec::new();
     let mut visited = HashSet::new();
 
@@ -60,6 +57,6 @@ pub fn collect_files(
 
     // Sort files for consistent output
     files.sort();
-    
+
     Ok(files)
 }

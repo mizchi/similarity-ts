@@ -15,9 +15,9 @@ pub mod type_extractor;
 pub mod type_normalizer;
 
 // CLI utilities
-pub mod cli_parallel;
-pub mod cli_output;
 pub mod cli_file_utils;
+pub mod cli_output;
+pub mod cli_parallel;
 
 pub use apted::{compute_edit_distance, APTEDOptions};
 pub use function_extractor::{

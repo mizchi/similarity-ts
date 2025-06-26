@@ -7,7 +7,7 @@ use tempfile::tempdir;
 fn test_python_duplicate_detection() {
     let dir = tempdir().unwrap();
     let file_path = dir.path().join("test.py");
-    
+
     let content = r#"
 def process_items(items):
     result = []
@@ -23,9 +23,9 @@ def handle_items(data):
             output.append(d * 2)
     return output
 "#;
-    
+
     fs::write(&file_path, content).unwrap();
-    
+
     Command::cargo_bin("similarity-py")
         .unwrap()
         .arg(&file_path)
@@ -42,7 +42,7 @@ def handle_items(data):
 fn test_python_class_methods() {
     let dir = tempdir().unwrap();
     let file_path = dir.path().join("test_class.py");
-    
+
     let content = r#"
 class DataProcessor:
     def process(self, data):
@@ -57,9 +57,9 @@ class DataProcessor:
             output.append(i * 2)
         return output
 "#;
-    
+
     fs::write(&file_path, content).unwrap();
-    
+
     Command::cargo_bin("similarity-py")
         .unwrap()
         .arg(&file_path)
@@ -76,7 +76,7 @@ class DataProcessor:
 fn test_no_duplicates() {
     let dir = tempdir().unwrap();
     let file_path = dir.path().join("unique.py");
-    
+
     let content = r#"
 def add(a, b):
     return a + b
@@ -87,9 +87,9 @@ def multiply(x, y):
 def greet(name):
     return f"Hello, {name}!"
 "#;
-    
+
     fs::write(&file_path, content).unwrap();
-    
+
     Command::cargo_bin("similarity-py")
         .unwrap()
         .arg(&file_path)
@@ -104,7 +104,7 @@ def greet(name):
 fn test_threshold_filtering() {
     let dir = tempdir().unwrap();
     let file_path = dir.path().join("threshold_test.py");
-    
+
     let content = r#"
 def func1(x):
     result = x + 1
@@ -114,9 +114,9 @@ def func2(y):
     temp = y + 1
     return temp * 3  # Different multiplier
 "#;
-    
+
     fs::write(&file_path, content).unwrap();
-    
+
     // With high threshold, should not detect as duplicate
     Command::cargo_bin("similarity-py")
         .unwrap()
@@ -132,7 +132,7 @@ def func2(y):
 fn test_min_lines_filtering() {
     let dir = tempdir().unwrap();
     let file_path = dir.path().join("min_lines_test.py");
-    
+
     let content = r#"
 def f1(): return 1
 def f2(): return 1
@@ -149,9 +149,9 @@ def longer_func2():
     c = 3
     return a + b + c
 "#;
-    
+
     fs::write(&file_path, content).unwrap();
-    
+
     Command::cargo_bin("similarity-py")
         .unwrap()
         .arg(&file_path)

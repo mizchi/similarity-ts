@@ -1,5 +1,5 @@
-use clap::Parser;
 use anyhow::Result;
+use clap::Parser;
 
 mod check;
 mod parallel;
@@ -58,7 +58,7 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     println!("Analyzing Python code similarity...");
-    
+
     check::check_paths(
         cli.paths,
         cli.threshold,
