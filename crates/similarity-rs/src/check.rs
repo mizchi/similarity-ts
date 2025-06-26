@@ -57,6 +57,7 @@ pub fn check_paths(
 
     let mut options = TSEDOptions::default();
     options.apted_options.rename_cost = rename_cost;
+    options.apted_options.compare_values = true; // Rust: compare both node labels and values
     options.min_lines = min_lines;
     options.min_tokens = min_tokens;
     options.size_penalty = !no_size_penalty;

@@ -172,7 +172,8 @@ impl RustParser {
         let value = match node.kind() {
             "identifier" | "string_literal" | "char_literal" | "integer_literal"
             | "float_literal" | "true" | "false" | "+" | "-" | "*" | "/" | "%" | "==" | "!="
-            | "<" | ">" | "<=" | ">=" | "&&" | "||" | "!" | "&" | "|" | "^" | "<<" | ">>" => {
+            | "<" | ">" | "<=" | ">=" | "&&" | "||" | "!" | "&" | "|" | "^" | "<<" | ">>"
+            | "type_identifier" | "field_identifier" => {
                 source[node.byte_range().start..node.byte_range().end].to_string()
             }
             _ => String::new(),

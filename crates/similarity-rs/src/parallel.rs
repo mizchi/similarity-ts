@@ -1,9 +1,10 @@
 use rayon::prelude::*;
 use similarity_core::{
-    apted::compute_edit_distance,
+    calculate_enhanced_similarity,
     cli_parallel::{FileData, SimilarityResult},
     language_parser::{GenericFunctionDef, LanguageParser},
     tsed::TSEDOptions,
+    EnhancedSimilarityOptions,
 };
 use std::fs;
 use std::path::PathBuf;
@@ -89,25 +90,21 @@ pub fn check_within_file_duplicates_parallel(
                                         let body1 = extract_function_body(&lines, func1);
                                         let body2 = extract_function_body(&lines, func2);
 
-                                        // Calculate similarity using Rust parser
+                                        // Calculate similarity using enhanced algorithm
                                         let similarity = match (
                                             parser.parse(&body1, &format!("{}:func1", file_str)),
                                             parser.parse(&body2, &format!("{}:func2", file_str)),
                                         ) {
                                             (Ok(tree1), Ok(tree2)) => {
-                                                let dist = compute_edit_distance(
-                                                    &tree1,
-                                                    &tree2,
-                                                    &options.apted_options,
-                                                );
-                                                let size1 = tree1.get_subtree_size();
-                                                let size2 = tree2.get_subtree_size();
-                                                let max_size = size1.max(size2) as f64;
-                                                if max_size > 0.0 {
-                                                    1.0 - (dist / max_size)
-                                                } else {
-                                                    1.0
-                                                }
+                                                // Use enhanced similarity with default options
+                                                let enhanced_options = EnhancedSimilarityOptions {
+                                                    structural_weight: 0.7,
+                                                    size_weight: 0.2,
+                                                    type_distribution_weight: 0.1,
+                                                    min_size_ratio: 0.5,
+                                                    apted_options: options.apted_options.clone(),
+                                                };
+                                                calculate_enhanced_similarity(&tree1, &tree2, &enhanced_options)
                                             }
                                             _ => 0.0,
                                         };
@@ -139,10 +136,11 @@ pub fn check_within_file_duplicates_parallel(
         .collect()
 }
 
-/// Extract function body from lines
+/// Extract complete function from lines (including signature)
 fn extract_function_body(lines: &[&str], func: &GenericFunctionDef) -> String {
-    let start_idx = (func.body_start_line.saturating_sub(1)) as usize;
-    let end_idx = std::cmp::min(func.body_end_line as usize, lines.len());
+    // Use the complete function, not just the body
+    let start_idx = (func.start_line.saturating_sub(1)) as usize;
+    let end_idx = std::cmp::min(func.end_line as usize, lines.len());
 
     if start_idx >= lines.len() {
         return String::new();
