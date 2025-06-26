@@ -4,8 +4,6 @@ pub mod fast_similarity;
 pub mod function_extractor;
 pub mod parser;
 pub mod tree;
-pub mod tree_sitter_parser;
-// pub mod tree_sitter_function_extractor;
 pub mod enhanced_similarity;
 pub mod language_parser;
 pub mod tsed;
