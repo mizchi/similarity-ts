@@ -23,12 +23,9 @@ impl Language {
             _ => None,
         }
     }
-    
+
     pub fn from_filename(filename: &str) -> Option<Self> {
-        filename
-            .split('.')
-            .last()
-            .and_then(Self::from_extension)
+        filename.split('.').last().and_then(Self::from_extension)
     }
 }
 
@@ -67,13 +64,21 @@ pub enum TypeDefKind {
 pub trait LanguageParser: Send + Sync {
     /// Parse source code into a TreeNode structure
     fn parse(&mut self, source: &str, filename: &str) -> Result<Rc<TreeNode>, Box<dyn Error>>;
-    
+
     /// Extract function definitions from source code
-    fn extract_functions(&mut self, source: &str, filename: &str) -> Result<Vec<GenericFunctionDef>, Box<dyn Error>>;
-    
+    fn extract_functions(
+        &mut self,
+        source: &str,
+        filename: &str,
+    ) -> Result<Vec<GenericFunctionDef>, Box<dyn Error>>;
+
     /// Extract type definitions from source code
-    fn extract_types(&mut self, source: &str, filename: &str) -> Result<Vec<GenericTypeDef>, Box<dyn Error>>;
-    
+    fn extract_types(
+        &mut self,
+        source: &str,
+        filename: &str,
+    ) -> Result<Vec<GenericTypeDef>, Box<dyn Error>>;
+
     /// Get the language this parser handles
     fn language(&self) -> Language;
 }
@@ -87,14 +92,14 @@ impl ParserFactory {
             Language::JavaScript | Language::TypeScript => {
                 Ok(Box::new(crate::oxc_parser_adapter::OxcParserAdapter::new()))
             }
-            Language::Python => {
-                Ok(Box::new(crate::python_parser::PythonParser::new()?))
-            }
+            Language::Python => Ok(Box::new(crate::python_parser::PythonParser::new()?)),
             _ => Err(format!("Language {:?} not yet supported", language).into()),
         }
     }
-    
-    pub fn create_parser_for_file(filename: &str) -> Result<Box<dyn LanguageParser>, Box<dyn Error>> {
+
+    pub fn create_parser_for_file(
+        filename: &str,
+    ) -> Result<Box<dyn LanguageParser>, Box<dyn Error>> {
         let language = Language::from_filename(filename)
             .ok_or_else(|| format!("Cannot determine language for file: {}", filename))?;
         Self::create_parser(language)
@@ -104,7 +109,7 @@ impl ParserFactory {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_language_detection() {
         assert_eq!(Language::from_filename("test.js"), Some(Language::JavaScript));
@@ -114,7 +119,7 @@ mod tests {
         assert_eq!(Language::from_filename("test.go"), Some(Language::Go));
         assert_eq!(Language::from_filename("test.txt"), None);
     }
-    
+
     #[test]
     fn test_case_insensitive_extension() {
         assert_eq!(Language::from_extension("JS"), Some(Language::JavaScript));

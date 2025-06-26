@@ -1,4 +1,4 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion, BenchmarkId};
+use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use similarity_ts_core::language_parser::{Language, ParserFactory};
 
 const SMALL_JS: &str = r#"
@@ -98,56 +98,40 @@ def fibonacci(n):
 
 fn benchmark_parsers(c: &mut Criterion) {
     let mut group = c.benchmark_group("Hybrid Parser Performance");
-    
+
     // Create parsers
     let mut js_parser = ParserFactory::create_parser(Language::JavaScript).unwrap();
     let mut py_parser = ParserFactory::create_parser(Language::Python).unwrap();
-    
+
     // Benchmark parsing
-    group.bench_with_input(
-        BenchmarkId::new("Parse", "JS Small"),
-        &SMALL_JS,
-        |b, &source| {
-            b.iter(|| {
-                let tree = js_parser.parse(black_box(source), "test.js").unwrap();
-                black_box(tree);
-            });
-        },
-    );
-    
-    group.bench_with_input(
-        BenchmarkId::new("Parse", "Python Small"),
-        &SMALL_PY,
-        |b, &source| {
-            b.iter(|| {
-                let tree = py_parser.parse(black_box(source), "test.py").unwrap();
-                black_box(tree);
-            });
-        },
-    );
-    
-    group.bench_with_input(
-        BenchmarkId::new("Parse", "JS Medium"),
-        &MEDIUM_JS,
-        |b, &source| {
-            b.iter(|| {
-                let tree = js_parser.parse(black_box(source), "test.js").unwrap();
-                black_box(tree);
-            });
-        },
-    );
-    
-    group.bench_with_input(
-        BenchmarkId::new("Parse", "Python Medium"),
-        &MEDIUM_PY,
-        |b, &source| {
-            b.iter(|| {
-                let tree = py_parser.parse(black_box(source), "test.py").unwrap();
-                black_box(tree);
-            });
-        },
-    );
-    
+    group.bench_with_input(BenchmarkId::new("Parse", "JS Small"), &SMALL_JS, |b, &source| {
+        b.iter(|| {
+            let tree = js_parser.parse(black_box(source), "test.js").unwrap();
+            black_box(tree);
+        });
+    });
+
+    group.bench_with_input(BenchmarkId::new("Parse", "Python Small"), &SMALL_PY, |b, &source| {
+        b.iter(|| {
+            let tree = py_parser.parse(black_box(source), "test.py").unwrap();
+            black_box(tree);
+        });
+    });
+
+    group.bench_with_input(BenchmarkId::new("Parse", "JS Medium"), &MEDIUM_JS, |b, &source| {
+        b.iter(|| {
+            let tree = js_parser.parse(black_box(source), "test.js").unwrap();
+            black_box(tree);
+        });
+    });
+
+    group.bench_with_input(BenchmarkId::new("Parse", "Python Medium"), &MEDIUM_PY, |b, &source| {
+        b.iter(|| {
+            let tree = py_parser.parse(black_box(source), "test.py").unwrap();
+            black_box(tree);
+        });
+    });
+
     // Benchmark function extraction
     group.bench_with_input(
         BenchmarkId::new("Extract Functions", "JS Small"),
@@ -159,7 +143,7 @@ fn benchmark_parsers(c: &mut Criterion) {
             });
         },
     );
-    
+
     group.bench_with_input(
         BenchmarkId::new("Extract Functions", "Python Small"),
         &SMALL_PY,
@@ -170,7 +154,7 @@ fn benchmark_parsers(c: &mut Criterion) {
             });
         },
     );
-    
+
     group.bench_with_input(
         BenchmarkId::new("Extract Functions", "JS Medium"),
         &MEDIUM_JS,
@@ -181,7 +165,7 @@ fn benchmark_parsers(c: &mut Criterion) {
             });
         },
     );
-    
+
     group.bench_with_input(
         BenchmarkId::new("Extract Functions", "Python Medium"),
         &MEDIUM_PY,
@@ -192,7 +176,7 @@ fn benchmark_parsers(c: &mut Criterion) {
             });
         },
     );
-    
+
     group.finish();
 }
 

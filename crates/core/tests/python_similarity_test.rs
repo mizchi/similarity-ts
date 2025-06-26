@@ -1,5 +1,5 @@
-use similarity_ts_core::language_parser::{Language, ParserFactory};
 use similarity_ts_core::apted::{compute_edit_distance, APTEDOptions};
+use similarity_ts_core::language_parser::{Language, ParserFactory};
 
 #[test]
 fn test_python_function_extraction() {
@@ -25,21 +25,21 @@ class Greeter:
 
     let mut parser = ParserFactory::create_parser(Language::Python).unwrap();
     let functions = parser.extract_functions(source, "test.py").unwrap();
-    
+
     assert_eq!(functions.len(), 5);
     assert_eq!(functions[0].name, "hello");
     assert_eq!(functions[1].name, "greet");
     assert_eq!(functions[2].name, "__init__");
     assert_eq!(functions[3].name, "greet");
     assert_eq!(functions[4].name, "say_goodbye");
-    
+
     // Check method detection
     assert!(!functions[0].is_method);
     assert!(!functions[1].is_method);
     assert!(functions[2].is_method);
     assert!(functions[3].is_method);
     assert!(functions[4].is_method);
-    
+
     // Check class names
     assert_eq!(functions[2].class_name, Some("Greeter".to_string()));
     assert_eq!(functions[3].class_name, Some("Greeter".to_string()));
@@ -65,7 +65,7 @@ class Guest:
 
     let mut parser = ParserFactory::create_parser(Language::Python).unwrap();
     let types = parser.extract_types(source, "test.py").unwrap();
-    
+
     assert_eq!(types.len(), 3);
     assert_eq!(types[0].name, "User");
     assert_eq!(types[1].name, "Admin");
@@ -99,20 +99,16 @@ def fibonacci(n):
 "#;
 
     let mut parser = ParserFactory::create_parser(Language::Python).unwrap();
-    
+
     let tree1 = parser.parse(source1, "file1.py").unwrap();
     let tree2 = parser.parse(source2, "file2.py").unwrap();
-    
-    let options = APTEDOptions {
-        insert_cost: 1.0,
-        delete_cost: 1.0,
-        rename_cost: 1.0,
-    };
-    
+
+    let options = APTEDOptions { insert_cost: 1.0, delete_cost: 1.0, rename_cost: 1.0 };
+
     let distance = compute_edit_distance(&tree1, &tree2, &options);
     let max_size = tree1.get_subtree_size().max(tree2.get_subtree_size()) as f64;
     let similarity = 1.0 - (distance / max_size);
-    
+
     // These are very similar functions, should have high similarity
     assert!(similarity > 0.7, "Similarity {} is too low", similarity);
 }
@@ -144,13 +140,13 @@ class Calc:
 "#;
 
     let mut parser = ParserFactory::create_parser(Language::Python).unwrap();
-    
+
     let funcs1 = parser.extract_functions(source1, "calc1.py").unwrap();
     let funcs2 = parser.extract_functions(source2, "calc2.py").unwrap();
-    
+
     assert_eq!(funcs1.len(), 3);
     assert_eq!(funcs2.len(), 3);
-    
+
     // All should be methods
     assert!(funcs1.iter().all(|f| f.is_method));
     assert!(funcs2.iter().all(|f| f.is_method));
@@ -183,7 +179,7 @@ class Example:
 
     let mut parser = ParserFactory::create_parser(Language::Python).unwrap();
     let functions = parser.extract_functions(source, "test.py").unwrap();
-    
+
     // Should extract all functions including decorated ones
     assert_eq!(functions.len(), 5);
     assert_eq!(functions[0].name, "static_method");
@@ -215,11 +211,12 @@ class Factory:
 
     let mut parser = ParserFactory::create_parser(Language::Python).unwrap();
     let functions = parser.extract_functions(source, "test.py").unwrap();
-    
+
     // Should extract all functions including nested ones
     assert!(functions.len() >= 3); // At least outer, create_adder, and create_multiplier
-    
-    let outer_funcs: Vec<_> = functions.iter()
+
+    let outer_funcs: Vec<_> = functions
+        .iter()
         .filter(|f| ["outer", "create_adder", "create_multiplier"].contains(&f.name.as_str()))
         .collect();
     assert_eq!(outer_funcs.len(), 3);
@@ -239,7 +236,7 @@ square = high_order(multiply)
 
     let mut parser = ParserFactory::create_parser(Language::Python).unwrap();
     let functions = parser.extract_functions(source, "test.py").unwrap();
-    
+
     // Should at least find the regular function
     assert!(functions.iter().any(|f| f.name == "high_order"));
 }
@@ -269,14 +266,14 @@ class Calculator:
 
     let mut js_parser = ParserFactory::create_parser(Language::JavaScript).unwrap();
     let mut py_parser = ParserFactory::create_parser(Language::Python).unwrap();
-    
+
     let js_funcs = js_parser.extract_functions(js_code, "test.js").unwrap();
     let py_funcs = py_parser.extract_functions(py_code, "test.py").unwrap();
-    
+
     // Both should have 2 functions
     assert_eq!(js_funcs.len(), 2);
     assert_eq!(py_funcs.len(), 2);
-    
+
     // Both should have 'add' and 'multiply' functions
     assert!(js_funcs.iter().any(|f| f.name == "add"));
     assert!(js_funcs.iter().any(|f| f.name == "multiply"));

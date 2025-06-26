@@ -1,4 +1,6 @@
-use crate::language_parser::{GenericFunctionDef, GenericTypeDef, Language, LanguageParser, TypeDefKind};
+use crate::language_parser::{
+    GenericFunctionDef, GenericTypeDef, Language, LanguageParser, TypeDefKind,
+};
 use crate::tree::TreeNode;
 use std::error::Error;
 use std::rc::Rc;
@@ -12,54 +14,66 @@ impl PythonParser {
     pub fn new() -> Result<Self, Box<dyn Error>> {
         let mut parser = Parser::new();
         parser.set_language(&tree_sitter_python::LANGUAGE.into())?;
-        
+
         Ok(Self { parser })
     }
-    
+
     fn convert_node(&self, node: Node, source: &str, id_counter: &mut usize) -> TreeNode {
         let current_id = *id_counter;
         *id_counter += 1;
-        
+
         let label = node.kind().to_string();
         let value = match node.kind() {
             "identifier" | "string" | "integer" | "float" | "true" | "false" | "none" => {
-                node.utf8_text(source.as_bytes())
-                    .unwrap_or("")
-                    .to_string()
+                node.utf8_text(source.as_bytes()).unwrap_or("").to_string()
             }
             _ => "".to_string(),
         };
-        
+
         let mut tree_node = TreeNode::new(label, value, current_id);
-        
+
         for child in node.children(&mut node.walk()) {
             let child_node = self.convert_node(child, source, id_counter);
             tree_node.add_child(Rc::new(child_node));
         }
-        
+
         tree_node
     }
-    
-    fn extract_functions_from_node(&self, node: Node, source: &str, class_name: Option<&str>) -> Vec<GenericFunctionDef> {
+
+    fn extract_functions_from_node(
+        &self,
+        node: Node,
+        source: &str,
+        class_name: Option<&str>,
+    ) -> Vec<GenericFunctionDef> {
         let mut functions = Vec::new();
-        
+
         // Visit all nodes
-        fn visit_node(node: Node, source: &str, functions: &mut Vec<GenericFunctionDef>, class_name: Option<&str>) {
+        fn visit_node(
+            node: Node,
+            source: &str,
+            functions: &mut Vec<GenericFunctionDef>,
+            class_name: Option<&str>,
+        ) {
             match node.kind() {
                 "function_definition" => {
                     if let Some(name_node) = node.child_by_field_name("name") {
                         if let Ok(name) = name_node.utf8_text(source.as_bytes()) {
                             let params_node = node.child_by_field_name("parameters");
                             let body_node = node.child_by_field_name("body");
-                            
+
                             let params = extract_params(params_node, source);
-                            
+
                             functions.push(GenericFunctionDef {
                                 name: name.to_string(),
                                 start_line: node.start_position().row as u32 + 1,
                                 end_line: node.end_position().row as u32 + 1,
-                                body_start_line: body_node.map(|n| n.start_position().row as u32 + 1).unwrap_or(0),
-                                body_end_line: body_node.map(|n| n.end_position().row as u32 + 1).unwrap_or(0),
+                                body_start_line: body_node
+                                    .map(|n| n.start_position().row as u32 + 1)
+                                    .unwrap_or(0),
+                                body_end_line: body_node
+                                    .map(|n| n.end_position().row as u32 + 1)
+                                    .unwrap_or(0),
                                 parameters: params,
                                 is_method: class_name.is_some(),
                                 class_name: class_name.map(|s| s.to_string()),
@@ -75,15 +89,19 @@ impl PythonParser {
                                 if let Ok(name) = name_node.utf8_text(source.as_bytes()) {
                                     let params_node = child.child_by_field_name("parameters");
                                     let body_node = child.child_by_field_name("body");
-                                    
+
                                     let params = extract_params(params_node, source);
-                                    
+
                                     functions.push(GenericFunctionDef {
                                         name: name.to_string(),
                                         start_line: node.start_position().row as u32 + 1,
                                         end_line: node.end_position().row as u32 + 1,
-                                        body_start_line: body_node.map(|n| n.start_position().row as u32 + 1).unwrap_or(0),
-                                        body_end_line: body_node.map(|n| n.end_position().row as u32 + 1).unwrap_or(0),
+                                        body_start_line: body_node
+                                            .map(|n| n.start_position().row as u32 + 1)
+                                            .unwrap_or(0),
+                                        body_end_line: body_node
+                                            .map(|n| n.end_position().row as u32 + 1)
+                                            .unwrap_or(0),
                                         parameters: params,
                                         is_method: class_name.is_some(),
                                         class_name: class_name.map(|s| s.to_string()),
@@ -116,12 +134,12 @@ impl PythonParser {
                 }
             }
         }
-        
+
         fn extract_params(params_node: Option<Node>, source: &str) -> Vec<String> {
             if let Some(node) = params_node {
                 let mut params = Vec::new();
                 let mut cursor = node.walk();
-                
+
                 for child in node.children(&mut cursor) {
                     match child.kind() {
                         "identifier" => {
@@ -139,13 +157,13 @@ impl PythonParser {
                         _ => {}
                     }
                 }
-                
+
                 params
             } else {
                 Vec::new()
             }
         }
-        
+
         visit_node(node, source, &mut functions, class_name);
         functions
     }
@@ -153,32 +171,34 @@ impl PythonParser {
 
 impl LanguageParser for PythonParser {
     fn parse(&mut self, source: &str, _filename: &str) -> Result<Rc<TreeNode>, Box<dyn Error>> {
-        let tree = self.parser
-            .parse(source, None)
-            .ok_or("Failed to parse Python source")?;
-        
+        let tree = self.parser.parse(source, None).ok_or("Failed to parse Python source")?;
+
         let root_node = tree.root_node();
         let mut id_counter = 0;
         Ok(Rc::new(self.convert_node(root_node, source, &mut id_counter)))
     }
-    
-    fn extract_functions(&mut self, source: &str, _filename: &str) -> Result<Vec<GenericFunctionDef>, Box<dyn Error>> {
-        let tree = self.parser
-            .parse(source, None)
-            .ok_or("Failed to parse Python source")?;
-        
+
+    fn extract_functions(
+        &mut self,
+        source: &str,
+        _filename: &str,
+    ) -> Result<Vec<GenericFunctionDef>, Box<dyn Error>> {
+        let tree = self.parser.parse(source, None).ok_or("Failed to parse Python source")?;
+
         let root_node = tree.root_node();
         Ok(self.extract_functions_from_node(root_node, source, None))
     }
-    
-    fn extract_types(&mut self, source: &str, _filename: &str) -> Result<Vec<GenericTypeDef>, Box<dyn Error>> {
-        let tree = self.parser
-            .parse(source, None)
-            .ok_or("Failed to parse Python source")?;
-        
+
+    fn extract_types(
+        &mut self,
+        source: &str,
+        _filename: &str,
+    ) -> Result<Vec<GenericTypeDef>, Box<dyn Error>> {
+        let tree = self.parser.parse(source, None).ok_or("Failed to parse Python source")?;
+
         let root_node = tree.root_node();
         let mut types = Vec::new();
-        
+
         fn visit_node_for_types(node: Node, source: &str, types: &mut Vec<GenericTypeDef>) {
             if node.kind() == "class_definition" {
                 if let Some(name_node) = node.child_by_field_name("name") {
@@ -192,18 +212,18 @@ impl LanguageParser for PythonParser {
                     }
                 }
             }
-            
+
             // Continue traversing
             let mut cursor = node.walk();
             for child in node.children(&mut cursor) {
                 visit_node_for_types(child, source, types);
             }
         }
-        
+
         visit_node_for_types(root_node, source, &mut types);
         Ok(types)
     }
-    
+
     fn language(&self) -> Language {
         Language::Python
     }
@@ -212,7 +232,7 @@ impl LanguageParser for PythonParser {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_python_functions() {
         let mut parser = PythonParser::new().unwrap();
@@ -231,7 +251,7 @@ class Calculator:
         self.result += x
         return self.result
 "#;
-        
+
         let functions = parser.extract_functions(source, "test.py").unwrap();
         assert_eq!(functions.len(), 4);
         assert_eq!(functions[0].name, "hello");
@@ -243,7 +263,7 @@ class Calculator:
         assert_eq!(functions[3].name, "add");
         assert!(functions[3].is_method);
     }
-    
+
     #[test]
     fn test_python_classes() {
         let mut parser = PythonParser::new().unwrap();
@@ -257,7 +277,7 @@ class Admin(User):
         super().__init__(name)
         self.level = level
 "#;
-        
+
         let types = parser.extract_types(source, "test.py").unwrap();
         assert_eq!(types.len(), 2);
         assert_eq!(types[0].name, "User");

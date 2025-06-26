@@ -112,7 +112,7 @@ const validateEmail = (email: string): boolean => {
 
 fn benchmark_parsers(c: &mut Criterion) {
     let mut group = c.benchmark_group("Parser Comparison");
-    
+
     // Benchmark oxc_parser
     group.bench_function("oxc: small JS", |b| {
         b.iter(|| {
@@ -120,45 +120,45 @@ fn benchmark_parsers(c: &mut Criterion) {
             black_box(tree);
         });
     });
-    
+
     group.bench_function("oxc: medium JS", |b| {
         b.iter(|| {
             let tree = parse_and_convert_to_tree("test.js", black_box(MEDIUM_JS)).unwrap();
             black_box(tree);
         });
     });
-    
+
     group.bench_function("oxc: large TS", |b| {
         b.iter(|| {
             let tree = parse_and_convert_to_tree("test.ts", black_box(LARGE_TS)).unwrap();
             black_box(tree);
         });
     });
-    
+
     // Benchmark tree-sitter
     let mut ts_parser = TreeSitterParser::new().unwrap();
-    
+
     group.bench_function("tree-sitter: small JS", |b| {
         b.iter(|| {
             let tree = ts_parser.parse(black_box(SMALL_JS), false).unwrap();
             black_box(tree);
         });
     });
-    
+
     group.bench_function("tree-sitter: medium JS", |b| {
         b.iter(|| {
             let tree = ts_parser.parse(black_box(MEDIUM_JS), false).unwrap();
             black_box(tree);
         });
     });
-    
+
     group.bench_function("tree-sitter: large TS", |b| {
         b.iter(|| {
             let tree = ts_parser.parse(black_box(LARGE_TS), true).unwrap();
             black_box(tree);
         });
     });
-    
+
     group.finish();
 }
 
