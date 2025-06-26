@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "rust": {
+      "command": "npx",
+      "args": ["-y", "@mizchi/lsmcp", "--bin", "rust-analyzer"]
+    }
+  }
+}

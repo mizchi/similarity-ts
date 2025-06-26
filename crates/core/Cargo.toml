@@ -16,6 +16,10 @@ oxc_parser = { workspace = true }
 oxc_ast = { workspace = true }
 oxc_span = { workspace = true }
 oxc_allocator = { workspace = true }
+tree-sitter = { workspace = true }
+tree-sitter-javascript = { workspace = true }
+tree-sitter-typescript = { workspace = true }
+tree-sitter-python = { workspace = true }
 
 [dev-dependencies]
 criterion = "0.5"
@@ -26,4 +30,12 @@ harness = false
 
 [[bench]]
 name = "function_comparison"
+harness = false
+
+[[bench]]
+name = "parser_comparison"
+harness = false
+
+[[bench]]
+name = "hybrid_parser_benchmark"
 harness = false
