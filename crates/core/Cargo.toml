@@ -40,12 +40,6 @@ harness = false
 name = "parser_comparison"
 harness = false
 
-[[bench]]
-name = "hybrid_parser_benchmark"
-harness = false
+# Benchmarks updated - hybrid parser benchmark removed
 
-[[example]]
-name = "test_rust_parser"
-
-[[example]]
-name = "test_rust_parser_debug"
+# Examples removed - language-specific examples moved to respective crates
