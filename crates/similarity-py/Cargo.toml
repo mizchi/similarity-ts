@@ -15,13 +15,18 @@ categories = ["command-line-utilities", "development-tools"]
 name = "similarity-py"
 path = "src/main.rs"
 
+[lib]
+name = "similarity_py"
+
 [dependencies]
-similarity-ts-core = { version = "0.1.1", path = "../core" }
+similarity-core = { version = "0.1.1", path = "../core" }
 clap = { version = "4.0", features = ["derive"] }
 anyhow = "1.0"
 walkdir = "2.5"
 ignore = "0.4"
 rayon = "1.10"
+tree-sitter = { workspace = true }
+tree-sitter-python = { workspace = true }
 
 [dev-dependencies]
 assert_cmd = "2.0"

@@ -1024,55 +1024,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
-name = "similarity-py"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "assert_cmd",
- "clap",
- "ignore",
- "predicates",
- "rayon",
- "similarity-ts-core",
- "tempfile",
- "walkdir",
-]
-
-[[package]]
-name = "similarity-rs"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "assert_cmd",
- "clap",
- "globset",
- "ignore",
- "predicates",
- "rayon",
- "similarity-ts-core",
- "tempfile",
- "walkdir",
-]
-
-[[package]]
-name = "similarity-ts"
-version = "0.1.1"
-dependencies = [
- "anyhow",
- "assert_cmd",
- "clap",
- "criterion",
- "globset",
- "ignore",
- "predicates",
- "rayon",
- "similarity-ts-core",
- "tempfile",
- "walkdir",
-]
-
-[[package]]
-name = "similarity-ts-core"
+name = "similarity-core"
 version = "0.1.1"
 dependencies = [
  "anyhow",
@@ -1088,6 +1040,62 @@ dependencies = [
  "tree-sitter-python",
  "tree-sitter-rust",
  "tree-sitter-typescript",
+]
+
+[[package]]
+name = "similarity-py"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "assert_cmd",
+ "clap",
+ "ignore",
+ "predicates",
+ "rayon",
+ "similarity-core",
+ "tempfile",
+ "tree-sitter",
+ "tree-sitter-python",
+ "walkdir",
+]
+
+[[package]]
+name = "similarity-rs"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "assert_cmd",
+ "clap",
+ "globset",
+ "ignore",
+ "predicates",
+ "rayon",
+ "similarity-core",
+ "tempfile",
+ "tree-sitter",
+ "tree-sitter-rust",
+ "walkdir",
+]
+
+[[package]]
+name = "similarity-ts"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "assert_cmd",
+ "clap",
+ "criterion",
+ "globset",
+ "ignore",
+ "oxc_allocator",
+ "oxc_ast",
+ "oxc_parser",
+ "oxc_span",
+ "predicates",
+ "rayon",
+ "similarity-core",
+ "tempfile",
+ "walkdir",
 ]
 
 [[package]]

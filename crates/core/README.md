@@ -13,7 +13,7 @@ Core library for TypeScript/JavaScript code similarity detection using AST-based
 ## Usage
 
 ```rust
-use similarity_ts_core::{extract_functions, compare_functions, TSEDOptions};
+use similarity_core::{extract_functions, compare_functions, TSEDOptions};
 
 // Extract functions from code
 let functions = extract_functions("example.ts", source_code)?;

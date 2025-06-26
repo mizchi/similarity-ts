@@ -1,5 +1,5 @@
 use crate::parallel::check_within_file_duplicates_parallel;
-use similarity_ts_core::{
+use similarity_core::{
     cli_file_utils::collect_files,
     cli_output::{format_function_output, show_function_code},
     cli_parallel::SimilarityResult,

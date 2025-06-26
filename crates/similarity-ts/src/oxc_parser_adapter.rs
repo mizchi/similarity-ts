@@ -1,8 +1,10 @@
-use crate::function_extractor::extract_functions;
-use crate::language_parser::{GenericFunctionDef, GenericTypeDef, Language, LanguageParser};
-use crate::parser::parse_and_convert_to_tree;
-use crate::tree::TreeNode;
-use crate::type_extractor::{extract_types_from_code, TypeKind};
+use similarity_core::function_extractor::extract_functions;
+use similarity_core::language_parser::{
+    GenericFunctionDef, GenericTypeDef, Language, LanguageParser,
+};
+use similarity_core::parser::parse_and_convert_to_tree;
+use similarity_core::tree::TreeNode;
+use similarity_core::type_extractor::{extract_types_from_code, TypeKind};
 use std::error::Error;
 use std::rc::Rc;
 
@@ -44,10 +46,10 @@ impl LanguageParser for OxcParserAdapter {
                 parameters: f.parameters,
                 is_method: matches!(
                     f.function_type,
-                    crate::function_extractor::FunctionType::Method
+                    similarity_core::function_extractor::FunctionType::Method
                 ),
                 class_name: f.class_name,
-                is_async: false, // TODO: Extract async information from AST
+                is_async: false,        // TODO: Extract async information from AST
                 is_generator: false, // TypeScript/JavaScript doesn't have generators in our current model
                 decorators: Vec::new(), // TypeScript/JavaScript doesn't have decorators in our current model
             })

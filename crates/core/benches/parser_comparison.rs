@@ -1,6 +1,6 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use similarity_ts_core::parser::parse_and_convert_to_tree;
-use similarity_ts_core::tree_sitter_parser::TreeSitterParser;
+use similarity_core::parser::parse_and_convert_to_tree;
+use similarity_core::tree_sitter_parser::TreeSitterParser;
 
 const SMALL_JS: &str = r#"
 function greet(name) {

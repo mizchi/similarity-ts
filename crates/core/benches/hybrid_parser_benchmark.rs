@@ -1,5 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
-use similarity_ts_core::language_parser::{Language, ParserFactory};
+use similarity_core::language_parser::{Language, ParserFactory};
 
 const SMALL_JS: &str = r#"
 function greet(name) {

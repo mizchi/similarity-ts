@@ -1,8 +1,8 @@
 use rayon::prelude::*;
-use similarity_ts_core::{
+use similarity_core::{
     apted::compute_edit_distance,
     cli_parallel::{FileData, SimilarityResult},
-    language_parser::{GenericFunctionDef, ParserFactory},
+    language_parser::{GenericFunctionDef, LanguageParser},
     tsed::TSEDOptions,
 };
 use std::fs;
@@ -22,7 +22,7 @@ pub fn load_files_parallel(files: &[PathBuf]) -> Vec<RustFileData> {
                 Ok(content) => {
                     let filename = file.to_string_lossy();
                     // Create Rust parser
-                    match ParserFactory::create_parser_for_file(&filename) {
+                    match similarity_rs::rust_parser::RustParser::new() {
                         Ok(mut parser) => {
                             // Extract functions
                             match parser.extract_functions(&content, &filename) {
@@ -63,7 +63,7 @@ pub fn check_within_file_duplicates_parallel(
                 let file_str = file.to_string_lossy();
 
                 // Create Rust parser
-                match ParserFactory::create_parser_for_file(&file_str) {
+                match similarity_rs::rust_parser::RustParser::new() {
                     Ok(mut parser) => {
                         // Extract functions
                         match parser.extract_functions(&code, &file_str) {

@@ -1,4 +1,4 @@
-use similarity_ts_core::{
+use similarity_core::{
     find_similar_functions_fast, find_similar_functions_in_file, FastSimilarityOptions, TSEDOptions,
 };
 use std::time::Instant;

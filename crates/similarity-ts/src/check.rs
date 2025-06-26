@@ -3,7 +3,7 @@ use crate::parallel::{
     load_files_parallel,
 };
 use ignore::WalkBuilder;
-use similarity_ts_core::TSEDOptions;
+use similarity_core::TSEDOptions;
 use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -69,7 +69,7 @@ fn show_function_code(file_path: &str, function_name: &str, start_line: u32, end
 struct DuplicateResult {
     file1: PathBuf,
     file2: PathBuf,
-    result: similarity_ts_core::SimilarityResult,
+    result: similarity_core::SimilarityResult,
 }
 
 impl DuplicateResult {

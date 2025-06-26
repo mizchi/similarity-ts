@@ -16,13 +16,17 @@ name = "similarity-ts"
 path = "src/main.rs"
 
 [dependencies]
-similarity-ts-core = { version = "0.1.1", path = "../core" }
+similarity-core = { version = "0.1.1", path = "../core" }
 clap = { version = "4.0", features = ["derive"] }
 anyhow = "1.0"
 walkdir = "2.5"
 ignore = "0.4"
 globset = "0.4"
 rayon = "1.10"
+oxc_parser = { workspace = true }
+oxc_ast = { workspace = true }
+oxc_span = { workspace = true }
+oxc_allocator = { workspace = true }
 
 [dev-dependencies]
 assert_cmd = "2.0"

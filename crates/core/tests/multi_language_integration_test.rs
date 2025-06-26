@@ -1,5 +1,5 @@
-use similarity_ts_core::apted::{compute_edit_distance, APTEDOptions};
-use similarity_ts_core::language_parser::{Language, ParserFactory};
+use similarity_core::apted::{compute_edit_distance, APTEDOptions};
+use similarity_core::language_parser::{Language, ParserFactory};
 use std::fs;
 use std::path::PathBuf;
 

@@ -1,5 +1,7 @@
-use crate::language_parser::{GenericFunctionDef, GenericTypeDef, Language, LanguageParser};
-use crate::tree::TreeNode;
+use similarity_core::language_parser::{
+    GenericFunctionDef, GenericTypeDef, Language, LanguageParser,
+};
+use similarity_core::tree::TreeNode;
 use std::error::Error;
 use std::rc::Rc;
 use tree_sitter::{Node, Parser};
@@ -113,24 +115,27 @@ impl RustParser {
                 "block" => {
                     // Extract the inner content of the block
                     let block_text = &source[child.byte_range().start..child.byte_range().end];
-                    
+
                     // Find the positions of the opening and closing braces
                     if let Some(open_pos) = block_text.find('{') {
                         if let Some(close_pos) = block_text.rfind('}') {
                             let inner_content = &block_text[open_pos + 1..close_pos].trim();
-                            
+
                             // Count newlines to determine actual line positions
-                            let _lines_before_block = source[..child.byte_range().start].lines().count();
-                            let lines_before_content = source[..child.byte_range().start + open_pos + 1].lines().count();
-                            
+                            let _lines_before_block =
+                                source[..child.byte_range().start].lines().count();
+                            let lines_before_content =
+                                source[..child.byte_range().start + open_pos + 1].lines().count();
+
                             body_start_line = (lines_before_content + 1) as u32;
-                            
+
                             // Count lines in the inner content
                             let content_lines = inner_content.lines().count();
-                            body_end_line = body_start_line + content_lines.saturating_sub(1) as u32;
+                            body_end_line =
+                                body_start_line + content_lines.saturating_sub(1) as u32;
                         }
                     }
-                    
+
                     // Fallback to original positions if parsing fails
                     if body_start_line == 0 {
                         body_start_line = (child.start_position().row + 1) as u32;
@@ -160,21 +165,21 @@ impl RustParser {
         }
     }
 
+    #[allow(clippy::only_used_in_recursion)]
     fn convert_node_to_tree(&self, node: Node, source: &str) -> Rc<TreeNode> {
         let label = node.kind().to_string();
-        
+
         let value = match node.kind() {
-            "identifier" | "string_literal" | "char_literal" | 
-            "integer_literal" | "float_literal" | "true" | "false" |
-            "+" | "-" | "*" | "/" | "%" | "==" | "!=" | "<" | ">" | "<=" | ">=" |
-            "&&" | "||" | "!" | "&" | "|" | "^" | "<<" | ">>" => {
+            "identifier" | "string_literal" | "char_literal" | "integer_literal"
+            | "float_literal" | "true" | "false" | "+" | "-" | "*" | "/" | "%" | "==" | "!="
+            | "<" | ">" | "<=" | ">=" | "&&" | "||" | "!" | "&" | "|" | "^" | "<<" | ">>" => {
                 source[node.byte_range().start..node.byte_range().end].to_string()
             }
             _ => String::new(),
         };
 
         let mut tree_node = TreeNode::new(label, value, 0);
-        
+
         for child in node.children(&mut node.walk()) {
             if !child.is_extra() {
                 tree_node.add_child(self.convert_node_to_tree(child, source));
@@ -323,13 +328,13 @@ fn find_first_function(node: Node) -> Option<Node> {
     if node.kind() == "function_item" {
         return Some(node);
     }
-    
+
     for child in node.children(&mut node.walk()) {
         if let Some(func) = find_first_function(child) {
             return Some(func);
         }
     }
-    
+
     None
 }
 
@@ -342,14 +347,14 @@ impl LanguageParser for RustParser {
         } else {
             source.to_string()
         };
-        
+
         let tree = self
             .parser
             .parse(&wrapped_source, None)
             .ok_or_else(|| format!("Failed to parse {}", filename))?;
 
         let root_node = tree.root_node();
-        
+
         // If we wrapped the source, extract just the function body
         if wrapped_source != source {
             // Find the function node
@@ -361,10 +366,11 @@ impl LanguageParser for RustParser {
                         let mut block_children = Vec::new();
                         for block_child in child.children(&mut child.walk()) {
                             if block_child.kind() != "{" && block_child.kind() != "}" {
-                                block_children.push(self.convert_node_to_tree(block_child, &wrapped_source));
+                                block_children
+                                    .push(self.convert_node_to_tree(block_child, &wrapped_source));
                             }
                         }
-                        
+
                         // Create a synthetic root node containing just the body content
                         let mut root = TreeNode::new("block_content".to_string(), String::new(), 0);
                         for child in block_children {
@@ -375,7 +381,7 @@ impl LanguageParser for RustParser {
                 }
             }
         }
-        
+
         Ok(self.convert_node_to_tree(root_node, &wrapped_source))
     }
 
@@ -384,10 +390,7 @@ impl LanguageParser for RustParser {
         source: &str,
         _filename: &str,
     ) -> Result<Vec<GenericFunctionDef>, Box<dyn Error>> {
-        let tree = self
-            .parser
-            .parse(source, None)
-            .ok_or("Failed to parse source")?;
+        let tree = self.parser.parse(source, None).ok_or("Failed to parse source")?;
 
         let root_node = tree.root_node();
         let mut functions = Vec::new();
@@ -400,10 +403,7 @@ impl LanguageParser for RustParser {
         source: &str,
         _filename: &str,
     ) -> Result<Vec<GenericTypeDef>, Box<dyn Error>> {
-        let tree = self
-            .parser
-            .parse(source, None)
-            .ok_or("Failed to parse source")?;
+        let tree = self.parser.parse(source, None).ok_or("Failed to parse source")?;
 
         let root_node = tree.root_node();
         let mut types = Vec::new();

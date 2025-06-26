@@ -1,5 +1,7 @@
-use crate::language_parser::{GenericFunctionDef, GenericTypeDef, Language, LanguageParser};
-use crate::tree::TreeNode;
+use similarity_core::language_parser::{
+    GenericFunctionDef, GenericTypeDef, Language, LanguageParser,
+};
+use similarity_core::tree::TreeNode;
 use std::error::Error;
 use std::rc::Rc;
 use tree_sitter::{Node, Parser};
@@ -141,43 +143,45 @@ impl PythonParser {
         }
 
         fn is_async_def(node: Node, source: &str) -> bool {
-        if let Ok(text) = node.utf8_text(source.as_bytes()) {
-            text.starts_with("async ")
-        } else {
-            false
-        }
-    }
-
-    fn is_generator_def(node: Node, source: &str) -> bool {
-        // Python generators are functions that contain yield statements
-        // For simplicity, we'll just check if the function body contains "yield"
-        if let Some(body) = node.child_by_field_name("body") {
-            if let Ok(body_text) = body.utf8_text(source.as_bytes()) {
-                return body_text.contains("yield");
+            if let Ok(text) = node.utf8_text(source.as_bytes()) {
+                text.starts_with("async ")
+            } else {
+                false
             }
         }
-        false
-    }
 
-    fn extract_decorators(node: Node, source: &str) -> Vec<String> {
-        let mut decorators = Vec::new();
-        let mut cursor = node.walk();
-        
-        // Look for decorator nodes before the function definition
-        if let Some(parent) = node.parent() {
-            for child in parent.children(&mut cursor) {
-                if child.kind() == "decorator" && child.end_position().row < node.start_position().row {
-                    if let Ok(decorator_text) = child.utf8_text(source.as_bytes()) {
-                        decorators.push(decorator_text.trim_start_matches('@').to_string());
+        fn is_generator_def(node: Node, source: &str) -> bool {
+            // Python generators are functions that contain yield statements
+            // For simplicity, we'll just check if the function body contains "yield"
+            if let Some(body) = node.child_by_field_name("body") {
+                if let Ok(body_text) = body.utf8_text(source.as_bytes()) {
+                    return body_text.contains("yield");
+                }
+            }
+            false
+        }
+
+        fn extract_decorators(node: Node, source: &str) -> Vec<String> {
+            let mut decorators = Vec::new();
+            let mut cursor = node.walk();
+
+            // Look for decorator nodes before the function definition
+            if let Some(parent) = node.parent() {
+                for child in parent.children(&mut cursor) {
+                    if child.kind() == "decorator"
+                        && child.end_position().row < node.start_position().row
+                    {
+                        if let Ok(decorator_text) = child.utf8_text(source.as_bytes()) {
+                            decorators.push(decorator_text.trim_start_matches('@').to_string());
+                        }
                     }
                 }
             }
-        }
-        
-        decorators
-    }
 
-    fn extract_params(params_node: Option<Node>, source: &str) -> Vec<String> {
+            decorators
+        }
+
+        fn extract_params(params_node: Option<Node>, source: &str) -> Vec<String> {
             if let Some(node) = params_node {
                 let mut params = Vec::new();
                 let mut cursor = node.walk();
@@ -265,7 +269,7 @@ impl LanguageParser for PythonParser {
 
         fn extract_class_fields(node: Node, source: &str) -> Vec<String> {
             let mut fields = Vec::new();
-            
+
             if let Some(body) = node.child_by_field_name("body") {
                 let mut cursor = body.walk();
                 for child in body.children(&mut cursor) {
@@ -284,10 +288,10 @@ impl LanguageParser for PythonParser {
                     }
                 }
             }
-            
+
             fields
         }
-        
+
         fn extract_self_assignments(node: Node, source: &str, fields: &mut Vec<String>) {
             let mut cursor = node.walk();
             for child in node.children(&mut cursor) {

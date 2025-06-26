@@ -1,4 +1,4 @@
-use similarity_ts_core::{compare_functions, extract_functions, TSEDOptions};
+use similarity_core::{compare_functions, extract_functions, TSEDOptions};
 
 #[test]
 fn test_different_functions_should_not_have_high_similarity() {

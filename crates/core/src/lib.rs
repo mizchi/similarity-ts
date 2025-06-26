@@ -6,12 +6,9 @@ pub mod parser;
 pub mod tree;
 pub mod tree_sitter_parser;
 // pub mod tree_sitter_function_extractor;
-pub mod language_parser;
-pub mod oxc_parser_adapter;
-pub mod python_parser;
-pub mod rust_parser;
-pub mod tsed;
 pub mod enhanced_similarity;
+pub mod language_parser;
+pub mod tsed;
 pub mod type_comparator;
 pub mod type_extractor;
 pub mod type_normalizer;
@@ -22,6 +19,9 @@ pub mod cli_output;
 pub mod cli_parallel;
 
 pub use apted::{compute_edit_distance, APTEDOptions};
+pub use enhanced_similarity::{
+    calculate_enhanced_similarity, calculate_semantic_similarity, EnhancedSimilarityOptions,
+};
 pub use function_extractor::{
     compare_functions, extract_functions, find_similar_functions_across_files,
     find_similar_functions_in_file, FunctionDefinition, FunctionType, SimilarityResult,
@@ -29,9 +29,6 @@ pub use function_extractor::{
 pub use parser::{ast_to_tree_node, parse_and_convert_to_tree};
 pub use tree::TreeNode;
 pub use tsed::{calculate_tsed, calculate_tsed_from_code, TSEDOptions};
-pub use enhanced_similarity::{
-    calculate_enhanced_similarity, calculate_semantic_similarity, EnhancedSimilarityOptions,
-};
 
 // Type-related exports
 pub use type_comparator::{

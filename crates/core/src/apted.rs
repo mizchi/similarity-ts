@@ -13,11 +13,11 @@ pub struct APTEDOptions {
 
 impl Default for APTEDOptions {
     fn default() -> Self {
-        APTEDOptions { 
-            rename_cost: 1.0, 
-            delete_cost: 1.0, 
+        APTEDOptions {
+            rename_cost: 1.0,
+            delete_cost: 1.0,
             insert_cost: 1.0,
-            compare_values: true,  // Default: compare both structure and values
+            compare_values: true, // Default: compare both structure and values
         }
     }
 }
@@ -50,17 +50,17 @@ fn compute_edit_distance_recursive(
         // Both are leaves
         let cost = if options.compare_values {
             // Compare both label and value
-            if node1.label == node2.label && node1.value == node2.value { 
-                0.0 
-            } else { 
-                options.rename_cost 
+            if node1.label == node2.label && node1.value == node2.value {
+                0.0
+            } else {
+                options.rename_cost
             }
         } else {
             // Compare only label (structural comparison)
-            if node1.label == node2.label { 
-                0.0 
-            } else { 
-                options.rename_cost 
+            if node1.label == node2.label {
+                0.0
+            } else {
+                options.rename_cost
             }
         };
         memo.insert(key, cost);
@@ -74,17 +74,17 @@ fn compute_edit_distance_recursive(
     // Calculate rename + optimal children alignment
     let mut rename_plus_cost = if options.compare_values {
         // Compare both label and value
-        if node1.label == node2.label && node1.value == node2.value { 
-            0.0 
-        } else { 
-            options.rename_cost 
+        if node1.label == node2.label && node1.value == node2.value {
+            0.0
+        } else {
+            options.rename_cost
         }
     } else {
         // Compare only label (structural comparison)
-        if node1.label == node2.label { 
-            0.0 
-        } else { 
-            options.rename_cost 
+        if node1.label == node2.label {
+            0.0
+        } else {
+            options.rename_cost
         }
     };
 

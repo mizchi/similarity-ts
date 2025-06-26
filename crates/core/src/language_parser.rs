@@ -49,10 +49,10 @@ pub struct GenericFunctionDef {
 #[derive(Debug, Clone)]
 pub struct GenericTypeDef {
     pub name: String,
-    pub kind: String,  // "struct", "enum", "type_alias", etc.
+    pub kind: String, // "struct", "enum", "type_alias", etc.
     pub start_line: u32,
     pub end_line: u32,
-    pub fields: Vec<String>,  // Fields for structs, variants for enums, etc.
+    pub fields: Vec<String>, // Fields for structs, variants for enums, etc.
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -87,29 +87,7 @@ pub trait LanguageParser: Send + Sync {
     fn language(&self) -> Language;
 }
 
-/// Factory for creating language-specific parsers
-pub struct ParserFactory;
-
-impl ParserFactory {
-    pub fn create_parser(language: Language) -> Result<Box<dyn LanguageParser>, Box<dyn Error>> {
-        match language {
-            Language::JavaScript | Language::TypeScript => {
-                Ok(Box::new(crate::oxc_parser_adapter::OxcParserAdapter::new()))
-            }
-            Language::Python => Ok(Box::new(crate::python_parser::PythonParser::new()?)),
-            Language::Rust => Ok(Box::new(crate::rust_parser::RustParser::new()?)),
-            _ => Err(format!("Language {:?} not yet supported", language).into()),
-        }
-    }
-
-    pub fn create_parser_for_file(
-        filename: &str,
-    ) -> Result<Box<dyn LanguageParser>, Box<dyn Error>> {
-        let language = Language::from_filename(filename)
-            .ok_or_else(|| format!("Cannot determine language for file: {}", filename))?;
-        Self::create_parser(language)
-    }
-}
+// ParserFactory is removed - each language CLI now manages its own parser
 
 #[cfg(test)]
 mod tests {
