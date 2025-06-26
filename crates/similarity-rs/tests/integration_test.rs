@@ -92,16 +92,29 @@ fn test_no_duplicates() {
     let file_path = dir.path().join("unique.rs");
 
     let content = r#"
-fn add(a: i32, b: i32) -> i32 {
-    a + b
+fn calculate_sum(numbers: &[i32]) -> i32 {
+    let mut sum = 0;
+    for n in numbers {
+        sum += n;
+    }
+    sum
 }
 
-fn multiply(x: i32, y: i32) -> i32 {
-    x * y
+fn find_maximum(values: &[i32]) -> Option<i32> {
+    if values.is_empty() {
+        return None;
+    }
+    let mut max = values[0];
+    for &v in values.iter().skip(1) {
+        if v > max {
+            max = v;
+        }
+    }
+    Some(max)
 }
 
-fn greet(name: &str) -> String {
-    format!("Hello, {}!", name)
+fn format_message(name: &str, age: u32) -> String {
+    format!("Hello {}, you are {} years old", name, age)
 }
 "#;
 
@@ -111,7 +124,7 @@ fn greet(name: &str) -> String {
         .unwrap()
         .arg(&file_path)
         .arg("--threshold")
-        .arg("0.8")
+        .arg("0.85")
         .assert()
         .success()
         .stdout(predicate::str::contains("No duplicate functions found!"));

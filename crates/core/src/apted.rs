@@ -7,11 +7,18 @@ pub struct APTEDOptions {
     pub rename_cost: f64,
     pub delete_cost: f64,
     pub insert_cost: f64,
+    /// Whether to compare node values in addition to labels
+    pub compare_values: bool,
 }
 
 impl Default for APTEDOptions {
     fn default() -> Self {
-        APTEDOptions { rename_cost: 1.0, delete_cost: 1.0, insert_cost: 1.0 }
+        APTEDOptions { 
+            rename_cost: 1.0, 
+            delete_cost: 1.0, 
+            insert_cost: 1.0,
+            compare_values: true,  // Default: compare both structure and values
+        }
     }
 }
 
@@ -41,7 +48,21 @@ fn compute_edit_distance_recursive(
     // Base cases
     if node1.children.is_empty() && node2.children.is_empty() {
         // Both are leaves
-        let cost = if node1.label == node2.label { 0.0 } else { options.rename_cost };
+        let cost = if options.compare_values {
+            // Compare both label and value
+            if node1.label == node2.label && node1.value == node2.value { 
+                0.0 
+            } else { 
+                options.rename_cost 
+            }
+        } else {
+            // Compare only label (structural comparison)
+            if node1.label == node2.label { 
+                0.0 
+            } else { 
+                options.rename_cost 
+            }
+        };
         memo.insert(key, cost);
         return cost;
     }
@@ -51,7 +72,21 @@ fn compute_edit_distance_recursive(
     let insert_all_cost = options.insert_cost * node2.get_subtree_size() as f64;
 
     // Calculate rename + optimal children alignment
-    let mut rename_plus_cost = if node1.label == node2.label { 0.0 } else { options.rename_cost };
+    let mut rename_plus_cost = if options.compare_values {
+        // Compare both label and value
+        if node1.label == node2.label && node1.value == node2.value { 
+            0.0 
+        } else { 
+            options.rename_cost 
+        }
+    } else {
+        // Compare only label (structural comparison)
+        if node1.label == node2.label { 
+            0.0 
+        } else { 
+            options.rename_cost 
+        }
+    };
 
     if !node1.children.is_empty() || !node2.children.is_empty() {
         // Compute all pairwise costs between children

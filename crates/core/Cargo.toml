@@ -46,3 +46,6 @@ harness = false
 
 [[example]]
 name = "test_rust_parser"
+
+[[example]]
+name = "test_rust_parser_debug"

@@ -371,7 +371,7 @@ class Admin(User):
         let types = parser.extract_types(source, "test.py").unwrap();
         assert_eq!(types.len(), 2);
         assert_eq!(types[0].name, "User");
-        assert_eq!(types[0].kind, TypeDefKind::Class);
+        assert_eq!(types[0].kind, "class");
         assert_eq!(types[1].name, "Admin");
     }
 }

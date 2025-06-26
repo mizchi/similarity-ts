@@ -11,6 +11,7 @@ pub mod oxc_parser_adapter;
 pub mod python_parser;
 pub mod rust_parser;
 pub mod tsed;
+pub mod enhanced_similarity;
 pub mod type_comparator;
 pub mod type_extractor;
 pub mod type_normalizer;
@@ -28,6 +29,9 @@ pub use function_extractor::{
 pub use parser::{ast_to_tree_node, parse_and_convert_to_tree};
 pub use tree::TreeNode;
 pub use tsed::{calculate_tsed, calculate_tsed_from_code, TSEDOptions};
+pub use enhanced_similarity::{
+    calculate_enhanced_similarity, calculate_semantic_similarity, EnhancedSimilarityOptions,
+};
 
 // Type-related exports
 pub use type_comparator::{

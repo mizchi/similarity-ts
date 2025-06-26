@@ -121,8 +121,8 @@ type UserID = string | number;
         let types = adapter.extract_types(source, "test.ts").unwrap();
         assert_eq!(types.len(), 2);
         assert_eq!(types[0].name, "User");
-        assert_eq!(types[0].kind, TypeDefKind::Interface);
+        assert_eq!(types[0].kind, "interface");
         assert_eq!(types[1].name, "UserID");
-        assert_eq!(types[1].kind, TypeDefKind::TypeAlias);
+        assert_eq!(types[1].kind, "type_alias");
     }
 }
