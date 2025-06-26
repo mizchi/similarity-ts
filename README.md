@@ -68,6 +68,9 @@ similarity-ts . --experimental-types
 
 # Check types only
 similarity-ts . --no-functions --experimental-types
+
+# Exclude directories by glob pattern
+similarity-ts . --exclude "**/codegen/**"
 ```
 
 ## Usage

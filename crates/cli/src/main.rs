@@ -87,6 +87,10 @@ struct Cli {
     /// Disable fast mode with bloom filter pre-filtering
     #[arg(long = "no-fast")]
     no_fast: bool,
+
+    /// Exclude directories matching the given patterns (can be specified multiple times)
+    #[arg(long)]
+    exclude: Vec<String>,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -132,6 +136,7 @@ fn main() -> anyhow::Result<()> {
             !cli.no_fast,
             cli.filter_function.as_ref(),
             cli.filter_function_body.as_ref(),
+            &cli.exclude,
         )?;
     }
 
@@ -154,10 +159,28 @@ fn main() -> anyhow::Result<()> {
             cli.structural_weight,
             cli.naming_weight,
             cli.include_type_literals,
+            &cli.exclude,
         )?;
     }
 
     Ok(())
+}
+
+fn create_exclude_matcher(exclude_patterns: &[String]) -> Option<globset::GlobSet> {
+    if exclude_patterns.is_empty() {
+        return None;
+    }
+
+    let mut builder = globset::GlobSetBuilder::new();
+    for pattern in exclude_patterns {
+        if let Ok(glob) = globset::Glob::new(pattern) {
+            builder.add(glob);
+        } else {
+            eprintln!("Warning: Invalid glob pattern: {}", pattern);
+        }
+    }
+
+    builder.build().ok()
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -173,6 +196,7 @@ fn check_types(
     structural_weight: f64,
     naming_weight: f64,
     include_type_literals: bool,
+    exclude_patterns: &[String],
 ) -> anyhow::Result<()> {
     use ignore::WalkBuilder;
     use similarity_ts_core::{
@@ -187,6 +211,7 @@ fn check_types(
     let exts: Vec<&str> =
         extensions.map_or(default_extensions, |v| v.iter().map(String::as_str).collect());
 
+    let exclude_matcher = create_exclude_matcher(exclude_patterns);
     let mut files = Vec::new();
     let mut visited = HashSet::new();
 
@@ -218,6 +243,13 @@ fn check_types(
                 // Skip if not a file
                 if !entry_path.is_file() {
                     continue;
+                }
+
+                // Check if path should be excluded
+                if let Some(ref matcher) = exclude_matcher {
+                    if matcher.is_match(entry_path) {
+                        continue;
+                    }
                 }
 
                 // Check extension

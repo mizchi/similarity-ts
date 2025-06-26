@@ -21,6 +21,7 @@ clap = { version = "4.0", features = ["derive"] }
 anyhow = "1.0"
 walkdir = "2.5"
 ignore = "0.4"
+globset = "0.4"
 rayon = "1.10"
 
 [dev-dependencies]

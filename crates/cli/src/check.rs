@@ -8,6 +8,23 @@ use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+fn create_exclude_matcher(exclude_patterns: &[String]) -> Option<globset::GlobSet> {
+    if exclude_patterns.is_empty() {
+        return None;
+    }
+
+    let mut builder = globset::GlobSetBuilder::new();
+    for pattern in exclude_patterns {
+        if let Ok(glob) = globset::Glob::new(pattern) {
+            builder.add(glob);
+        } else {
+            eprintln!("Warning: Invalid glob pattern: {}", pattern);
+        }
+    }
+
+    builder.build().ok()
+}
+
 /// Extract lines from file content within the specified range
 fn extract_lines_from_content(content: &str, start_line: u32, end_line: u32) -> String {
     let lines: Vec<&str> = content.lines().collect();
@@ -225,11 +242,14 @@ pub fn check_paths(
     fast_mode: bool,
     filter_function: Option<&String>,
     filter_function_body: Option<&String>,
+    exclude_patterns: &[String],
 ) -> anyhow::Result<()> {
     let default_extensions = vec!["ts", "tsx", "js", "jsx", "mjs", "cjs", "mts", "cts"];
     let exts: Vec<&str> =
         extensions.map_or(default_extensions, |v| v.iter().map(String::as_str).collect());
 
+    // Create exclude matcher
+    let exclude_matcher = create_exclude_matcher(exclude_patterns);
     let mut files = Vec::new();
     let mut visited = HashSet::new();
 
@@ -261,6 +281,13 @@ pub fn check_paths(
                 // Skip if not a file
                 if !entry_path.is_file() {
                     continue;
+                }
+
+                // Check if path should be excluded
+                if let Some(ref matcher) = exclude_matcher {
+                    if matcher.is_match(entry_path) {
+                        continue;
+                    }
                 }
 
                 // Check extension
