@@ -40,15 +40,19 @@ pub struct GenericFunctionDef {
     pub parameters: Vec<String>,
     pub is_method: bool,
     pub class_name: Option<String>,
+    pub is_async: bool,
+    pub is_generator: bool,
+    pub decorators: Vec<String>,
 }
 
 /// Generic type definition that works across languages
 #[derive(Debug, Clone)]
 pub struct GenericTypeDef {
     pub name: String,
-    pub kind: TypeDefKind,
+    pub kind: String,  // "struct", "enum", "type_alias", etc.
     pub start_line: u32,
     pub end_line: u32,
+    pub fields: Vec<String>,  // Fields for structs, variants for enums, etc.
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -93,6 +97,7 @@ impl ParserFactory {
                 Ok(Box::new(crate::oxc_parser_adapter::OxcParserAdapter::new()))
             }
             Language::Python => Ok(Box::new(crate::python_parser::PythonParser::new()?)),
+            Language::Rust => Ok(Box::new(crate::rust_parser::RustParser::new()?)),
             _ => Err(format!("Language {:?} not yet supported", language).into()),
         }
     }

@@ -20,6 +20,7 @@ tree-sitter = { workspace = true }
 tree-sitter-javascript = { workspace = true }
 tree-sitter-typescript = { workspace = true }
 tree-sitter-python = { workspace = true }
+tree-sitter-rust = { workspace = true }
 rayon = "1.10"
 ignore = "0.4"
 anyhow = "1.0"
@@ -42,3 +43,6 @@ harness = false
 [[bench]]
 name = "hybrid_parser_benchmark"
 harness = false
+
+[[example]]
+name = "test_rust_parser"

@@ -1,7 +1,5 @@
 use crate::function_extractor::extract_functions;
-use crate::language_parser::{
-    GenericFunctionDef, GenericTypeDef, Language, LanguageParser, TypeDefKind,
-};
+use crate::language_parser::{GenericFunctionDef, GenericTypeDef, Language, LanguageParser};
 use crate::parser::parse_and_convert_to_tree;
 use crate::tree::TreeNode;
 use crate::type_extractor::{extract_types_from_code, TypeKind};
@@ -49,6 +47,9 @@ impl LanguageParser for OxcParserAdapter {
                     crate::function_extractor::FunctionType::Method
                 ),
                 class_name: f.class_name,
+                is_async: false, // TODO: Extract async information from AST
+                is_generator: false, // TypeScript/JavaScript doesn't have generators in our current model
+                decorators: Vec::new(), // TypeScript/JavaScript doesn't have decorators in our current model
             })
             .collect())
     }
@@ -66,12 +67,13 @@ impl LanguageParser for OxcParserAdapter {
             .map(|t| GenericTypeDef {
                 name: t.name,
                 kind: match t.kind {
-                    TypeKind::Interface => TypeDefKind::Interface,
-                    TypeKind::TypeAlias => TypeDefKind::TypeAlias,
-                    TypeKind::TypeLiteral => TypeDefKind::Interface, // Treat type literals as interface-like
+                    TypeKind::Interface => "interface".to_string(),
+                    TypeKind::TypeAlias => "type_alias".to_string(),
+                    TypeKind::TypeLiteral => "type_literal".to_string(),
                 },
                 start_line: t.start_line as u32,
                 end_line: t.end_line as u32,
+                fields: t.properties.into_iter().map(|p| p.name).collect(),
             })
             .collect())
     }

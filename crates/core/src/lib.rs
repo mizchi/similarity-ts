@@ -9,6 +9,7 @@ pub mod tree_sitter_parser;
 pub mod language_parser;
 pub mod oxc_parser_adapter;
 pub mod python_parser;
+pub mod rust_parser;
 pub mod tsed;
 pub mod type_comparator;
 pub mod type_extractor;
