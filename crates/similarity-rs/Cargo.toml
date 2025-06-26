@@ -2,6 +2,14 @@
 name = "similarity-rs"
 version = "0.1.1"
 edition = "2021"
+license = "MIT"
+description = "CLI tool for detecting code duplication in Rust projects"
+authors = ["mizchi"]
+repository = "https://github.com/mizchi/similarity-ts"
+homepage = "https://github.com/mizchi/similarity-ts"
+documentation = "https://docs.rs/similarity-rs"
+keywords = ["rust", "duplicate", "detection", "cli", "similarity"]
+categories = ["command-line-utilities", "development-tools"]
 
 [[bin]]
 name = "similarity-rs"
