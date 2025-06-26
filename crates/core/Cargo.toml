@@ -31,10 +31,4 @@ harness = false
 name = "function_comparison"
 harness = false
 
-[[bench]]
-name = "parser_comparison"
-harness = false
-
-# Benchmarks updated - hybrid parser benchmark removed
-
 # Examples removed - language-specific examples moved to respective crates
