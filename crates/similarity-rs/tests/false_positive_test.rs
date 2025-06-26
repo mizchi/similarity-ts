@@ -1,7 +1,5 @@
-use similarity_core::{
-    calculate_enhanced_similarity, APTEDOptions, EnhancedSimilarityOptions,
-};
 use similarity_core::language_parser::LanguageParser;
+use similarity_core::{calculate_enhanced_similarity, APTEDOptions, EnhancedSimilarityOptions};
 use similarity_rs::rust_parser::RustParser;
 
 #[test]
@@ -36,12 +34,12 @@ fn multiply(x: i32, y: i32) -> i32 {
     };
 
     let similarity = calculate_enhanced_similarity(&tree1, &tree2, &options);
-    
+
     // Debug output
     println!("Tree1 size: {}", tree1.get_subtree_size());
     println!("Tree2 size: {}", tree2.get_subtree_size());
     println!("Similarity: {}", similarity);
-    
+
     // Different functions should have similarity below 0.7
     assert!(similarity < 0.7, "Similarity was too high: {}", similarity);
 }
@@ -74,7 +72,7 @@ fn bar() {}
     };
 
     let similarity = calculate_enhanced_similarity(&tree1, &tree2, &options);
-    
+
     // Empty functions with different names should not be identical
     assert!(similarity < 1.0, "Empty functions were identical: {}", similarity);
 }
@@ -113,7 +111,7 @@ fn test_multiplication() {
     };
 
     let similarity = calculate_enhanced_similarity(&tree1, &tree2, &options);
-    
+
     // Different test functions should not be identical (but can be very similar)
     assert!(similarity < 1.0, "Test functions were identical: {}", similarity);
 }
@@ -162,7 +160,7 @@ fn handle_items(data: &[i32]) -> Vec<i32> {
     };
 
     let similarity = calculate_enhanced_similarity(&tree1, &tree2, &options);
-    
+
     // These functions are genuinely similar and should be detected
     assert!(similarity > 0.8, "Similar functions were not detected: {}", similarity);
 }

@@ -194,7 +194,7 @@ fn longer_func2() -> i32 {
         .arg("--min-lines")
         .arg("4")
         .arg("--threshold")
-        .arg("0.7")  // Lower threshold for these similar functions
+        .arg("0.7") // Lower threshold for these similar functions
         .assert()
         .success()
         .stdout(predicate::str::contains("longer_func1"))

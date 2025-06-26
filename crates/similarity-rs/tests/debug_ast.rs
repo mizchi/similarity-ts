@@ -20,7 +20,7 @@ fn func2(y: i32) -> i32 {
     let mut parser = RustParser::new().unwrap();
     let tree1 = parser.parse(code1, "test.rs").unwrap();
     let tree2 = parser.parse(code2, "test.rs").unwrap();
-    
+
     // Print the tree to see if values are captured
     fn print_tree(node: &similarity_core::tree::TreeNode, depth: usize) {
         let indent = "  ".repeat(depth);
@@ -33,12 +33,12 @@ fn func2(y: i32) -> i32 {
             print_tree(child, depth + 1);
         }
     }
-    
+
     println!("=== Tree 1 (func1) ===");
     print_tree(&tree1, 0);
     println!("\n=== Tree 2 (func2) ===");
     print_tree(&tree2, 0);
-    
+
     // Also check similarity
     use similarity_core::{calculate_enhanced_similarity, APTEDOptions, EnhancedSimilarityOptions};
     let options = EnhancedSimilarityOptions {

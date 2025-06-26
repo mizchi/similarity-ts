@@ -104,7 +104,11 @@ pub fn check_within_file_duplicates_parallel(
                                                     min_size_ratio: 0.5,
                                                     apted_options: options.apted_options.clone(),
                                                 };
-                                                calculate_enhanced_similarity(&tree1, &tree2, &enhanced_options)
+                                                calculate_enhanced_similarity(
+                                                    &tree1,
+                                                    &tree2,
+                                                    &enhanced_options,
+                                                )
                                             }
                                             _ => 0.0,
                                         };

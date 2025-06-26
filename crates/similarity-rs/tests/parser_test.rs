@@ -11,11 +11,11 @@ fn add(a: i32, b: i32) -> i32 {
 
     let mut parser = RustParser::new().unwrap();
     let tree = parser.parse(code, "test.rs").unwrap();
-    
+
     // The tree should contain function signature elements
     let tree_str = format!("{:?}", tree);
     println!("Parsed tree: {}", tree_str);
-    
+
     // Check tree size is reasonable (not just the body)
     let size = tree.get_subtree_size();
     println!("Tree size: {}", size);
@@ -30,8 +30,11 @@ fn test_parser_differentiates_function_names() {
     let mut parser = RustParser::new().unwrap();
     let tree1 = parser.parse(code1, "test.rs").unwrap();
     let tree2 = parser.parse(code2, "test.rs").unwrap();
-    
+
     // Trees should be different even for empty functions with different names
-    assert_ne!(format!("{:?}", tree1), format!("{:?}", tree2), 
-               "Functions with different names should produce different trees");
+    assert_ne!(
+        format!("{:?}", tree1),
+        format!("{:?}", tree2),
+        "Functions with different names should produce different trees"
+    );
 }
