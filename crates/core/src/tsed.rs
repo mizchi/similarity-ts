@@ -17,6 +17,7 @@ impl Default for TSEDOptions {
                 rename_cost: 0.3, // Default from the TypeScript implementation
                 delete_cost: 1.0,
                 insert_cost: 1.0,
+                compare_values: false, // TypeScript default: structural comparison only
             },
             min_lines: 5,       // Increased default to better filter trivial matches
             min_tokens: None,   // No token limit by default

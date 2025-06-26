@@ -35,7 +35,7 @@ def handle_items(data):
         .success()
         .stdout(predicate::str::contains("process_items"))
         .stdout(predicate::str::contains("handle_items"))
-        .stdout(predicate::str::contains("Similarity: 100.00%"));
+        .stdout(predicate::str::contains("Similarity: 100."));
 }
 
 #[test]

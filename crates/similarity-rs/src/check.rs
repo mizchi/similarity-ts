@@ -37,18 +37,19 @@ pub fn check_paths(
     min_tokens: Option<u32>,
     no_size_penalty: bool,
     print: bool,
-    _fast_mode: bool, // Python doesn't support fast mode yet
+    _fast_mode: bool, // Rust doesn't support fast mode yet
     filter_function: Option<&String>,
     filter_function_body: Option<&String>,
+    _exclude_patterns: &[String],
 ) -> anyhow::Result<()> {
-    let default_extensions = vec!["py"];
+    let default_extensions = vec!["rs"];
     let exts: Vec<&str> =
         extensions.map_or(default_extensions, |v| v.iter().map(String::as_str).collect());
 
     let files = collect_files(&paths, &exts)?;
 
     if files.is_empty() {
-        println!("No Python files found in the specified paths.");
+        println!("No Rust files found in the specified paths.");
         return Ok(());
     }
 
@@ -72,7 +73,7 @@ pub fn check_paths(
         }
     }
 
-    // For now, we only support within-file duplicates for Python
+    // For now, we only support within-file duplicates for Rust
     // Cross-file support can be added later
 
     // Display results

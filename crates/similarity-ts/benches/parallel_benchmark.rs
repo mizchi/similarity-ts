@@ -1,4 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
+use similarity_core::TSEDOptions;
 use similarity_ts::parallel::{
     check_cross_file_duplicates_parallel, check_within_file_duplicates_parallel,
     load_files_parallel,
@@ -7,7 +8,6 @@ use similarity_ts::sequential::{
     check_cross_file_duplicates_sequential, check_within_file_duplicates_sequential,
     load_files_sequential,
 };
-use similarity_ts_core::TSEDOptions;
 use std::fs;
 use std::path::PathBuf;
 use std::time::Duration;

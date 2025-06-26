@@ -1,7 +1,7 @@
-use crate::language_parser::{
-    GenericFunctionDef, GenericTypeDef, Language, LanguageParser, TypeDefKind,
+use similarity_core::language_parser::{
+    GenericFunctionDef, GenericTypeDef, Language, LanguageParser,
 };
-use crate::tree::TreeNode;
+use similarity_core::tree::TreeNode;
 use std::error::Error;
 use std::rc::Rc;
 use tree_sitter::{Node, Parser};
@@ -78,6 +78,9 @@ impl PythonParser {
                                 parameters: params,
                                 is_method: class_name.is_some(),
                                 class_name: class_name.map(|s| s.to_string()),
+                                is_async: is_async_def(node, source),
+                                is_generator: is_generator_def(node, source),
+                                decorators: extract_decorators(node, source),
                             });
                         }
                     }
@@ -106,6 +109,9 @@ impl PythonParser {
                                         parameters: params,
                                         is_method: class_name.is_some(),
                                         class_name: class_name.map(|s| s.to_string()),
+                                        is_async: is_async_def(child, source),
+                                        is_generator: is_generator_def(child, source),
+                                        decorators: extract_decorators(child, source),
                                     });
                                 }
                             }
@@ -134,6 +140,45 @@ impl PythonParser {
                     }
                 }
             }
+        }
+
+        fn is_async_def(node: Node, source: &str) -> bool {
+            if let Ok(text) = node.utf8_text(source.as_bytes()) {
+                text.starts_with("async ")
+            } else {
+                false
+            }
+        }
+
+        fn is_generator_def(node: Node, source: &str) -> bool {
+            // Python generators are functions that contain yield statements
+            // For simplicity, we'll just check if the function body contains "yield"
+            if let Some(body) = node.child_by_field_name("body") {
+                if let Ok(body_text) = body.utf8_text(source.as_bytes()) {
+                    return body_text.contains("yield");
+                }
+            }
+            false
+        }
+
+        fn extract_decorators(node: Node, source: &str) -> Vec<String> {
+            let mut decorators = Vec::new();
+            let mut cursor = node.walk();
+
+            // Look for decorator nodes before the function definition
+            if let Some(parent) = node.parent() {
+                for child in parent.children(&mut cursor) {
+                    if child.kind() == "decorator"
+                        && child.end_position().row < node.start_position().row
+                    {
+                        if let Ok(decorator_text) = child.utf8_text(source.as_bytes()) {
+                            decorators.push(decorator_text.trim_start_matches('@').to_string());
+                        }
+                    }
+                }
+            }
+
+            decorators
         }
 
         fn extract_params(params_node: Option<Node>, source: &str) -> Vec<String> {
@@ -206,9 +251,10 @@ impl LanguageParser for PythonParser {
                     if let Ok(name) = name_node.utf8_text(source.as_bytes()) {
                         types.push(GenericTypeDef {
                             name: name.to_string(),
-                            kind: TypeDefKind::Class,
+                            kind: "class".to_string(),
                             start_line: node.start_position().row as u32 + 1,
                             end_line: node.end_position().row as u32 + 1,
+                            fields: extract_class_fields(node, source),
                         });
                     }
                 }
@@ -218,6 +264,53 @@ impl LanguageParser for PythonParser {
             let mut cursor = node.walk();
             for child in node.children(&mut cursor) {
                 visit_node_for_types(child, source, types);
+            }
+        }
+
+        fn extract_class_fields(node: Node, source: &str) -> Vec<String> {
+            let mut fields = Vec::new();
+
+            if let Some(body) = node.child_by_field_name("body") {
+                let mut cursor = body.walk();
+                for child in body.children(&mut cursor) {
+                    // Look for instance variable assignments in __init__ method
+                    if child.kind() == "function_definition" {
+                        if let Some(name_node) = child.child_by_field_name("name") {
+                            if let Ok(name) = name_node.utf8_text(source.as_bytes()) {
+                                if name == "__init__" {
+                                    // Extract self.field assignments from __init__
+                                    if let Some(func_body) = child.child_by_field_name("body") {
+                                        extract_self_assignments(func_body, source, &mut fields);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            fields
+        }
+
+        fn extract_self_assignments(node: Node, source: &str, fields: &mut Vec<String>) {
+            let mut cursor = node.walk();
+            for child in node.children(&mut cursor) {
+                if child.kind() == "assignment" {
+                    if let Some(left) = child.child(0) {
+                        if left.kind() == "attribute" {
+                            if let Ok(text) = left.utf8_text(source.as_bytes()) {
+                                if text.starts_with("self.") {
+                                    let field_name = text.trim_start_matches("self.");
+                                    if !fields.contains(&field_name.to_string()) {
+                                        fields.push(field_name.to_string());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                // Recursively check nested nodes
+                extract_self_assignments(child, source, fields);
             }
         }
 
@@ -282,7 +375,7 @@ class Admin(User):
         let types = parser.extract_types(source, "test.py").unwrap();
         assert_eq!(types.len(), 2);
         assert_eq!(types[0].name, "User");
-        assert_eq!(types[0].kind, TypeDefKind::Class);
+        assert_eq!(types[0].kind, "class");
         assert_eq!(types[1].name, "Admin");
     }
 }

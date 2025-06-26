@@ -1,10 +1,10 @@
-use crate::function_extractor::extract_functions;
-use crate::language_parser::{
-    GenericFunctionDef, GenericTypeDef, Language, LanguageParser, TypeDefKind,
+use similarity_core::function_extractor::extract_functions;
+use similarity_core::language_parser::{
+    GenericFunctionDef, GenericTypeDef, Language, LanguageParser,
 };
-use crate::parser::parse_and_convert_to_tree;
-use crate::tree::TreeNode;
-use crate::type_extractor::{extract_types_from_code, TypeKind};
+use similarity_core::parser::parse_and_convert_to_tree;
+use similarity_core::tree::TreeNode;
+use similarity_core::type_extractor::{extract_types_from_code, TypeKind};
 use std::error::Error;
 use std::rc::Rc;
 
@@ -46,9 +46,12 @@ impl LanguageParser for OxcParserAdapter {
                 parameters: f.parameters,
                 is_method: matches!(
                     f.function_type,
-                    crate::function_extractor::FunctionType::Method
+                    similarity_core::function_extractor::FunctionType::Method
                 ),
                 class_name: f.class_name,
+                is_async: false,        // TODO: Extract async information from AST
+                is_generator: false, // TypeScript/JavaScript doesn't have generators in our current model
+                decorators: Vec::new(), // TypeScript/JavaScript doesn't have decorators in our current model
             })
             .collect())
     }
@@ -66,12 +69,13 @@ impl LanguageParser for OxcParserAdapter {
             .map(|t| GenericTypeDef {
                 name: t.name,
                 kind: match t.kind {
-                    TypeKind::Interface => TypeDefKind::Interface,
-                    TypeKind::TypeAlias => TypeDefKind::TypeAlias,
-                    TypeKind::TypeLiteral => TypeDefKind::Interface, // Treat type literals as interface-like
+                    TypeKind::Interface => "interface".to_string(),
+                    TypeKind::TypeAlias => "type_alias".to_string(),
+                    TypeKind::TypeLiteral => "type_literal".to_string(),
                 },
                 start_line: t.start_line as u32,
                 end_line: t.end_line as u32,
+                fields: t.properties.into_iter().map(|p| p.name).collect(),
             })
             .collect())
     }
@@ -119,8 +123,8 @@ type UserID = string | number;
         let types = adapter.extract_types(source, "test.ts").unwrap();
         assert_eq!(types.len(), 2);
         assert_eq!(types[0].name, "User");
-        assert_eq!(types[0].kind, TypeDefKind::Interface);
+        assert_eq!(types[0].kind, "interface");
         assert_eq!(types[1].name, "UserID");
-        assert_eq!(types[1].kind, TypeDefKind::TypeAlias);
+        assert_eq!(types[1].kind, "type_alias");
     }
 }

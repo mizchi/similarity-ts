@@ -8,21 +8,21 @@ use similarity_core::{
 use std::fs;
 use std::path::PathBuf;
 
-/// Python file with its content and extracted functions
+/// Rust file with its content and extracted functions
 #[allow(dead_code)]
-pub type PythonFileData = FileData<GenericFunctionDef>;
+pub type RustFileData = FileData<GenericFunctionDef>;
 
-/// Load and parse Python files in parallel
+/// Load and parse Rust files in parallel
 #[allow(dead_code)]
-pub fn load_files_parallel(files: &[PathBuf]) -> Vec<PythonFileData> {
+pub fn load_files_parallel(files: &[PathBuf]) -> Vec<RustFileData> {
     files
         .par_iter()
         .filter_map(|file| {
             match fs::read_to_string(file) {
                 Ok(content) => {
                     let filename = file.to_string_lossy();
-                    // Create Python parser
-                    match similarity_py::python_parser::PythonParser::new() {
+                    // Create Rust parser
+                    match similarity_rs::rust_parser::RustParser::new() {
                         Ok(mut parser) => {
                             // Extract functions
                             match parser.extract_functions(&content, &filename) {
@@ -50,7 +50,7 @@ pub fn load_files_parallel(files: &[PathBuf]) -> Vec<PythonFileData> {
         .collect()
 }
 
-/// Check for duplicates within Python files in parallel
+/// Check for duplicates within Rust files in parallel
 pub fn check_within_file_duplicates_parallel(
     files: &[PathBuf],
     threshold: f64,
@@ -62,8 +62,8 @@ pub fn check_within_file_duplicates_parallel(
             Ok(code) => {
                 let file_str = file.to_string_lossy();
 
-                // Create Python parser
-                match similarity_py::python_parser::PythonParser::new() {
+                // Create Rust parser
+                match similarity_rs::rust_parser::RustParser::new() {
                     Ok(mut parser) => {
                         // Extract functions
                         match parser.extract_functions(&code, &file_str) {
@@ -89,7 +89,7 @@ pub fn check_within_file_duplicates_parallel(
                                         let body1 = extract_function_body(&lines, func1);
                                         let body2 = extract_function_body(&lines, func2);
 
-                                        // Calculate similarity using Python parser
+                                        // Calculate similarity using Rust parser
                                         let similarity = match (
                                             parser.parse(&body1, &format!("{}:func1", file_str)),
                                             parser.parse(&body2, &format!("{}:func2", file_str)),

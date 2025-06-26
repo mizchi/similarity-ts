@@ -1,13 +1,13 @@
 [package]
-name = "similarity-ts-core"
+name = "similarity-core"
 version = "0.1.1"
 edition = "2021"
 license = "MIT"
-description = "Core library for TypeScript/JavaScript code similarity detection using AST-based comparison"
+description = "Core library for code similarity detection using AST-based comparison"
 authors = ["mizchi"]
 repository = "https://github.com/mizchi/similarity-ts"
 homepage = "https://github.com/mizchi/similarity-ts"
-documentation = "https://docs.rs/similarity-ts-core"
+documentation = "https://docs.rs/similarity-core"
 keywords = ["typescript", "javascript", "similarity", "ast", "refactoring"]
 categories = ["development-tools", "parser-implementations"]
 
@@ -16,10 +16,6 @@ oxc_parser = { workspace = true }
 oxc_ast = { workspace = true }
 oxc_span = { workspace = true }
 oxc_allocator = { workspace = true }
-tree-sitter = { workspace = true }
-tree-sitter-javascript = { workspace = true }
-tree-sitter-typescript = { workspace = true }
-tree-sitter-python = { workspace = true }
 rayon = "1.10"
 ignore = "0.4"
 anyhow = "1.0"
@@ -35,10 +31,4 @@ harness = false
 name = "function_comparison"
 harness = false
 
-[[bench]]
-name = "parser_comparison"
-harness = false
-
-[[bench]]
-name = "hybrid_parser_benchmark"
-harness = false
+# Examples removed - language-specific examples moved to respective crates

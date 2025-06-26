@@ -1,5 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use similarity_ts_core::{
+use similarity_core::{
     calculate_tsed_from_code, compute_edit_distance, parse_and_convert_to_tree, APTEDOptions,
     TSEDOptions,
 };
