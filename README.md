@@ -1,19 +1,54 @@
-# similarity
+# similarity-ts/rs/py
 
 High-performance code similarity detection tools written in Rust. Detects duplicate functions and similar code patterns across your codebase in multiple programming languages.
 
 ## Features
 
-- **Zero configuration** - works out of the box with sensible defaults
+- **Zero configuration** - works out of the box
 - **Multi-language support** - TypeScript/JavaScript, Python, and Rust
-- **Function similarity detection** using AST-based comparison
-- **Type similarity detection** for TypeScript interfaces, type aliases, and type literals
-- **Cross-file analysis** to find duplicates across your entire project
-- **Configurable thresholds** for similarity detection
-- **VSCode-compatible output** for easy navigation
-- **High performance** with concurrent file processing
-- **Smart filtering** with minimum line/token thresholds and size penalties
-- **Test function exclusion** with `--skip-test` option (Rust)
+- **Fast & Accurate** - AST-based comparison, not just text matching
+- **AI-friendly output** - Easy to share with Claude, GPT-4, etc.
+
+## Quick Start
+
+### 1. Install (TypeScript/JavaScript)
+
+```bash
+cargo install similarity-ts
+```
+
+### 2. Detect duplicates
+
+```bash
+# Scan current directory
+similarity-ts .
+
+# Scan specific files
+similarity-ts src/utils.ts src/helpers.ts
+
+# Show actual code
+similarity-ts . --print
+```
+
+### 3. Refactor with AI
+
+Copy the output and use this prompt with Claude:
+
+```
+`similarity-ts .` でコードの意味的な類似が得られます。あなたはこれを実行し、ソースコードの重複を検知して、リファクタリング計画を立てます。細かいオプションは similarity-ts -h で確認してください。
+
+[Paste similarity-ts output here]
+```
+
+Example output:
+```
+Duplicates in src/utils.ts:
+────────────────────────────────────────────────────────────
+  src/utils.ts:10-20 calculateTotal <-> src/helpers.ts:5-15 computeSum
+  Similarity: 92.50%, Score: 9.2 points
+```
+
+The AI will analyze patterns and suggest refactoring strategies.
 
 ## Documentation
 
@@ -22,7 +57,7 @@ High-performance code similarity detection tools written in Rust. Detects duplic
 ## Available Tools
 
 - **similarity-ts** - TypeScript/JavaScript similarity detection
-- **similarity-py** - Python similarity detection  
+- **similarity-py** - Python similarity detection
 - **similarity-rs** - Rust similarity detection
 
 ## Installation
@@ -71,50 +106,6 @@ cargo build --release
 cargo install --path crates/similarity-ts
 cargo install --path crates/similarity-py
 cargo install --path crates/similarity-rs
-```
-
-## Quick Start
-
-### TypeScript/JavaScript
-
-```bash
-# Just run it! Zero configuration needed
-similarity-ts
-
-# Analyze specific paths
-similarity-ts src/ lib/
-
-# Use custom threshold
-similarity-ts . -t 0.9
-
-# Enable type checking (experimental)
-similarity-ts . --experimental-types
-```
-
-### Python
-
-```bash
-# Analyze Python files
-similarity-py
-
-# Check specific directories
-similarity-py src/ tests/
-
-# Adjust threshold
-similarity-py . --threshold 0.85
-```
-
-### Rust
-
-```bash
-# Analyze Rust files
-similarity-rs
-
-# Skip test functions
-similarity-rs . --skip-test
-
-# Set minimum tokens (default: 30)
-similarity-rs . --min-tokens 50
 ```
 
 ## Usage
@@ -194,6 +185,7 @@ For AI assistants (like Claude, GPT-4, etc.) to help with code deduplication:
 ```
 
 English version:
+
 ```
 Run `similarity-ts .` to detect semantic code similarities. Execute this command, analyze the duplicate code patterns, and create a refactoring plan. Check `similarity-ts -h` for detailed options.
 ```
@@ -201,6 +193,7 @@ Run `similarity-ts .` to detect semantic code similarities. Execute this command
 ### Example Workflow with AI
 
 1. **Run similarity detection**:
+
    ```bash
    similarity-ts . --threshold 0.8 --min-lines 10
    ```
@@ -214,6 +207,7 @@ Run `similarity-ts .` to detect semantic code similarities. Execute this command
 ### Integration with Development Tools
 
 This tool can be integrated into:
+
 - Pre-commit hooks to prevent duplicate code
 - CI/CD pipelines for code quality checks
 - IDE extensions for real-time duplicate detection
@@ -284,7 +278,7 @@ similarity-rs . \
 ## Performance
 
 - Written in Rust for maximum performance
-- Concurrent file processing  
+- Concurrent file processing
 - Memory-efficient algorithms
 - Language-specific optimizations:
   - **TypeScript/JavaScript**: Fast mode with bloom filters (~4x faster)
