@@ -22,9 +22,15 @@ impl RustParser {
         node: Node<'a>,
         source: &'a str,
         functions: &mut Vec<GenericFunctionDef>,
+        skip_test: bool,
     ) {
         match node.kind() {
             "function_item" => {
+                // Skip test functions if requested
+                if skip_test && self.is_test_function(node, source) {
+                    return;
+                }
+                
                 if let Some(func_def) = self.extract_function_definition(node, source) {
                     functions.push(func_def);
                 }
@@ -35,6 +41,11 @@ impl RustParser {
                     if child.kind() == "declaration_list" {
                         for method in child.children(&mut child.walk()) {
                             if method.kind() == "function_item" {
+                                // Skip test functions if requested
+                                if skip_test && self.is_test_function(method, source) {
+                                    continue;
+                                }
+                                
                                 if let Some(func_def) =
                                     self.extract_function_definition(method, source)
                                 {
@@ -48,10 +59,54 @@ impl RustParser {
             _ => {
                 // Recursively process children
                 for child in node.children(&mut node.walk()) {
-                    self.extract_functions_from_node(child, source, functions);
+                    self.extract_functions_from_node(child, source, functions, skip_test);
                 }
             }
         }
+    }
+
+    fn is_test_function(&self, node: Node, source: &str) -> bool {
+        // Check if function has #[test] attribute
+        if let Some(prev_sibling) = node.prev_sibling() {
+            if prev_sibling.kind() == "attribute_item" {
+                let attr_text = &source[prev_sibling.byte_range().start..prev_sibling.byte_range().end];
+                if attr_text.contains("test") {
+                    return true;
+                }
+            }
+        }
+        
+        // Check if function name starts with "test_"
+        for child in node.children(&mut node.walk()) {
+            if child.kind() == "identifier" {
+                let name = &source[child.byte_range().start..child.byte_range().end];
+                if name.starts_with("test_") {
+                    return true;
+                }
+                break;
+            }
+        }
+        
+        false
+    }
+    
+    pub fn is_test_function_by_name(&self, name: &str, _source: &str) -> bool {
+        // Check if function name starts with "test_"
+        name.starts_with("test_")
+    }
+    
+    pub fn extract_functions_with_skip_test(
+        &mut self,
+        source: &str,
+        _filename: &str,
+        skip_test: bool,
+    ) -> Result<Vec<GenericFunctionDef>, Box<dyn Error>> {
+        let tree = self.parser.parse(source, None).ok_or("Failed to parse source")?;
+
+        let root_node = tree.root_node();
+        let mut functions = Vec::new();
+        self.extract_functions_from_node(root_node, source, &mut functions, skip_test);
+        Ok(functions)
     }
 
     fn extract_function_definition(&self, node: Node, source: &str) -> Option<GenericFunctionDef> {
@@ -395,7 +450,7 @@ impl LanguageParser for RustParser {
 
         let root_node = tree.root_node();
         let mut functions = Vec::new();
-        self.extract_functions_from_node(root_node, source, &mut functions);
+        self.extract_functions_from_node(root_node, source, &mut functions, false);
         Ok(functions)
     }
 

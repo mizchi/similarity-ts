@@ -41,6 +41,7 @@ pub fn check_paths(
     filter_function: Option<&String>,
     filter_function_body: Option<&String>,
     _exclude_patterns: &[String],
+    skip_test: bool,
 ) -> anyhow::Result<()> {
     let default_extensions = vec!["rs"];
     let exts: Vec<&str> =
@@ -61,6 +62,7 @@ pub fn check_paths(
     options.min_lines = min_lines;
     options.min_tokens = min_tokens;
     options.size_penalty = !no_size_penalty;
+    options.skip_test = skip_test;
 
     let mut all_results = Vec::new();
 

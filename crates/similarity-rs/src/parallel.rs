@@ -1,10 +1,8 @@
 use rayon::prelude::*;
 use similarity_core::{
-    calculate_enhanced_similarity,
     cli_parallel::{FileData, SimilarityResult},
     language_parser::{GenericFunctionDef, LanguageParser},
     tsed::TSEDOptions,
-    EnhancedSimilarityOptions,
 };
 use std::fs;
 use std::path::PathBuf;
@@ -67,7 +65,7 @@ pub fn check_within_file_duplicates_parallel(
                 match similarity_rs::rust_parser::RustParser::new() {
                     Ok(mut parser) => {
                         // Extract functions
-                        match parser.extract_functions(&code, &file_str) {
+                        match parser.extract_functions_with_skip_test(&code, &file_str, options.skip_test) {
                             Ok(functions) => {
                                 let mut similar_pairs = Vec::new();
 
@@ -90,24 +88,32 @@ pub fn check_within_file_duplicates_parallel(
                                         let body1 = extract_function_body(&lines, func1);
                                         let body2 = extract_function_body(&lines, func2);
 
-                                        // Calculate similarity using enhanced algorithm
-                                        let similarity = match (
+                                        // Parse function bodies to trees
+                                        let (tree1_opt, tree2_opt) = match (
                                             parser.parse(&body1, &format!("{}:func1", file_str)),
                                             parser.parse(&body2, &format!("{}:func2", file_str)),
                                         ) {
-                                            (Ok(tree1), Ok(tree2)) => {
-                                                // Use enhanced similarity with default options
-                                                let enhanced_options = EnhancedSimilarityOptions {
-                                                    structural_weight: 0.7,
-                                                    size_weight: 0.2,
-                                                    type_distribution_weight: 0.1,
-                                                    min_size_ratio: 0.5,
-                                                    apted_options: options.apted_options.clone(),
-                                                };
-                                                calculate_enhanced_similarity(
+                                            (Ok(tree1), Ok(tree2)) => (Some(tree1), Some(tree2)),
+                                            _ => (None, None),
+                                        };
+                                        
+                                        // Calculate similarity
+                                        let similarity = match (tree1_opt, tree2_opt) {
+                                            (Some(tree1), Some(tree2)) => {
+                                                // Check minimum tokens if specified
+                                                if let Some(min_tokens) = options.min_tokens {
+                                                    let tokens1 = tree1.get_subtree_size() as u32;
+                                                    let tokens2 = tree2.get_subtree_size() as u32;
+                                                    if tokens1 < min_tokens || tokens2 < min_tokens {
+                                                        continue;
+                                                    }
+                                                }
+                                                // For Rust, use TSED instead of enhanced similarity
+                                                // to better handle short functions
+                                                similarity_core::tsed::calculate_tsed(
                                                     &tree1,
                                                     &tree2,
-                                                    &enhanced_options,
+                                                    options,
                                                 )
                                             }
                                             _ => 0.0,

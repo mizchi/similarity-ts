@@ -8,6 +8,7 @@ pub struct TSEDOptions {
     pub min_lines: u32, // Minimum number of lines for a function to be considered
     pub min_tokens: Option<u32>, // Minimum number of tokens (AST nodes) for a function to be considered
     pub size_penalty: bool,      // Apply penalty for short functions
+    pub skip_test: bool,         // Skip test functions (language-specific)
 }
 
 impl Default for TSEDOptions {
@@ -22,6 +23,7 @@ impl Default for TSEDOptions {
             min_lines: 5,       // Increased default to better filter trivial matches
             min_tokens: None,   // No token limit by default
             size_penalty: true, // Enable size penalty by default
+            skip_test: false,   // Don't skip test functions by default
         }
     }
 }
@@ -43,6 +45,16 @@ pub fn calculate_tsed(tree1: &Rc<TreeNode>, tree2: &Rc<TreeNode>, options: &TSED
 
     // Calculate base TSED similarity
     let tsed_similarity = if max_size > 0.0 { (1.0 - distance / max_size).max(0.0) } else { 1.0 };
+    
+    // For very small trees, even small differences should matter more
+    let tsed_similarity = if max_size < 10.0 && distance > 0.0 {
+        tsed_similarity * 0.8 // Reduce similarity for small trees with any differences
+    } else if max_size < 30.0 && distance > 0.0 {
+        // For moderately small trees, apply a smaller penalty
+        tsed_similarity * 0.9
+    } else {
+        tsed_similarity
+    };
 
     // Apply additional penalties for structural differences
     let mut similarity = tsed_similarity;
@@ -54,10 +66,17 @@ pub fn calculate_tsed(tree1: &Rc<TreeNode>, tree2: &Rc<TreeNode>, options: &TSED
         // For short functions, make differences more pronounced
         let min_size = size1.min(size2);
 
-        if min_size < 20.0 {
+        if min_size < 30.0 {
             // Short function penalty: the shorter, the more sensitive to differences
-            let short_function_factor = (min_size / 20.0).powf(0.5);
+            let short_function_factor = (min_size / 30.0).powf(0.5);
             similarity *= short_function_factor;
+            
+            // Additional penalty for very short functions
+            if min_size < 10.0 {
+                similarity *= 0.5; // Strong penalty for very short functions
+            } else if min_size < 20.0 {
+                similarity *= 0.7; // Moderate penalty for short functions
+            }
         }
 
         // Size difference penalty

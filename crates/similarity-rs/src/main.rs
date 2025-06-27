@@ -30,7 +30,7 @@ struct Cli {
     min_lines: Option<u32>,
 
     /// Minimum tokens for functions to be considered
-    #[arg(long)]
+    #[arg(long, default_value = "30")]
     min_tokens: Option<u32>,
 
     /// Rename cost for APTED algorithm
@@ -56,6 +56,10 @@ struct Cli {
     /// Exclude directories matching the given patterns (can be specified multiple times)
     #[arg(long)]
     exclude: Vec<String>,
+
+    /// Skip test functions (functions starting with 'test_' or annotated with #[test])
+    #[arg(long)]
+    skip_test: bool,
 }
 
 fn main() -> Result<()> {
@@ -76,6 +80,7 @@ fn main() -> Result<()> {
         cli.filter_function.as_ref(),
         cli.filter_function_body.as_ref(),
         &cli.exclude,
+        cli.skip_test,
     )?;
 
     Ok(())
