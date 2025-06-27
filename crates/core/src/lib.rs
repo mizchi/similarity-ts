@@ -1,3 +1,5 @@
+#![allow(clippy::uninlined_format_args)]
+
 pub mod apted;
 pub mod ast_fingerprint;
 pub mod enhanced_similarity;
