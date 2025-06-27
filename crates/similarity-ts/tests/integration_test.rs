@@ -37,11 +37,12 @@ export function computeTotal(values: number[]): number {
     )
     .unwrap();
 
-    // Run the CLI with lower threshold since these functions are ~82% similar
+    // Run the CLI with no size penalty since these are short functions
     let mut cmd = Command::cargo_bin("similarity-ts").unwrap();
     cmd.arg(dir.path())
         .arg("-t")
         .arg("0.8")
+        .arg("--no-size-penalty")
         .assert()
         .success()
         .stdout(predicate::str::contains("calculateSum"))
@@ -227,11 +228,12 @@ export function handleList(list: number[]): number {
     )
     .unwrap();
 
-    // With low threshold - should find similarity
+    // With low threshold and no size penalty - should find similarity
     let mut cmd = Command::cargo_bin("similarity-ts").unwrap();
     cmd.arg(dir.path())
         .arg("--threshold")
         .arg("0.5")
+        .arg("--no-size-penalty")
         .assert()
         .success()
         .stdout(predicate::str::contains("processArray"))
