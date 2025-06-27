@@ -35,7 +35,7 @@ similarity-ts . --print
 Copy the output and use this prompt with Claude:
 
 ```
-`similarity-ts .` でコードの意味的な類似が得られます。あなたはこれを実行し、ソースコードの重複を検知して、リファクタリング計画を立てます。細かいオプションは similarity-ts -h で確認してください。
+Run `similarity-ts .` to detect semantic code similarities. Execute this command, analyze the duplicate code patterns, and create a refactoring plan. Check `similarity-ts -h` for detailed options.
 
 [Paste similarity-ts output here]
 ```
