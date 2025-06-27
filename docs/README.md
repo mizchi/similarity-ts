@@ -1,43 +1,45 @@
-# similarity-ts Documentation
+# similarity Documentation
 
-This directory contains various documentation files for the similarity-ts project, organized by purpose.
+This directory contains comprehensive documentation for the similarity detection tools, organized by category.
 
-## 📖 External Documentation (For Users)
+## 📚 Documentation Structure
 
-### Quick Start Guides
-- [`prompt.md`](./prompt.md) - Quick guide for AI assistants using similarity-ts
-- [`prompt-ja.md`](./prompt-ja.md) - Japanese version of the AI assistant guide
-- [`.claude/commands/check-similarity.md`](../.claude/commands/check-similarity.md) - Claude-specific command documentation
+### [Algorithm](./algorithm/)
+Theoretical foundations and algorithm documentation:
+- TSED (Tree Similarity of Edit Distance) academic paper
+- Algorithm summaries and analyses
+- Tree-sitter integration details
 
-### Blog Posts / Articles
-- [`introduce-ja.md`](./introduce-ja.md) - Japanese blog post introducing the project and development story
+### [Library](./lib/)
+Library design, architecture, and features:
+- AI documentation for developers
+- Multi-file similarity detection
+- Type similarity design
+- Language-specific implementations
 
-## 🔧 Internal Documentation (For Developers)
+### [Implementation](./implementation/)
+Implementation details and performance:
+- Performance optimization strategies
+- Benchmark results
+- Rust vs TypeScript comparisons
 
-### Technical Architecture
-- [`ai-documentation.md`](./ai-documentation.md) - Comprehensive technical documentation for AI developers
-- [`multi_file_similarity.md`](./multi_file_similarity.md) - Multi-file similarity detection implementation details
-- [`performance-optimization.md`](./performance-optimization.md) - Performance optimization strategies
+## 🚀 Quick Start
 
-### Design Documents
-- [`type-similarity-design.md`](./type-similarity-design.md) - Design document for type similarity detection feature
-- [`visitor-implementation-example.md`](./visitor-implementation-example.md) - Example visitor pattern implementation
+For users:
+- [`prompt.md`](./prompt.md) - AI assistant quick guide (English)
+- [`prompt-ja.md`](./prompt-ja.md) - AI assistant quick guide (Japanese)
+- [Main README](../README.md) - Installation and usage
 
-### Performance Analysis
-- [`benchmark_results.md`](./benchmark_results.md) - Benchmark results and performance comparisons
-- [`rust-ts-compare.md`](./rust-ts-compare.md) - Comparison between Rust and TypeScript implementations
+For developers:
+- [`lib/ai-documentation.md`](./lib/ai-documentation.md) - Technical documentation
+- [`algorithm/tsed-similarity-summary.md`](./algorithm/tsed-similarity-summary.md) - Algorithm overview
 
-## 📚 Reference Materials
+## 📖 Additional Resources
 
-### Academic Papers
-- [`tsed-similarity.md`](./tsed-similarity.md) - Full TSED (Tree Similarity of Edit Distance) academic paper
-- [`tsed-similarity-summary.md`](./tsed-similarity-summary.md) - Summary of the TSED paper
+### Blog Posts
+- [`introduce-ja.md`](./introduce-ja.md) - Project introduction and development story (Japanese)
 
-### Historical Documents
-- [`refactoring_plan.md`](./refactoring_plan.md) - Original TypeScript implementation refactoring plan
-
-## Quick Links
-
-- **For Users**: Start with [`prompt.md`](./prompt.md) or the [main README](../README.md)
-- **For Contributors**: Read [`ai-documentation.md`](./ai-documentation.md) for technical details
-- **For Researchers**: See [`tsed-similarity.md`](./tsed-similarity.md) for the theoretical foundation
+### Project Management
+- [`../CLAUDE.md`](../CLAUDE.md) - Project instructions for Claude
+- [`../TODO.md`](../TODO.md) - Task list
+- [`../CHANGELOG.md`](../CHANGELOG.md) - Version history
