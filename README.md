@@ -61,8 +61,8 @@ similarity-rs --help
 
 ```bash
 # Clone the repository
-git clone https://github.com/mizchi/similarity-ts.git
-cd similarity-ts
+git clone https://github.com/mizchi/similarity.git
+cd similarity
 
 # Build all tools
 cargo build --release
