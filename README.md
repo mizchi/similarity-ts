@@ -183,6 +183,42 @@ Click on the file paths in VSCode's terminal to jump directly to the code.
 
 Results are sorted by priority (lines × similarity) to help you focus on the most impactful duplications first.
 
+## AI Integration
+
+### Prompt for Code Deduplication
+
+For AI assistants (like Claude, GPT-4, etc.) to help with code deduplication:
+
+```
+`similarity-ts .` でコードの意味的な類似が得られます。あなたはこれを実行し、ソースコードの重複を検知して、リファクタリング計画を立てます。細かいオプションは similarity-ts -h で確認してください。
+```
+
+English version:
+```
+Run `similarity-ts .` to detect semantic code similarities. Execute this command, analyze the duplicate code patterns, and create a refactoring plan. Check `similarity-ts -h` for detailed options.
+```
+
+### Example Workflow with AI
+
+1. **Run similarity detection**:
+   ```bash
+   similarity-ts . --threshold 0.8 --min-lines 10
+   ```
+
+2. **Share output with AI**: Copy the similarity report to your AI assistant
+
+3. **AI analyzes patterns**: The AI will identify common patterns and suggest refactoring strategies
+
+4. **Iterative refinement**: Adjust threshold and options based on AI recommendations
+
+### Integration with Development Tools
+
+This tool can be integrated into:
+- Pre-commit hooks to prevent duplicate code
+- CI/CD pipelines for code quality checks
+- IDE extensions for real-time duplicate detection
+- AI-powered code review workflows
+
 ## How It Works
 
 ### Core Algorithm
