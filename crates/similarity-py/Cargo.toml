@@ -1,6 +1,6 @@
 [package]
 name = "similarity-py"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 license = "MIT"
 description = "CLI tool for detecting code duplication in Python projects"
