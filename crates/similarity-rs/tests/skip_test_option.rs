@@ -6,9 +6,11 @@ use tempfile::tempdir;
 fn test_skip_test_option() {
     let dir = tempdir().unwrap();
     let file1 = dir.path().join("lib.rs");
-    
+
     // Create a file with both test and non-test functions
-    fs::write(&file1, r#"
+    fs::write(
+        &file1,
+        r#"
 fn calculate_sum(a: i32, b: i32) -> i32 {
     a + b
 }
@@ -34,41 +36,53 @@ fn test_helper_function() -> bool {
 fn another_test_helper() -> bool {
     true
 }
-"#).unwrap();
+"#,
+    )
+    .unwrap();
 
     // Run without --skip-test (should find duplicates in test functions)
     let mut cmd = Command::cargo_bin("similarity-rs").unwrap();
     cmd.arg(dir.path());
-    
+
     let output = cmd.assert().success();
     let stdout = String::from_utf8_lossy(&output.get_output().stdout);
-    
+
     // Should find duplicates among test functions
-    assert!(stdout.contains("test_calculate_sum") || stdout.contains("test_calculate_product") || stdout.contains("test_helper_function"));
-    
+    assert!(
+        stdout.contains("test_calculate_sum")
+            || stdout.contains("test_calculate_product")
+            || stdout.contains("test_helper_function")
+    );
+
     // Run with --skip-test (should not find test functions)
     let mut cmd = Command::cargo_bin("similarity-rs").unwrap();
     cmd.arg(dir.path()).arg("--skip-test");
-    
+
     let output = cmd.assert().success();
     let stdout = String::from_utf8_lossy(&output.get_output().stdout);
-    
+
     // Should not find any test functions
     assert!(!stdout.contains("test_calculate_sum"));
     assert!(!stdout.contains("test_calculate_product"));
     assert!(!stdout.contains("test_helper_function"));
-    
+
     // Should still find non-test functions
-    assert!(stdout.contains("calculate_sum") || stdout.contains("calculate_product") || stdout.contains("another_test_helper"));
+    assert!(
+        stdout.contains("calculate_sum")
+            || stdout.contains("calculate_product")
+            || stdout.contains("another_test_helper")
+    );
 }
 
 #[test]
 fn test_skip_test_with_test_attribute() {
     let dir = tempdir().unwrap();
     let file1 = dir.path().join("tests.rs");
-    
+
     // Create a file with functions that have #[test] attribute
-    fs::write(&file1, r#"
+    fs::write(
+        &file1,
+        r#"
 #[test]
 fn should_be_skipped() {
     let x = 1;
@@ -94,19 +108,21 @@ fn another_normal_function() {
     let y = 2;
     println!("{}", x + y);
 }
-"#).unwrap();
+"#,
+    )
+    .unwrap();
 
     // Run with --skip-test
     let mut cmd = Command::cargo_bin("similarity-rs").unwrap();
     cmd.arg(dir.path()).arg("--skip-test");
-    
+
     let output = cmd.assert().success();
     let stdout = String::from_utf8_lossy(&output.get_output().stdout);
-    
+
     // Should not find functions with #[test] attribute
     assert!(!stdout.contains("should_be_skipped"));
     assert!(!stdout.contains("also_should_be_skipped"));
-    
+
     // Should find normal functions
     assert!(stdout.contains("normal_function") && stdout.contains("another_normal_function"));
 }

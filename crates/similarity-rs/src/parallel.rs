@@ -65,7 +65,11 @@ pub fn check_within_file_duplicates_parallel(
                 match similarity_rs::rust_parser::RustParser::new() {
                     Ok(mut parser) => {
                         // Extract functions
-                        match parser.extract_functions_with_skip_test(&code, &file_str, options.skip_test) {
+                        match parser.extract_functions_with_skip_test(
+                            &code,
+                            &file_str,
+                            options.skip_test,
+                        ) {
                             Ok(functions) => {
                                 let mut similar_pairs = Vec::new();
 
@@ -96,7 +100,7 @@ pub fn check_within_file_duplicates_parallel(
                                             (Ok(tree1), Ok(tree2)) => (Some(tree1), Some(tree2)),
                                             _ => (None, None),
                                         };
-                                        
+
                                         // Calculate similarity
                                         let similarity = match (tree1_opt, tree2_opt) {
                                             (Some(tree1), Some(tree2)) => {
@@ -104,16 +108,15 @@ pub fn check_within_file_duplicates_parallel(
                                                 if let Some(min_tokens) = options.min_tokens {
                                                     let tokens1 = tree1.get_subtree_size() as u32;
                                                     let tokens2 = tree2.get_subtree_size() as u32;
-                                                    if tokens1 < min_tokens || tokens2 < min_tokens {
+                                                    if tokens1 < min_tokens || tokens2 < min_tokens
+                                                    {
                                                         continue;
                                                     }
                                                 }
                                                 // For Rust, use TSED instead of enhanced similarity
                                                 // to better handle short functions
                                                 similarity_core::tsed::calculate_tsed(
-                                                    &tree1,
-                                                    &tree2,
-                                                    options,
+                                                    &tree1, &tree2, options,
                                                 )
                                             }
                                             _ => 0.0,

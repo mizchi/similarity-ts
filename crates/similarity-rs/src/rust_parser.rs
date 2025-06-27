@@ -30,7 +30,7 @@ impl RustParser {
                 if skip_test && self.is_test_function(node, source) {
                     return;
                 }
-                
+
                 if let Some(func_def) = self.extract_function_definition(node, source) {
                     functions.push(func_def);
                 }
@@ -45,7 +45,7 @@ impl RustParser {
                                 if skip_test && self.is_test_function(method, source) {
                                     continue;
                                 }
-                                
+
                                 if let Some(func_def) =
                                     self.extract_function_definition(method, source)
                                 {
@@ -69,13 +69,14 @@ impl RustParser {
         // Check if function has #[test] attribute
         if let Some(prev_sibling) = node.prev_sibling() {
             if prev_sibling.kind() == "attribute_item" {
-                let attr_text = &source[prev_sibling.byte_range().start..prev_sibling.byte_range().end];
+                let attr_text =
+                    &source[prev_sibling.byte_range().start..prev_sibling.byte_range().end];
                 if attr_text.contains("test") {
                     return true;
                 }
             }
         }
-        
+
         // Check if function name starts with "test_"
         for child in node.children(&mut node.walk()) {
             if child.kind() == "identifier" {
@@ -86,15 +87,15 @@ impl RustParser {
                 break;
             }
         }
-        
+
         false
     }
-    
+
     pub fn is_test_function_by_name(&self, name: &str, _source: &str) -> bool {
         // Check if function name starts with "test_"
         name.starts_with("test_")
     }
-    
+
     pub fn extract_functions_with_skip_test(
         &mut self,
         source: &str,

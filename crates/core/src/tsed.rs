@@ -45,7 +45,7 @@ pub fn calculate_tsed(tree1: &Rc<TreeNode>, tree2: &Rc<TreeNode>, options: &TSED
 
     // Calculate base TSED similarity
     let tsed_similarity = if max_size > 0.0 { (1.0 - distance / max_size).max(0.0) } else { 1.0 };
-    
+
     // For very small trees, even small differences should matter more
     let tsed_similarity = if max_size < 10.0 && distance > 0.0 {
         tsed_similarity * 0.8 // Reduce similarity for small trees with any differences
@@ -70,7 +70,7 @@ pub fn calculate_tsed(tree1: &Rc<TreeNode>, tree2: &Rc<TreeNode>, options: &TSED
             // Short function penalty: the shorter, the more sensitive to differences
             let short_function_factor = (min_size / 30.0).powf(0.5);
             similarity *= short_function_factor;
-            
+
             // Additional penalty for very short functions
             if min_size < 10.0 {
                 similarity *= 0.5; // Strong penalty for very short functions
