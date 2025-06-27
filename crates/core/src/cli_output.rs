@@ -7,7 +7,7 @@ pub fn format_function_output(
     start_line: u32,
     end_line: u32,
 ) -> String {
-    format!("{}:{}-{} {}", file_path, start_line, end_line, function_name)
+    format!("{file_path}:{start_line}-{end_line} {function_name}")
 }
 
 /// Extract lines from file content within the specified range

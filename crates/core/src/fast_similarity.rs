@@ -123,8 +123,7 @@ pub fn find_similar_functions_fast(
         if total > 0 {
             let skip_rate = (comparisons_skipped as f64 / total as f64) * 100.0;
             eprintln!(
-                "Fast comparison: {} detailed, {} skipped ({:.1}% skip rate)",
-                comparisons_made, comparisons_skipped, skip_rate
+                "Fast comparison: {comparisons_made} detailed, {comparisons_skipped} skipped ({skip_rate:.1}% skip rate)"
             );
         }
     }
@@ -239,8 +238,7 @@ pub fn find_similar_functions_across_files_fast(
         if total > 0 {
             let skip_rate = (comparisons_skipped as f64 / total as f64) * 100.0;
             eprintln!(
-                "Fast cross-file comparison: {} detailed, {} skipped ({:.1}% skip rate)",
-                comparisons_made, comparisons_skipped, skip_rate
+                "Fast cross-file comparison: {comparisons_made} detailed, {comparisons_skipped} skipped ({skip_rate:.1}% skip rate)"
             );
         }
     }

@@ -156,7 +156,7 @@ fn extract_from_statement(stmt: &Statement, ctx: &mut ExtractionContext) {
                     };
 
                     let method_full_name = if let Some(ref class) = class_name {
-                        format!("{}.{}", class, method_name)
+                        format!("{class}.{method_name}")
                     } else {
                         method_name.clone()
                     };
@@ -301,7 +301,7 @@ fn extract_from_declaration(decl: &Declaration, ctx: &mut ExtractionContext) {
                     };
 
                     let method_full_name = if let Some(ref class) = class_name {
-                        format!("{}.{}", class, method_name)
+                        format!("{class}.{method_name}")
                     } else {
                         method_name.clone()
                     };
@@ -452,17 +452,17 @@ fn count_function_nodes(body_span: Span, source_text: &str) -> Option<u32> {
             // If direct parsing fails, try wrapping in a minimal context
             // This handles cases like "constructor(private x: number) {}" or method definitions
             let wrapped = if body_text.starts_with("constructor") {
-                format!("class C {{ {} }}", body_text)
+                format!("class C {{ {body_text} }}")
             } else if body_text.contains("(") && body_text.contains(")") && body_text.contains("{")
             {
                 // Likely a method or function - wrap it appropriately
                 if body_text.trim().starts_with(|c: char| c.is_alphabetic() || c == '_' || c == '#')
                 {
                     // Method-like syntax
-                    format!("class C {{ {} }}", body_text)
+                    format!("class C {{ {body_text} }}")
                 } else {
                     // Arrow function or other expression
-                    format!("const x = {}", body_text)
+                    format!("const x = {body_text}")
                 }
             } else {
                 // Default fallback
