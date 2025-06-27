@@ -281,10 +281,10 @@ mod tests {
         let options = FastSimilarityOptions {
             fingerprint_threshold: 0.2,
             similarity_threshold: 0.25,
-            tsed_options: TSEDOptions { 
-                min_lines: 1, 
-                size_penalty: false,  // Disable for test with small functions
-                ..Default::default() 
+            tsed_options: TSEDOptions {
+                min_lines: 1,
+                size_penalty: false, // Disable for test with small functions
+                ..Default::default()
             },
             debug_stats: true,
         };

@@ -232,14 +232,13 @@ impl RustParser {
                 source[node.byte_range().start..node.byte_range().end].to_string()
             }
             // Operators
-            "+" | "-" | "*" | "/" | "%" | "==" | "!=" | "<" | ">" | "<=" | ">=" 
-            | "&&" | "||" | "!" | "&" | "|" | "^" | "<<" | ">>" | "+=" | "-=" 
-            | "*=" | "/=" | "%=" | "=" => {
+            "+" | "-" | "*" | "/" | "%" | "==" | "!=" | "<" | ">" | "<=" | ">=" | "&&" | "||"
+            | "!" | "&" | "|" | "^" | "<<" | ">>" | "+=" | "-=" | "*=" | "/=" | "%=" | "=" => {
                 source[node.byte_range().start..node.byte_range().end].to_string()
             }
             // Keywords that affect control flow
-            "for" | "if" | "while" | "loop" | "match" | "return" | "break" | "continue"
-            | "let" | "const" | "mut" | "fn" | "impl" | "struct" | "enum" | "trait" => {
+            "for" | "if" | "while" | "loop" | "match" | "return" | "break" | "continue" | "let"
+            | "const" | "mut" | "fn" | "impl" | "struct" | "enum" | "trait" => {
                 node.kind().to_string()
             }
             // For other nodes, use empty string

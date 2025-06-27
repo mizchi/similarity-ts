@@ -195,10 +195,10 @@ export function handleList(list: number[]): number {
     return output;
 }"#;
 
-    let options = TSEDOptions { 
-        min_lines: 5, 
+    let options = TSEDOptions {
+        min_lines: 5,
         size_penalty: false, // Disable for integration tests
-        ..Default::default() 
+        ..Default::default()
     };
 
     let result = find_similar_functions_in_file("test.ts", code, 0.4, &options).unwrap();
@@ -316,10 +316,10 @@ fn test_fixtures_files() {
             ];
 
             let options = TSEDOptions {
-        size_penalty: false, // Disable for integration tests
-        min_lines: 3,        // Lower threshold for tests
-        ..Default::default()
-    };
+                size_penalty: false, // Disable for integration tests
+                min_lines: 3,        // Lower threshold for tests
+                ..Default::default()
+            };
             let result = find_similar_functions_across_files(&files, 0.7, &options).unwrap();
 
             // Should find similarity between calculateAverage and computeMean
