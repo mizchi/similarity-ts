@@ -226,12 +226,23 @@ impl RustParser {
         let label = node.kind().to_string();
 
         let value = match node.kind() {
+            // Identifiers and literals
             "identifier" | "string_literal" | "char_literal" | "integer_literal"
-            | "float_literal" | "true" | "false" | "+" | "-" | "*" | "/" | "%" | "==" | "!="
-            | "<" | ">" | "<=" | ">=" | "&&" | "||" | "!" | "&" | "|" | "^" | "<<" | ">>"
-            | "type_identifier" | "field_identifier" => {
+            | "float_literal" | "true" | "false" | "type_identifier" | "field_identifier" => {
                 source[node.byte_range().start..node.byte_range().end].to_string()
             }
+            // Operators
+            "+" | "-" | "*" | "/" | "%" | "==" | "!=" | "<" | ">" | "<=" | ">=" 
+            | "&&" | "||" | "!" | "&" | "|" | "^" | "<<" | ">>" | "+=" | "-=" 
+            | "*=" | "/=" | "%=" | "=" => {
+                source[node.byte_range().start..node.byte_range().end].to_string()
+            }
+            // Keywords that affect control flow
+            "for" | "if" | "while" | "loop" | "match" | "return" | "break" | "continue"
+            | "let" | "const" | "mut" | "fn" | "impl" | "struct" | "enum" | "trait" => {
+                node.kind().to_string()
+            }
+            // For other nodes, use empty string
             _ => String::new(),
         };
 

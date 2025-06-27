@@ -37,6 +37,7 @@ pub fn calculate_tsed(tree1: &Rc<TreeNode>, tree2: &Rc<TreeNode>, options: &TSED
 
     let size1 = tree1.get_subtree_size() as f64;
     let size2 = tree2.get_subtree_size() as f64;
+    
 
     // TSED normalization: Use the larger tree size
     // This ensures that when comparing trees of different sizes,
@@ -45,13 +46,37 @@ pub fn calculate_tsed(tree1: &Rc<TreeNode>, tree2: &Rc<TreeNode>, options: &TSED
 
     // Calculate base TSED similarity
     let tsed_similarity = if max_size > 0.0 { (1.0 - distance / max_size).max(0.0) } else { 1.0 };
+    
+    // If distance is 0 but trees have different sizes, check more carefully
+    // This can happen when compare_values is false and structure is similar
+    let tsed_similarity = if distance == 0.0 && size1 != size2 {
+        let size_ratio = size1.min(size2) / size1.max(size2);
+        let size_diff = (size1 - size2).abs();
+        
+        // Apply penalty based on both ratio and absolute difference
+        if size_diff > 10.0 {
+            // Strong penalty for large absolute differences
+            tsed_similarity * 0.5
+        } else if size_ratio < 0.95 || size_diff > 3.0 {
+            // Moderate penalty for noticeable differences
+            tsed_similarity * size_ratio.powf(0.5)
+        } else {
+            tsed_similarity // Very minor differences are OK
+        }
+    } else {
+        tsed_similarity
+    };
 
     // For very small trees, even small differences should matter more
-    let tsed_similarity = if max_size < 10.0 && distance > 0.0 {
-        tsed_similarity * 0.8 // Reduce similarity for small trees with any differences
-    } else if max_size < 30.0 && distance > 0.0 {
-        // For moderately small trees, apply a smaller penalty
-        tsed_similarity * 0.9
+    let tsed_similarity = if options.size_penalty {
+        if max_size < 10.0 && distance > 0.0 {
+            tsed_similarity * 0.8 // Reduce similarity for small trees with any differences
+        } else if max_size < 30.0 && distance > 0.0 {
+            // For moderately small trees, apply a smaller penalty
+            tsed_similarity * 0.9
+        } else {
+            tsed_similarity
+        }
     } else {
         tsed_similarity
     };

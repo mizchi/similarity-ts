@@ -1,41 +1,33 @@
-# similarity-ts
+# similarity
 
-High-performance TypeScript/JavaScript code similarity detection tool written in Rust. Detects duplicate functions and similar type definitions across your codebase.
+High-performance code similarity detection tools written in Rust. Detects duplicate functions and similar code patterns across your codebase in multiple programming languages.
 
 ## Features
 
 - **Zero configuration** - works out of the box with sensible defaults
+- **Multi-language support** - TypeScript/JavaScript, Python, and Rust
 - **Function similarity detection** using AST-based comparison
-- **Type similarity detection** for interfaces, type aliases, and type literals
+- **Type similarity detection** for TypeScript interfaces, type aliases, and type literals
 - **Cross-file analysis** to find duplicates across your entire project
 - **Configurable thresholds** for similarity detection
 - **VSCode-compatible output** for easy navigation
 - **High performance** with concurrent file processing
-- **Wide file support** for .ts, .tsx, .js, .jsx, .mjs, .cjs, .mts, .cts files
-- **Smart filtering** with minimum line thresholds and size penalties
+- **Smart filtering** with minimum line/token thresholds and size penalties
+- **Test function exclusion** with `--skip-test` option (Rust)
 
 ## Documentation
 
 - [AI Assistant Guide](.claude/commands/check-similarity.md) - Refactoring workflow and best practices
 
+## Available Tools
+
+- **similarity-ts** - TypeScript/JavaScript similarity detection
+- **similarity-py** - Python similarity detection  
+- **similarity-rs** - Rust similarity detection
+
 ## Installation
 
-### From source
-
-```bash
-# Clone the repository
-git clone https://github.com/mizchi/similarity-ts.git
-cd similarity-ts
-
-# Build and install
-cargo install --path crates/cli
-
-# Or use directly after building
-cargo build --release
-./target/release/similarity-ts --help
-```
-
-### Using cargo install
+### TypeScript/JavaScript
 
 ```bash
 # Install from crates.io
@@ -45,7 +37,45 @@ cargo install similarity-ts
 similarity-ts --help
 ```
 
+### Python
+
+```bash
+# Install from crates.io
+cargo install similarity-py
+
+# Use the installed binary
+similarity-py --help
+```
+
+### Rust
+
+```bash
+# Install from crates.io
+cargo install similarity-rs
+
+# Use the installed binary
+similarity-rs --help
+```
+
+### From source
+
+```bash
+# Clone the repository
+git clone https://github.com/mizchi/similarity-ts.git
+cd similarity-ts
+
+# Build all tools
+cargo build --release
+
+# Or install specific tool
+cargo install --path crates/similarity-ts
+cargo install --path crates/similarity-py
+cargo install --path crates/similarity-rs
+```
+
 ## Quick Start
+
+### TypeScript/JavaScript
 
 ```bash
 # Just run it! Zero configuration needed
@@ -57,70 +87,84 @@ similarity-ts src/ lib/
 # Use custom threshold
 similarity-ts . -t 0.9
 
-# Print code details
-similarity-ts . --print
-
-# Check functions only (default)
-similarity-ts .
-
 # Enable type checking (experimental)
 similarity-ts . --experimental-types
+```
 
-# Check types only
-similarity-ts . --no-functions --experimental-types
+### Python
 
-# Exclude directories by glob pattern
-similarity-ts . --exclude "**/codegen/**"
+```bash
+# Analyze Python files
+similarity-py
+
+# Check specific directories
+similarity-py src/ tests/
+
+# Adjust threshold
+similarity-py . --threshold 0.85
+```
+
+### Rust
+
+```bash
+# Analyze Rust files
+similarity-rs
+
+# Skip test functions
+similarity-rs . --skip-test
+
+# Set minimum tokens (default: 30)
+similarity-rs . --min-tokens 50
 ```
 
 ## Usage
 
-By default, `similarity-ts` runs function similarity detection only. Type similarity detection is experimental and can be enabled with the `--experimental-types` flag.
+### Common Options (All Languages)
 
-### Function Similarity Detection
+- `--threshold` / `-t` - Similarity threshold (0.0-1.0, default: 0.85)
+- `--min-lines` / `-m` - Minimum lines for functions (default: 3-5)
+- `--min-tokens` - Minimum AST nodes for functions
+- `--print` / `-p` - Print code in output
+- `--cross-file` / `-c` - Enable cross-file comparison
+- `--no-size-penalty` - Disable size difference penalty
+
+### TypeScript/JavaScript Specific
 
 ```bash
-# Check for duplicate functions in a directory (default: current directory)
-# Fast mode with AST-based bloom filter is enabled by default
+# Check for duplicate functions (default)
 similarity-ts ./src
 
-# Disable fast mode (use traditional comparison)
-similarity-ts ./src --no-fast
-
-# Adjust similarity threshold (0.0-1.0, default: 0.8)
-similarity-ts ./src --threshold 0.9
-
-# Print function code in output
-similarity-ts ./src --print
-
-# Filter by minimum function size (default: 5 lines)
-similarity-ts ./src --min-lines 10
-
-# Check specific file extensions (default: ts,tsx,js,jsx,mjs,cjs,mts,cts)
-similarity-ts ./src --extensions ts,tsx
-```
-
-### Type Similarity Detection (Experimental)
-
-```bash
-# Enable type checking along with functions
+# Enable type checking (experimental)
 similarity-ts ./src --experimental-types
 
-# Check for similar type definitions (types only)
+# Check types only
 similarity-ts ./src --no-functions --experimental-types
 
-# Print type definitions in output
-similarity-ts ./src --no-functions --experimental-types --print
+# Fast mode with bloom filter (default)
+similarity-ts ./src --no-fast  # disable
+```
 
-# Check only interfaces or type aliases
-similarity-ts ./src --experimental-types --interfaces-only
-similarity-ts ./src --experimental-types --types-only
+### Python Specific
 
-# Include type literals (function parameters, return types, etc.)
-similarity-ts ./src --experimental-types --include-type-literals
+```bash
+# Check Python files
+similarity-py ./src
 
-# Adjust weights for structural vs naming similarity
-similarity-ts ./src --experimental-types --structural-weight 0.7 --naming-weight 0.3
+# Include test files
+similarity-py . --extensions py,test.py
+```
+
+### Rust Specific
+
+```bash
+# Check Rust files
+similarity-rs ./src
+
+# Skip test functions (test_ prefix or #[test])
+similarity-rs . --skip-test
+
+# Set minimum tokens (default: 30)
+similarity-rs . --min-tokens 50
 ```
 
 ## Output Format
@@ -141,50 +185,75 @@ Results are sorted by priority (lines × similarity) to help you focus on the mo
 
 ## How It Works
 
-### Function Similarity
+### Core Algorithm
 
-1. **AST Parsing**: Uses oxc-parser to parse TypeScript/JavaScript into ASTs
-2. **Tree Extraction**: Extracts function nodes with their structure
-3. **APTED Algorithm**: Calculates tree edit distance with configurable costs
+1. **AST Parsing**: Language-specific parsers convert code to ASTs
+   - TypeScript/JavaScript: oxc-parser (fast)
+   - Python/Rust: tree-sitter
+2. **Tree Extraction**: Extracts function/method nodes with structure
+3. **TSED Algorithm**: Tree Structure Edit Distance with size penalties
 4. **Similarity Score**: Normalized score between 0 and 1
 5. **Impact Calculation**: Considers code size for prioritization
 
-### Type Similarity
+### Language-Specific Features
 
-1. **Type Extraction**: Identifies interfaces, type aliases, and type literals
-2. **Structural Comparison**: Compares properties, methods, and signatures
-3. **Naming Analysis**: Uses Levenshtein distance for identifier similarity
-4. **Weighted Scoring**: Combines structural and naming similarity
+- **TypeScript**: Type similarity detection (interfaces, type aliases)
+- **Python**: Class and method detection, decorator support
+- **Rust**: Test function filtering, impl block analysis
 
 ## Examples
 
+### TypeScript/JavaScript
+
 ```bash
-# Find duplicate functions in your project
+# Find duplicate functions
 similarity-ts ./src --threshold 0.7 --print
 
 # Find similar types across files
 similarity-ts ./src --no-functions --experimental-types --cross-file --print
 
-# Comprehensive analysis with custom settings
+# Comprehensive analysis
 similarity-ts ./src \
   --threshold 0.8 \
   --min-lines 10 \
   --cross-file \
-  --extensions ts,tsx \
-  --no-size-penalty
+  --extensions ts,tsx
+```
+
+### Python
+
+```bash
+# Find duplicate functions in Python project
+similarity-py ./src --threshold 0.85 --print
+
+# Check with custom settings
+similarity-py . \
+  --min-lines 5 \
+  --extensions py
+```
+
+### Rust
+
+```bash
+# Find duplicates excluding tests
+similarity-rs ./src --skip-test --print
+
+# Strict checking with high token count
+similarity-rs . \
+  --min-tokens 50 \
+  --threshold 0.9 \
+  --skip-test
 ```
 
 ## Performance
 
 - Written in Rust for maximum performance
-- Concurrent file processing
-- Efficient AST traversal with oxc-parser
+- Concurrent file processing  
 - Memory-efficient algorithms
-- **Fast mode (default)**: Uses AST-based bloom filters for pre-filtering
-  - ~4x faster on large codebases
-  - 90%+ comparison reduction through intelligent filtering
-  - Maintains accuracy while improving performance
-  - Disable with `--no-fast` if needed
+- Language-specific optimizations:
+  - **TypeScript/JavaScript**: Fast mode with bloom filters (~4x faster)
+  - **Python/Rust**: Tree-sitter based parsing
+- Intelligent filtering reduces unnecessary comparisons
 
 ## License
 

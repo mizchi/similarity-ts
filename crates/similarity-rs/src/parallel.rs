@@ -97,7 +97,14 @@ pub fn check_within_file_duplicates_parallel(
                                             parser.parse(&body1, &format!("{}:func1", file_str)),
                                             parser.parse(&body2, &format!("{}:func2", file_str)),
                                         ) {
-                                            (Ok(tree1), Ok(tree2)) => (Some(tree1), Some(tree2)),
+                                            (Ok(tree1), Ok(tree2)) => {
+                                                // Skip if either tree is empty
+                                                if tree1.get_subtree_size() == 0 || tree2.get_subtree_size() == 0 {
+                                                    (None, None)
+                                                } else {
+                                                    (Some(tree1), Some(tree2))
+                                                }
+                                            },
                                             _ => (None, None),
                                         };
 
