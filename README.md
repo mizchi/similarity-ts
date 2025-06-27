@@ -36,11 +36,10 @@ Copy the output and use this prompt with Claude:
 
 ```
 Run `similarity-ts .` to detect semantic code similarities. Execute this command, analyze the duplicate code patterns, and create a refactoring plan. Check `similarity-ts -h` for detailed options.
-
-[Paste similarity-ts output here]
 ```
 
 Example output:
+
 ```
 Duplicates in src/utils.ts:
 ────────────────────────────────────────────────────────────
