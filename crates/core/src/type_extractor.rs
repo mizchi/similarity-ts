@@ -238,7 +238,7 @@ impl TypeExtractor {
             },
             TSType::TSArrayType(array_type) => {
                 let element_type = self.extract_type_string(&array_type.element_type);
-                format!("{}[]", element_type)
+                format!("{element_type}[]")
             }
             TSType::TSUnionType(union_type) => {
                 let types: Vec<String> =
@@ -402,11 +402,11 @@ impl TypeExtractor {
 
     fn get_context_name(&self, context: &TypeLiteralContext) -> String {
         match context {
-            TypeLiteralContext::FunctionReturn(name) => format!("{} (return type)", name),
+            TypeLiteralContext::FunctionReturn(name) => format!("{name} (return type)"),
             TypeLiteralContext::FunctionParameter(func_name, param_name) => {
-                format!("{} (parameter: {})", func_name, param_name)
+                format!("{func_name} (parameter: {param_name})")
             }
-            TypeLiteralContext::VariableDeclaration(name) => format!("{} (variable)", name),
+            TypeLiteralContext::VariableDeclaration(name) => format!("{name} (variable)"),
             TypeLiteralContext::ArrowFunctionReturn(name) => format!("{} (arrow function)", name),
         }
     }
