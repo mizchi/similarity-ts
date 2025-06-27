@@ -1,3 +1,5 @@
+#![allow(clippy::uninlined_format_args)]
+
 use crate::parallel::check_within_file_duplicates_parallel;
 use similarity_core::{
     cli_file_utils::collect_files,

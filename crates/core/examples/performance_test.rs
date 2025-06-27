@@ -178,7 +178,7 @@ fn main() {
     let standard_time = start.elapsed();
 
     println!("Standard version:");
-    println!("  Time: {:?}", standard_time);
+    println!("  Time: {standard_time:?}");
     println!("  Found {} similar pairs", standard_results.len());
     if !standard_results.is_empty() {
         for result in &standard_results[..3.min(standard_results.len())] {
@@ -199,12 +199,12 @@ fn main() {
     let fast_time = start.elapsed();
 
     println!("\nFast version:");
-    println!("  Time: {:?}", fast_time);
+    println!("  Time: {fast_time:?}");
     println!("  Found {} similar pairs", fast_results.len());
 
     // Compare results
     let speedup = standard_time.as_secs_f64() / fast_time.as_secs_f64();
-    println!("\nSpeedup: {:.2}x", speedup);
+    println!("\nSpeedup: {speedup:.2}x");
 
     // Run multiple iterations for more accurate timing
     println!("\nRunning 100 iterations for accurate timing...");
@@ -226,5 +226,5 @@ fn main() {
     println!("  Fast: {:?} (avg: {:?})", fast_100_time, fast_100_time / 100);
 
     let speedup_100 = standard_100_time.as_secs_f64() / fast_100_time.as_secs_f64();
-    println!("  Speedup: {:.2}x", speedup_100);
+    println!("  Speedup: {speedup_100:.2}x");
 }

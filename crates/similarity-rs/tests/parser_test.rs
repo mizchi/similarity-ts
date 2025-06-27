@@ -1,3 +1,5 @@
+#![allow(clippy::uninlined_format_args)]
+
 use similarity_core::language_parser::LanguageParser;
 use similarity_rs::rust_parser::RustParser;
 

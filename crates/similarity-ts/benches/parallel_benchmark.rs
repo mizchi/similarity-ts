@@ -1,3 +1,5 @@
+#![allow(clippy::uninlined_format_args)]
+
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use similarity_core::TSEDOptions;
 use similarity_ts::parallel::{

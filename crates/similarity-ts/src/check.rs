@@ -1,3 +1,5 @@
+#![allow(clippy::uninlined_format_args)]
+
 use crate::parallel::{
     check_cross_file_duplicates_parallel, check_within_file_duplicates_parallel,
     load_files_parallel,

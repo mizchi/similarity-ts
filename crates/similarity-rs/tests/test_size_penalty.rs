@@ -1,3 +1,5 @@
+#![allow(clippy::uninlined_format_args)]
+
 use assert_cmd::Command;
 use std::fs;
 use tempfile::tempdir;

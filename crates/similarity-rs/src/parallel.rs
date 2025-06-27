@@ -1,3 +1,5 @@
+#![allow(clippy::uninlined_format_args)]
+
 use rayon::prelude::*;
 use similarity_core::{
     cli_parallel::{FileData, SimilarityResult},

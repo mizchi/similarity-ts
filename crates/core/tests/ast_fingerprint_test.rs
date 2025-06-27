@@ -33,7 +33,7 @@ fn test_ast_fingerprint_usage() {
     println!("\nNode counts for function 1:");
     for (node_type, count) in fp1.node_counts() {
         if *count > 0 {
-            println!("  {}: {}", node_type, count);
+            println!("  {node_type}: {count}");
         }
     }
 

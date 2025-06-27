@@ -386,11 +386,10 @@ const processDataArrow = (data: number[]): number => {
     });
     assert!(add_arrow_short.is_some(), "Should find add vs addArrowShort similarity");
     let add_arrow_short_sim = add_arrow_short.unwrap().similarity;
-    println!("add vs addArrowShort similarity: {}", add_arrow_short_sim);
+    println!("add vs addArrowShort similarity: {add_arrow_short_sim}");
     assert!(
         add_arrow_short_sim > 0.7,
-        "Function and expression arrow function should have good similarity (got {})",
-        add_arrow_short_sim
+        "Function and expression arrow function should have good similarity (got {add_arrow_short_sim})"
     );
 
     // Find processData vs processDataArrow

@@ -1,3 +1,5 @@
+#![allow(clippy::uninlined_format_args)]
+
 use rayon::prelude::*;
 use similarity_core::{
     apted::compute_edit_distance,

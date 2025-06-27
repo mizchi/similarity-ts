@@ -410,7 +410,7 @@ impl LanguageParser for RustParser {
         // If the source looks like a function body (starts with whitespace or directly with code),
         // wrap it in a minimal function context for parsing
         let wrapped_source = if source.trim_start() != source || !source.starts_with("fn ") {
-            format!("fn __dummy() {{ {} }}", source)
+            format!("fn __dummy() {{ {source} }}")
         } else {
             source.to_string()
         };
@@ -418,7 +418,7 @@ impl LanguageParser for RustParser {
         let tree = self
             .parser
             .parse(&wrapped_source, None)
-            .ok_or_else(|| format!("Failed to parse {}", filename))?;
+            .ok_or_else(|| format!("Failed to parse {filename}"))?;
 
         let root_node = tree.root_node();
 
