@@ -83,17 +83,16 @@ class Point {
 };
 "#;
 
-    let functions = parser
-        .extract_functions(code, "test.cpp")
-        .expect("Failed to extract functions");
+    let functions =
+        parser.extract_functions(code, "test.cpp").expect("Failed to extract functions");
 
     let function_names: Vec<&str> = functions.iter().map(|f| f.name.as_str()).collect();
-    
+
     println!("Detected functions:");
     for func in &functions {
         println!("  {} (method: {})", func.name, func.is_method);
     }
-    
+
     assert!(function_names.contains(&"add"), "add function should be detected");
     assert!(function_names.contains(&"multiply"), "multiply method should be detected");
     assert!(function_names.contains(&"getValue"), "const method should be detected");
@@ -103,9 +102,15 @@ class Point {
     assert!(function_names.contains(&"operator+"), "Operator overload should be detected");
     assert!(function_names.contains(&"max"), "Template function should be detected");
     assert!(function_names.contains(&"print"), "Namespace function should be detected");
-    assert!(function_names.iter().any(|n| n.contains("operator<<")), "Friend function should be detected");
-    
-    assert!(!function_names.contains(&"external_function"), "Function declarations should not be detected");
+    assert!(
+        function_names.iter().any(|n| n.contains("operator<<")),
+        "Friend function should be detected"
+    );
+
+    assert!(
+        !function_names.contains(&"external_function"),
+        "Function declarations should not be detected"
+    );
 }
 
 #[test]
@@ -177,17 +182,15 @@ struct Pair {
 };
 "#;
 
-    let types = parser
-        .extract_types(code, "test.cpp")
-        .expect("Failed to extract types");
+    let types = parser.extract_types(code, "test.cpp").expect("Failed to extract types");
 
     println!("Detected types:");
     for t in &types {
         println!("  {} ({})", t.name, t.kind);
     }
-    
+
     let type_names: Vec<&str> = types.iter().map(|t| t.name.as_str()).collect();
-    
+
     assert!(type_names.contains(&"Shape"), "Class should be detected");
     assert!(type_names.contains(&"Point"), "Struct should be detected");
     assert!(type_names.contains(&"Color"), "Enum should be detected");
@@ -198,7 +201,7 @@ struct Pair {
     assert!(type_names.contains(&"Pair"), "Template struct should be detected");
 }
 
-#[test] 
+#[test]
 fn test_cpp_edge_cases() {
     let config = GenericParserConfig::cpp();
     let mut parser = GenericTreeSitterParser::new(tree_sitter_cpp::LANGUAGE.into(), config)
@@ -248,24 +251,30 @@ void test_lambdas() {
 }
 "#;
 
-    let functions = parser
-        .extract_functions(code, "test.cpp")
-        .expect("Failed to extract functions");
+    let functions =
+        parser.extract_functions(code, "test.cpp").expect("Failed to extract functions");
 
     let function_names: Vec<&str> = functions.iter().map(|f| f.name.as_str()).collect();
-    
-    println!("Edge case functions detected: {:?}", function_names);
-    
+
+    println!("Edge case functions detected: {function_names:?}");
+
     assert!(function_names.contains(&"factorial"), "constexpr function should be detected");
     assert!(function_names.contains(&"safe_function"), "noexcept function should be detected");
-    assert!(function_names.contains(&"divide"), "Function with trailing return type should be detected");
+    assert!(
+        function_names.contains(&"divide"),
+        "Function with trailing return type should be detected"
+    );
     assert!(function_names.contains(&"print"), "Variadic template function should be detected");
-    assert!(function_names.contains(&"test_lambdas"), "Function containing lambdas should be detected");
-    
+    assert!(
+        function_names.contains(&"test_lambdas"),
+        "Function containing lambdas should be detected"
+    );
+
     // Deleted and defaulted functions might have special handling
-    let has_deleted = function_names.iter().any(|n| n.contains("NonCopyable") || n.contains("operator="));
+    let has_deleted =
+        function_names.iter().any(|n| n.contains("NonCopyable") || n.contains("operator="));
     let has_defaulted = function_names.iter().any(|n| n.contains("Trivial"));
-    
-    println!("Has deleted functions: {}", has_deleted);
-    println!("Has defaulted functions: {}", has_defaulted);
+
+    println!("Has deleted functions: {has_deleted}");
+    println!("Has defaulted functions: {has_defaulted}");
 }

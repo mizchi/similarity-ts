@@ -120,21 +120,22 @@ class Point
 end
 "#;
 
-    let functions = parser
-        .extract_functions(code, "test.rb")
-        .expect("Failed to extract functions");
+    let functions = parser.extract_functions(code, "test.rb").expect("Failed to extract functions");
 
     let function_names: Vec<&str> = functions.iter().map(|f| f.name.as_str()).collect();
-    
+
     println!("Detected functions:");
     for func in &functions {
         println!("  {} (method: {})", func.name, func.is_method);
     }
-    
+
     assert!(function_names.contains(&"calculate_sum"), "Top-level method should be detected");
     assert!(function_names.contains(&"add"), "Instance method should be detected");
     assert!(function_names.contains(&"create"), "Class method with self. should be detected");
-    assert!(function_names.contains(&"factory_method"), "Class method in << self should be detected");
+    assert!(
+        function_names.contains(&"factory_method"),
+        "Class method in << self should be detected"
+    );
     assert!(function_names.contains(&"multiply"), "Method with default params should be detected");
     assert!(function_names.contains(&"divide"), "Method with keyword args should be detected");
     assert!(function_names.contains(&"sum"), "Method with splat should be detected");
@@ -229,17 +230,15 @@ class << obj
 end
 "#;
 
-    let types = parser
-        .extract_types(code, "test.rb")
-        .expect("Failed to extract types");
+    let types = parser.extract_types(code, "test.rb").expect("Failed to extract types");
 
     println!("Detected types:");
     for t in &types {
         println!("  {} ({})", t.name, t.kind);
     }
-    
+
     let type_names: Vec<&str> = types.iter().map(|t| t.name.as_str()).collect();
-    
+
     assert!(type_names.contains(&"User"), "Class should be detected");
     assert!(type_names.contains(&"Admin"), "Inherited class should be detected");
     assert!(type_names.contains(&"Authentication"), "Module should be detected");
@@ -248,10 +247,10 @@ end
     assert!(type_names.contains(&"V1"), "Nested module should be detected");
     assert!(type_names.contains(&"Resource"), "Deeply nested class should be detected");
     assert!(type_names.contains(&"Config"), "Class with class variables should be detected");
-    
+
     // Note: Struct.new and singleton classes might be tricky
     let has_person = type_names.contains(&"Person");
-    println!("Has Person struct: {}", has_person);
+    println!("Has Person struct: {has_person}");
 }
 
 #[test]
@@ -322,26 +321,31 @@ def process_data(data)
 end
 "#;
 
-    let functions = parser
-        .extract_functions(code, "edge_cases.rb")
-        .expect("Failed to extract functions");
+    let functions =
+        parser.extract_functions(code, "edge_cases.rb").expect("Failed to extract functions");
 
     let function_names: Vec<&str> = functions.iter().map(|f| f.name.as_str()).collect();
-    
-    println!("Edge case functions detected: {:?}", function_names);
-    
-    assert!(function_names.contains(&"complex_method"), "Method with complex params should be detected");
+
+    println!("Edge case functions detected: {function_names:?}");
+
+    assert!(
+        function_names.contains(&"complex_method"),
+        "Method with complex params should be detected"
+    );
     assert!(function_names.contains(&"original_name"), "Original method should be detected");
     assert!(function_names.contains(&"private_inline"), "Private inline method should be detected");
     assert!(function_names.contains(&"public_inline"), "Public inline method should be detected");
     assert!(function_names.contains(&"with_heredoc"), "Method with heredoc should be detected");
-    assert!(function_names.contains(&"with_percent_literals"), "Method with percent literals should be detected");
+    assert!(
+        function_names.contains(&"with_percent_literals"),
+        "Method with percent literals should be detected"
+    );
     assert!(function_names.contains(&"square"), "One-liner method should be detected");
     assert!(function_names.contains(&"process_data"), "Pattern matching method should be detected");
-    
+
     // Dynamic methods should NOT be detected
     assert!(!function_names.contains(&"dynamic"), "define_method should not be detected");
-    
+
     // Aliases create references, not new methods
     assert!(!function_names.contains(&"new_name"), "alias_method should not create new detection");
     assert!(!function_names.contains(&"another_name"), "alias should not create new detection");

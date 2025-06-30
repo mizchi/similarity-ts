@@ -52,23 +52,24 @@ func BenchmarkSomething(b *testing.B) {
 }
 "#;
 
-    let functions = parser
-        .extract_functions(code, "test.go")
-        .expect("Failed to extract functions");
+    let functions = parser.extract_functions(code, "test.go").expect("Failed to extract functions");
 
     // Check that expected functions are detected
     let function_names: Vec<&str> = functions.iter().map(|f| f.name.as_str()).collect();
-    
+
     assert!(function_names.contains(&"regularFunction"), "regularFunction should be detected");
     assert!(function_names.contains(&"Add"), "Method Add should be detected");
     assert!(function_names.contains(&"multipleReturns"), "multipleReturns should be detected");
     assert!(function_names.contains(&"TestSomething"), "Test function should be detected");
-    assert!(function_names.contains(&"BenchmarkSomething"), "Benchmark function should be detected");
-    
+    assert!(
+        function_names.contains(&"BenchmarkSomething"),
+        "Benchmark function should be detected"
+    );
+
     // Check that non-functions are not detected
     assert!(!function_names.contains(&"HandlerFunc"), "Type definitions should not be detected");
     assert!(!function_names.contains(&"Process"), "Interface methods should not be detected");
-    
+
     // Anonymous functions are tricky - they might not have a name
     // So we check the count instead
     assert_eq!(functions.len(), 5, "Should detect exactly 5 functions");
@@ -107,9 +108,7 @@ var globalVar = 42
 const MaxSize = 1024
 "#;
 
-    let types = parser
-        .extract_types(code, "test.go")
-        .expect("Failed to extract types");
+    let types = parser.extract_types(code, "test.go").expect("Failed to extract types");
 
     // Debug: print what we actually detected
     println!("Detected types:");
@@ -118,15 +117,15 @@ const MaxSize = 1024
     }
 
     let type_names: Vec<&str> = types.iter().map(|t| t.name.as_str()).collect();
-    
+
     assert!(type_names.contains(&"User"), "Struct type should be detected");
     assert!(type_names.contains(&"Writer"), "Interface type should be detected");
     assert!(type_names.contains(&"ID"), "Type alias should be detected");
     assert!(type_names.contains(&"Handler"), "Function type should be detected");
-    
+
     assert!(!type_names.contains(&"globalVar"), "Variables should not be detected as types");
     assert!(!type_names.contains(&"MaxSize"), "Constants should not be detected as types");
-    
+
     assert_eq!(types.len(), 4, "Should detect exactly 4 types");
 }
 
@@ -152,12 +151,10 @@ type Extended struct {
 func (e Extended) ExtendedMethod() {}
 "#;
 
-    let functions = parser
-        .extract_functions(code, "test.go")
-        .expect("Failed to extract functions");
+    let functions = parser.extract_functions(code, "test.go").expect("Failed to extract functions");
 
     assert_eq!(functions.len(), 2, "Should detect both methods");
-    
+
     // Test generic functions (Go 1.18+)
     let generic_code = r#"
 package main
@@ -182,9 +179,8 @@ func (l List[T]) Add(item T) {
 }
 "#;
 
-    let functions = parser
-        .extract_functions(generic_code, "test.go")
-        .expect("Failed to extract functions");
+    let functions =
+        parser.extract_functions(generic_code, "test.go").expect("Failed to extract functions");
 
     let function_names: Vec<&str> = functions.iter().map(|f| f.name.as_str()).collect();
     assert!(function_names.contains(&"Map"), "Generic function should be detected");

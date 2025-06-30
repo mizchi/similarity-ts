@@ -98,17 +98,16 @@ namespace ExampleApp
 }
 "#;
 
-    let functions = parser
-        .extract_functions(code, "Calculator.cs")
-        .expect("Failed to extract functions");
+    let functions =
+        parser.extract_functions(code, "Calculator.cs").expect("Failed to extract functions");
 
     let function_names: Vec<&str> = functions.iter().map(|f| f.name.as_str()).collect();
-    
+
     println!("Detected functions:");
     for func in &functions {
         println!("  {} (method: {})", func.name, func.is_method);
     }
-    
+
     assert!(function_names.contains(&"Add"), "Add method should be detected");
     assert!(function_names.contains(&"Multiply"), "Expression-bodied method should be detected");
     assert!(function_names.contains(&"FetchDataAsync"), "Async method should be detected");
@@ -208,17 +207,15 @@ namespace MyApp
 }
 "#;
 
-    let types = parser
-        .extract_types(code, "Types.cs")
-        .expect("Failed to extract types");
+    let types = parser.extract_types(code, "Types.cs").expect("Failed to extract types");
 
     println!("Detected types:");
     for t in &types {
         println!("  {} ({})", t.name, t.kind);
     }
-    
+
     let type_names: Vec<&str> = types.iter().map(|t| t.name.as_str()).collect();
-    
+
     assert!(type_names.contains(&"User"), "Class should be detected");
     assert!(type_names.contains(&"IRepository"), "Generic interface should be detected");
     assert!(type_names.contains(&"Point"), "Struct should be detected");
@@ -297,26 +294,28 @@ public class EdgeCases
 }
 "#;
 
-    let functions = parser
-        .extract_functions(code, "EdgeCases.cs")
-        .expect("Failed to extract functions");
+    let functions =
+        parser.extract_functions(code, "EdgeCases.cs").expect("Failed to extract functions");
 
     let function_names: Vec<&str> = functions.iter().map(|f| f.name.as_str()).collect();
-    
-    println!("Edge case functions detected: {:?}", function_names);
-    
+
+    println!("Edge case functions detected: {function_names:?}");
+
     assert!(function_names.contains(&"OuterMethod"), "Outer method should be detected");
     assert!(function_names.contains(&"GetTypeName"), "Pattern matching method should be detected");
     assert!(function_names.contains(&"Calculate"), "Tuple return method should be detected");
-    
+
     // Properties and indexers might be detected differently
-    let has_properties = function_names.iter().any(|n| n.contains("Name") || n.contains("get") || n.contains("set"));
-    let has_indexer = function_names.iter().any(|n| n.contains("this[") || n.contains("get") || n.contains("set"));
-    
-    println!("Has properties: {}", has_properties);
-    println!("Has indexer: {}", has_indexer);
-    
+    let has_properties =
+        function_names.iter().any(|n| n.contains("Name") || n.contains("get") || n.contains("set"));
+    let has_indexer = function_names
+        .iter()
+        .any(|n| n.contains("this[") || n.contains("get") || n.contains("set"));
+
+    println!("Has properties: {has_properties}");
+    println!("Has indexer: {has_indexer}");
+
     // Local functions might be tricky to detect
     let has_local_function = function_names.iter().any(|n| n.contains("LocalFunction"));
-    println!("Has local function: {}", has_local_function);
+    println!("Has local function: {has_local_function}");
 }

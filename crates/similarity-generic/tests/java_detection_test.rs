@@ -67,18 +67,17 @@ interface Processor {
 }
 "#;
 
-    let functions = parser
-        .extract_functions(code, "Example.java")
-        .expect("Failed to extract functions");
+    let functions =
+        parser.extract_functions(code, "Example.java").expect("Failed to extract functions");
 
     let function_names: Vec<&str> = functions.iter().map(|f| f.name.as_str()).collect();
-    
+
     // Debug output
     println!("Detected functions:");
     for func in &functions {
         println!("  {} (method: {})", func.name, func.is_method);
     }
-    
+
     assert!(function_names.contains(&"calculateSum"), "calculateSum should be detected");
     assert!(function_names.contains(&"main"), "main method should be detected");
     assert!(function_names.contains(&"isValid"), "isValid should be detected");
@@ -86,9 +85,9 @@ interface Processor {
     assert!(function_names.contains(&"process"), "Generic method should be detected");
     assert!(function_names.contains(&"testSomething"), "Test method should be detected");
     assert!(function_names.contains(&"preProcess"), "Default interface method should be detected");
-    
+
     assert!(!function_names.contains(&"name"), "Fields should not be detected");
-    
+
     // Check constructor count
     let constructor_count = functions.iter().filter(|f| f.name == "Example").count();
     assert_eq!(constructor_count, 2, "Should detect both constructors");
@@ -154,18 +153,16 @@ class Example {
 }
 "#;
 
-    let types = parser
-        .extract_types(code, "Example.java")
-        .expect("Failed to extract types");
+    let types = parser.extract_types(code, "Example.java").expect("Failed to extract types");
 
     // Debug output
     println!("Detected types:");
     for t in &types {
         println!("  {} ({})", t.name, t.kind);
     }
-    
+
     let type_names: Vec<&str> = types.iter().map(|t| t.name.as_str()).collect();
-    
+
     assert!(type_names.contains(&"User"), "Class should be detected");
     assert!(type_names.contains(&"Serializable"), "Interface should be detected");
     assert!(type_names.contains(&"Status"), "Enum should be detected");
@@ -178,7 +175,7 @@ class Example {
     assert!(type_names.contains(&"LocalClass"), "Local class should be detected");
 }
 
-#[test] 
+#[test]
 fn test_java_edge_cases() {
     let config = GenericParserConfig::java();
     let mut parser = GenericTreeSitterParser::new(tree_sitter_java::LANGUAGE.into(), config)
@@ -215,16 +212,21 @@ public class LambdaTest {
 }
 "#;
 
-    let functions = parser
-        .extract_functions(code, "LambdaTest.java")
-        .expect("Failed to extract functions");
+    let functions =
+        parser.extract_functions(code, "LambdaTest.java").expect("Failed to extract functions");
 
     let function_names: Vec<&str> = functions.iter().map(|f| f.name.as_str()).collect();
-    
+
     assert!(function_names.contains(&"testLambda"), "testLambda should be detected");
     assert!(function_names.contains(&"printAll"), "Varargs method should be detected");
-    assert!(function_names.contains(&"synchronizedMethod"), "Synchronized method should be detected");
-    assert!(!function_names.contains(&"actionPerformed"), "Anonymous class methods should not be detected");
-    
+    assert!(
+        function_names.contains(&"synchronizedMethod"),
+        "Synchronized method should be detected"
+    );
+    assert!(
+        !function_names.contains(&"actionPerformed"),
+        "Anonymous class methods should not be detected"
+    );
+
     assert_eq!(functions.len(), 3, "Should detect exactly 3 methods");
 }

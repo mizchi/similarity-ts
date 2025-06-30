@@ -60,17 +60,15 @@ int sum_all(int count, ...) {
 }
 "#;
 
-    let functions = parser
-        .extract_functions(code, "test.c")
-        .expect("Failed to extract functions");
+    let functions = parser.extract_functions(code, "test.c").expect("Failed to extract functions");
 
     let function_names: Vec<&str> = functions.iter().map(|f| f.name.as_str()).collect();
-    
+
     println!("Detected functions:");
     for func in &functions {
         println!("  {}", func.name);
     }
-    
+
     assert!(function_names.contains(&"add"), "add function should be detected");
     assert!(function_names.contains(&"print_message"), "print_message should be detected");
     assert!(function_names.contains(&"allocate_string"), "allocate_string should be detected");
@@ -78,10 +76,13 @@ int sum_all(int count, ...) {
     assert!(function_names.contains(&"max"), "inline function should be detected");
     assert!(function_names.contains(&"process_data"), "function with callback should be detected");
     assert!(function_names.contains(&"sum_all"), "variadic function should be detected");
-    
-    assert!(!function_names.contains(&"external_function"), "Function declarations should not be detected");
+
+    assert!(
+        !function_names.contains(&"external_function"),
+        "Function declarations should not be detected"
+    );
     assert!(!function_names.contains(&"SQUARE"), "Macros should not be detected");
-    
+
     assert_eq!(functions.len(), 7, "Should detect exactly 7 functions");
 }
 
@@ -135,23 +136,21 @@ typedef void (*callback_t)(int);
 #define MAX_SIZE 100
 "#;
 
-    let types = parser
-        .extract_types(code, "test.c")
-        .expect("Failed to extract types");
+    let types = parser.extract_types(code, "test.c").expect("Failed to extract types");
 
     println!("Detected types:");
     for t in &types {
         println!("  {} ({})", t.name, t.kind);
     }
-    
+
     let type_names: Vec<&str> = types.iter().map(|t| t.name.as_str()).collect();
-    
+
     assert!(type_names.contains(&"Point"), "Struct should be detected");
     assert!(type_names.contains(&"Person"), "Typedef struct should be detected");
     assert!(type_names.contains(&"Color"), "Enum should be detected");
     assert!(type_names.contains(&"Weekday"), "Typedef enum should be detected");
     assert!(type_names.contains(&"Data"), "Union should be detected");
-    
+
     // Note: Simple typedefs are detected with their actual type (primitive_type)
     // They have different kinds, so they won't be confused with structs
     assert!(!type_names.contains(&"MAX_SIZE"), "Macros should not be detected");
@@ -201,25 +200,24 @@ struct Outer {
 };
 "#;
 
-    let functions = parser
-        .extract_functions(code, "test.c")
-        .expect("Failed to extract functions");
+    let functions = parser.extract_functions(code, "test.c").expect("Failed to extract functions");
 
     let function_names: Vec<&str> = functions.iter().map(|f| f.name.as_str()).collect();
-    
+
     // Note: K&R style might not be properly detected depending on parser
-    println!("Edge case functions detected: {:?}", function_names);
-    
-    assert!(function_names.iter().any(|name| name.contains("get_operation")), "Function returning function pointer should be detected");
+    println!("Edge case functions detected: {function_names:?}");
+
+    assert!(
+        function_names.iter().any(|name| name.contains("get_operation")),
+        "Function returning function pointer should be detected"
+    );
     assert!(function_names.contains(&"fast_swap"), "Static inline function should be detected");
     assert!(function_names.contains(&"copy_array"), "Function with restrict should be detected");
-    
-    let types = parser
-        .extract_types(code, "test.c")
-        .expect("Failed to extract types");
-    
+
+    let types = parser.extract_types(code, "test.c").expect("Failed to extract types");
+
     let type_names: Vec<&str> = types.iter().map(|t| t.name.as_str()).collect();
-    
+
     assert!(type_names.contains(&"Outer"), "Outer struct should be detected");
     assert!(type_names.contains(&"Inner"), "Nested struct should be detected");
 }
