@@ -94,8 +94,8 @@ struct Cli {
     #[arg(long)]
     exclude: Vec<String>,
 
-    /// Enable overlap detection mode
-    #[arg(long = "overlap")]
+    /// Enable experimental overlap detection mode
+    #[arg(long = "experimental-overlap")]
     overlap: bool,
 
     /// Minimum window size for overlap detection (number of nodes)
