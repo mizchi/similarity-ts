@@ -8,21 +8,21 @@ use similarity_core::type_extractor::{extract_types_from_code, TypeKind};
 use std::error::Error;
 use std::rc::Rc;
 
-pub struct OxcParserAdapter;
+pub struct TypeScriptParser;
 
-impl OxcParserAdapter {
+impl TypeScriptParser {
     pub fn new() -> Self {
         Self
     }
 }
 
-impl Default for OxcParserAdapter {
+impl Default for TypeScriptParser {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl LanguageParser for OxcParserAdapter {
+impl LanguageParser for TypeScriptParser {
     fn parse(&mut self, source: &str, filename: &str) -> Result<Rc<TreeNode>, Box<dyn Error>> {
         parse_and_convert_to_tree(filename, source).map_err(|e| e.into())
     }
@@ -90,8 +90,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_oxc_adapter_functions() {
-        let mut adapter = OxcParserAdapter::new();
+    fn test_typescript_parser_functions() {
+        let mut parser = TypeScriptParser::new();
         let source = r#"
 function hello(name) {
     return `Hello, ${name}!`;
@@ -102,15 +102,15 @@ const greet = (name) => {
 };
 "#;
 
-        let functions = adapter.extract_functions(source, "test.js").unwrap();
+        let functions = parser.extract_functions(source, "test.js").unwrap();
         assert_eq!(functions.len(), 2);
         assert_eq!(functions[0].name, "hello");
         assert_eq!(functions[1].name, "greet");
     }
 
     #[test]
-    fn test_oxc_adapter_types() {
-        let mut adapter = OxcParserAdapter::new();
+    fn test_typescript_parser_types() {
+        let mut parser = TypeScriptParser::new();
         let source = r#"
 interface User {
     name: string;
@@ -120,7 +120,7 @@ interface User {
 type UserID = string | number;
 "#;
 
-        let types = adapter.extract_types(source, "test.ts").unwrap();
+        let types = parser.extract_types(source, "test.ts").unwrap();
         assert_eq!(types.len(), 2);
         assert_eq!(types[0].name, "User");
         assert_eq!(types[0].kind, "interface");

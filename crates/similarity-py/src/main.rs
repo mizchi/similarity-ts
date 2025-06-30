@@ -3,6 +3,7 @@ use clap::Parser;
 
 mod check;
 mod parallel;
+mod python_parser;
 
 #[derive(Parser)]
 #[command(name = "similarity-py")]

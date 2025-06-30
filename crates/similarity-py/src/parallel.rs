@@ -1,11 +1,11 @@
 #![allow(clippy::uninlined_format_args)]
 
+use crate::python_parser::PythonParser;
 use rayon::prelude::*;
 use similarity_core::{
-    apted::compute_edit_distance,
     cli_parallel::{FileData, SimilarityResult},
     language_parser::{GenericFunctionDef, LanguageParser},
-    tsed::TSEDOptions,
+    tsed::{calculate_tsed, TSEDOptions},
 };
 use std::fs;
 use std::path::PathBuf;
@@ -24,7 +24,7 @@ pub fn load_files_parallel(files: &[PathBuf]) -> Vec<PythonFileData> {
                 Ok(content) => {
                     let filename = file.to_string_lossy();
                     // Create Python parser
-                    match similarity_py::python_parser::PythonParser::new() {
+                    match PythonParser::new() {
                         Ok(mut parser) => {
                             // Extract functions
                             match parser.extract_functions(&content, &filename) {
@@ -65,7 +65,7 @@ pub fn check_within_file_duplicates_parallel(
                 let file_str = file.to_string_lossy();
 
                 // Create Python parser
-                match similarity_py::python_parser::PythonParser::new() {
+                match PythonParser::new() {
                     Ok(mut parser) => {
                         // Extract functions
                         match parser.extract_functions(&code, &file_str) {
@@ -97,19 +97,8 @@ pub fn check_within_file_duplicates_parallel(
                                             parser.parse(&body2, &format!("{}:func2", file_str)),
                                         ) {
                                             (Ok(tree1), Ok(tree2)) => {
-                                                let dist = compute_edit_distance(
-                                                    &tree1,
-                                                    &tree2,
-                                                    &options.apted_options,
-                                                );
-                                                let size1 = tree1.get_subtree_size();
-                                                let size2 = tree2.get_subtree_size();
-                                                let max_size = size1.max(size2) as f64;
-                                                if max_size > 0.0 {
-                                                    1.0 - (dist / max_size)
-                                                } else {
-                                                    1.0
-                                                }
+                                                // Use calculate_tsed to apply size_penalty and other options
+                                                calculate_tsed(&tree1, &tree2, options)
                                             }
                                             _ => 0.0,
                                         };
