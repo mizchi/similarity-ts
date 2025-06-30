@@ -10,6 +10,12 @@ pub enum Language {
     Python,
     Rust,
     Go,
+    Java,
+    C,
+    Cpp,
+    CSharp,
+    Ruby,
+    Php,
     Unknown,
 }
 
@@ -21,6 +27,12 @@ impl Language {
             "py" => Some(Language::Python),
             "rs" => Some(Language::Rust),
             "go" => Some(Language::Go),
+            "java" => Some(Language::Java),
+            "c" | "h" => Some(Language::C),
+            "cpp" | "cc" | "cxx" | "hpp" | "hxx" | "c++" => Some(Language::Cpp),
+            "cs" => Some(Language::CSharp),
+            "rb" => Some(Language::Ruby),
+            "php" => Some(Language::Php),
             _ => None,
         }
     }

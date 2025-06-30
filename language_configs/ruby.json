@@ -1,0 +1,18 @@
+{
+  "language": "ruby",
+  "function_nodes": ["method", "singleton_method"],
+  "type_nodes": ["class", "module"],
+  "field_mappings": {
+    "name_field": "name",
+    "params_field": "parameters",
+    "body_field": "body",
+    "decorator_field": null,
+    "class_field": null
+  },
+  "value_nodes": ["identifier", "string", "integer", "float", "true", "false", "nil"],
+  "test_patterns": {
+    "attribute_patterns": [],
+    "name_prefixes": ["test_"],
+    "name_suffixes": ["_test", "_spec"]
+  }
+}

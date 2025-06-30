@@ -14,6 +14,7 @@ pub mod type_extractor;
 pub mod type_normalizer;
 pub mod generic_parser_config;
 pub mod generic_tree_sitter_parser;
+pub mod ast_exchange;
 
 // CLI utilities
 pub mod cli_file_utils;

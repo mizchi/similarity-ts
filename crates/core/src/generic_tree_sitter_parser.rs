@@ -41,6 +41,31 @@ impl GenericTreeSitterParser {
                 tree_sitter_go::LANGUAGE.into(),
                 GenericParserConfig::go(),
             ),
+            "java" => (
+                tree_sitter_java::LANGUAGE.into(),
+                GenericParserConfig::java(),
+            ),
+            "c" => (
+                tree_sitter_c::LANGUAGE.into(),
+                GenericParserConfig::c(),
+            ),
+            "cpp" | "c++" => (
+                tree_sitter_cpp::LANGUAGE.into(),
+                GenericParserConfig::cpp(),
+            ),
+            "csharp" | "cs" => (
+                tree_sitter_c_sharp::LANGUAGE.into(),
+                GenericParserConfig::csharp(),
+            ),
+            "ruby" | "rb" => (
+                tree_sitter_ruby::LANGUAGE.into(),
+                GenericParserConfig::ruby(),
+            ),
+            // PHP support temporarily disabled due to API differences
+            // "php" => (
+            //     tree_sitter_php::language().into(),
+            //     GenericParserConfig::php(),
+            // ),
             // Add more languages as needed
             _ => return Err(Box::new(std::io::Error::new(
                 std::io::ErrorKind::InvalidInput,
@@ -299,6 +324,12 @@ impl LanguageParser for GenericTreeSitterParser {
             "rust" => Language::Rust,
             "javascript" | "typescript" => Language::TypeScript,
             "go" => Language::Go,
+            "java" => Language::Java,
+            "c" => Language::C,
+            "cpp" => Language::Cpp,
+            "csharp" => Language::CSharp,
+            "ruby" => Language::Ruby,
+            "php" => Language::Php,
             _ => Language::Unknown,
         }
     }

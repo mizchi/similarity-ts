@@ -228,6 +228,224 @@ impl GenericParserConfig {
             custom_mappings: None,
         }
     }
+    
+    pub fn java() -> Self {
+        Self {
+            language: "java".to_string(),
+            function_nodes: vec![
+                "method_declaration".to_string(),
+                "constructor_declaration".to_string(),
+            ],
+            type_nodes: vec![
+                "class_declaration".to_string(),
+                "interface_declaration".to_string(),
+                "enum_declaration".to_string(),
+            ],
+            field_mappings: FieldMappings {
+                name_field: "name".to_string(),
+                params_field: "parameters".to_string(),
+                body_field: "body".to_string(),
+                decorator_field: Some("annotation".to_string()),
+                class_field: None,
+            },
+            value_nodes: vec![
+                "identifier".to_string(),
+                "string_literal".to_string(),
+                "integer_literal".to_string(),
+                "floating_point_literal".to_string(),
+                "true".to_string(),
+                "false".to_string(),
+                "null_literal".to_string(),
+            ],
+            test_patterns: Some(TestPatterns {
+                attribute_patterns: vec!["@Test".to_string(), "@ParameterizedTest".to_string()],
+                name_prefixes: vec!["test".to_string()],
+                name_suffixes: vec!["Test".to_string()],
+            }),
+            custom_mappings: None,
+        }
+    }
+    
+    pub fn c() -> Self {
+        Self {
+            language: "c".to_string(),
+            function_nodes: vec!["function_definition".to_string()],
+            type_nodes: vec![
+                "struct_specifier".to_string(),
+                "enum_specifier".to_string(),
+                "type_definition".to_string(),
+            ],
+            field_mappings: FieldMappings {
+                name_field: "declarator".to_string(),
+                params_field: "declarator".to_string(),
+                body_field: "body".to_string(),
+                decorator_field: None,
+                class_field: None,
+            },
+            value_nodes: vec![
+                "identifier".to_string(),
+                "string_literal".to_string(),
+                "number_literal".to_string(),
+                "true".to_string(),
+                "false".to_string(),
+                "null".to_string(),
+            ],
+            test_patterns: Some(TestPatterns {
+                attribute_patterns: vec![],
+                name_prefixes: vec!["test_".to_string()],
+                name_suffixes: vec!["_test".to_string()],
+            }),
+            custom_mappings: None,
+        }
+    }
+    
+    pub fn cpp() -> Self {
+        Self {
+            language: "cpp".to_string(),
+            function_nodes: vec![
+                "function_definition".to_string(),
+                "lambda_expression".to_string(),
+            ],
+            type_nodes: vec![
+                "class_specifier".to_string(),
+                "struct_specifier".to_string(),
+                "enum_specifier".to_string(),
+            ],
+            field_mappings: FieldMappings {
+                name_field: "declarator".to_string(),
+                params_field: "declarator".to_string(),
+                body_field: "body".to_string(),
+                decorator_field: None,
+                class_field: None,
+            },
+            value_nodes: vec![
+                "identifier".to_string(),
+                "string_literal".to_string(),
+                "number_literal".to_string(),
+                "true".to_string(),
+                "false".to_string(),
+                "nullptr".to_string(),
+            ],
+            test_patterns: Some(TestPatterns {
+                attribute_patterns: vec![],
+                name_prefixes: vec!["test_".to_string(), "Test".to_string()],
+                name_suffixes: vec!["_test".to_string(), "Test".to_string()],
+            }),
+            custom_mappings: None,
+        }
+    }
+    
+    pub fn csharp() -> Self {
+        Self {
+            language: "csharp".to_string(),
+            function_nodes: vec![
+                "method_declaration".to_string(),
+                "constructor_declaration".to_string(),
+                "lambda_expression".to_string(),
+            ],
+            type_nodes: vec![
+                "class_declaration".to_string(),
+                "interface_declaration".to_string(),
+                "struct_declaration".to_string(),
+                "enum_declaration".to_string(),
+            ],
+            field_mappings: FieldMappings {
+                name_field: "name".to_string(),
+                params_field: "parameters".to_string(),
+                body_field: "body".to_string(),
+                decorator_field: Some("attribute".to_string()),
+                class_field: None,
+            },
+            value_nodes: vec![
+                "identifier".to_string(),
+                "string_literal".to_string(),
+                "integer_literal".to_string(),
+                "real_literal".to_string(),
+                "true".to_string(),
+                "false".to_string(),
+                "null_literal".to_string(),
+            ],
+            test_patterns: Some(TestPatterns {
+                attribute_patterns: vec!["[Test]".to_string(), "[TestMethod]".to_string(), "[Fact]".to_string()],
+                name_prefixes: vec!["Test".to_string()],
+                name_suffixes: vec!["Test".to_string(), "Tests".to_string()],
+            }),
+            custom_mappings: None,
+        }
+    }
+    
+    pub fn ruby() -> Self {
+        Self {
+            language: "ruby".to_string(),
+            function_nodes: vec![
+                "method".to_string(),
+                "singleton_method".to_string(),
+            ],
+            type_nodes: vec![
+                "class".to_string(),
+                "module".to_string(),
+            ],
+            field_mappings: FieldMappings {
+                name_field: "name".to_string(),
+                params_field: "parameters".to_string(),
+                body_field: "body".to_string(),
+                decorator_field: None,
+                class_field: None,
+            },
+            value_nodes: vec![
+                "identifier".to_string(),
+                "string".to_string(),
+                "integer".to_string(),
+                "float".to_string(),
+                "true".to_string(),
+                "false".to_string(),
+                "nil".to_string(),
+            ],
+            test_patterns: Some(TestPatterns {
+                attribute_patterns: vec![],
+                name_prefixes: vec!["test_".to_string()],
+                name_suffixes: vec!["_test".to_string(), "_spec".to_string()],
+            }),
+            custom_mappings: None,
+        }
+    }
+    
+    pub fn php() -> Self {
+        Self {
+            language: "php".to_string(),
+            function_nodes: vec![
+                "function_definition".to_string(),
+                "method_declaration".to_string(),
+            ],
+            type_nodes: vec![
+                "class_declaration".to_string(),
+                "interface_declaration".to_string(),
+                "trait_declaration".to_string(),
+            ],
+            field_mappings: FieldMappings {
+                name_field: "name".to_string(),
+                params_field: "parameters".to_string(),
+                body_field: "body".to_string(),
+                decorator_field: Some("attribute_list".to_string()),
+                class_field: None,
+            },
+            value_nodes: vec![
+                "name".to_string(),
+                "string".to_string(),
+                "integer".to_string(),
+                "float".to_string(),
+                "true".to_string(),
+                "false".to_string(),
+                "null".to_string(),
+            ],
+            test_patterns: Some(TestPatterns {
+                attribute_patterns: vec!["@test".to_string(), "@Test".to_string()],
+                name_prefixes: vec!["test".to_string()],
+                name_suffixes: vec!["Test".to_string()],
+            }),
+            custom_mappings: None,
+        }
+    }
 }
 
 #[cfg(test)]
