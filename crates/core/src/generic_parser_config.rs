@@ -240,6 +240,7 @@ impl GenericParserConfig {
                 "class_declaration".to_string(),
                 "interface_declaration".to_string(),
                 "enum_declaration".to_string(),
+                "annotation_type_declaration".to_string(),
             ],
             field_mappings: FieldMappings {
                 name_field: "name".to_string(),
@@ -273,11 +274,12 @@ impl GenericParserConfig {
             type_nodes: vec![
                 "struct_specifier".to_string(),
                 "enum_specifier".to_string(),
+                "union_specifier".to_string(),
                 "type_definition".to_string(),
             ],
             field_mappings: FieldMappings {
-                name_field: "declarator".to_string(),
-                params_field: "declarator".to_string(),
+                name_field: "name".to_string(),
+                params_field: "parameters".to_string(),
                 body_field: "body".to_string(),
                 decorator_field: None,
                 class_field: None,
@@ -310,10 +312,11 @@ impl GenericParserConfig {
                 "class_specifier".to_string(),
                 "struct_specifier".to_string(),
                 "enum_specifier".to_string(),
+                "union_specifier".to_string(),
             ],
             field_mappings: FieldMappings {
-                name_field: "declarator".to_string(),
-                params_field: "declarator".to_string(),
+                name_field: "name".to_string(),
+                params_field: "parameters".to_string(),
                 body_field: "body".to_string(),
                 decorator_field: None,
                 class_field: None,
@@ -341,6 +344,8 @@ impl GenericParserConfig {
             function_nodes: vec![
                 "method_declaration".to_string(),
                 "constructor_declaration".to_string(),
+                "operator_declaration".to_string(),
+                "destructor_declaration".to_string(),
                 "lambda_expression".to_string(),
             ],
             type_nodes: vec![
@@ -348,6 +353,7 @@ impl GenericParserConfig {
                 "interface_declaration".to_string(),
                 "struct_declaration".to_string(),
                 "enum_declaration".to_string(),
+                "record_declaration".to_string(),
             ],
             field_mappings: FieldMappings {
                 name_field: "name".to_string(),

@@ -81,6 +81,12 @@ impl GenericTreeSitterParser {
     ) {
         let node_kind = node.kind();
 
+        // Skip anonymous class bodies in Java
+        if self.config.language == "java" && node_kind == "object_creation_expression" {
+            // Skip the class_body of anonymous classes
+            return;
+        }
+
         // Check if this is a function node
         if self.config.function_nodes.contains(&node_kind.to_string()) {
             if let Some(func_def) = self.extract_function_definition(node, source, class_name) {
@@ -114,10 +120,75 @@ impl GenericTreeSitterParser {
         source: &str,
         class_name: Option<&str>,
     ) -> Option<GenericFunctionDef> {
-        let name_node = node.child_by_field_name(&self.config.field_mappings.name_field)?;
-        let name = name_node.utf8_text(source.as_bytes()).ok()?;
+        // Extract the function name first, which might require special handling
+        let name_string = if (self.config.language == "c" || self.config.language == "cpp") 
+            && node.kind() == "function_definition" {
+            // In C/C++, the declarator contains both name and parameters
+            let declarator = node.child_by_field_name("declarator")?;
+            
+            match declarator.kind() {
+                "function_declarator" => {
+                    declarator.child_by_field_name("declarator")
+                        .and_then(|n| n.utf8_text(source.as_bytes()).ok())
+                        .map(String::from)?
+                },
+                "pointer_declarator" => {
+                    // Handle functions returning pointers
+                    let func_decl = declarator.children(&mut declarator.walk())
+                        .find(|n| n.kind() == "function_declarator")?;
+                    func_decl.child_by_field_name("declarator")
+                        .and_then(|n| n.utf8_text(source.as_bytes()).ok())
+                        .map(String::from)?
+                },
+                _ => {
+                    // Simple function without parameters
+                    declarator.utf8_text(source.as_bytes()).ok().map(String::from)?
+                }
+            }
+        } else if self.config.language == "csharp" {
+            // Special handling for C# methods
+            match node.kind() {
+                "operator_declaration" => {
+                    // For operators, construct name as "operator <symbol>"
+                    let operator_symbol = node.child_by_field_name("operator")
+                        .and_then(|n| n.utf8_text(source.as_bytes()).ok())?;
+                    format!("operator {}", operator_symbol)
+                },
+                "destructor_declaration" => {
+                    // For destructors, add ~ prefix
+                    let class_name = node.child_by_field_name("name")
+                        .and_then(|n| n.utf8_text(source.as_bytes()).ok())?;
+                    format!("~{}", class_name)
+                },
+                _ => {
+                    // Standard C# methods
+                    let name_node = node.child_by_field_name(&self.config.field_mappings.name_field)?;
+                    name_node.utf8_text(source.as_bytes()).ok().map(String::from)?
+                }
+            }
+        } else {
+            // For other languages, use the standard field mapping
+            let name_node = node.child_by_field_name(&self.config.field_mappings.name_field)?;
+            name_node.utf8_text(source.as_bytes()).ok().map(String::from)?
+        };
 
-        let params_node = node.child_by_field_name(&self.config.field_mappings.params_field);
+        // Extract parameters - special handling for C/C++
+        let params_node = if (self.config.language == "c" || self.config.language == "cpp") 
+            && node.kind() == "function_definition" {
+            let declarator = node.child_by_field_name("declarator")?;
+            match declarator.kind() {
+                "function_declarator" => declarator.child_by_field_name("parameters"),
+                "pointer_declarator" => {
+                    declarator.children(&mut declarator.walk())
+                        .find(|n| n.kind() == "function_declarator")
+                        .and_then(|n| n.child_by_field_name("parameters"))
+                },
+                _ => None
+            }
+        } else {
+            node.child_by_field_name(&self.config.field_mappings.params_field)
+        };
+
         let body_node = node.child_by_field_name(&self.config.field_mappings.body_field);
 
         let params = self.extract_parameters(params_node, source);
@@ -126,7 +197,7 @@ impl GenericTreeSitterParser {
         let is_generator = self.is_generator_function(node, source);
 
         Some(GenericFunctionDef {
-            name: name.to_string(),
+            name: name_string,
             start_line: node.start_position().row as u32 + 1,
             end_line: node.end_position().row as u32 + 1,
             body_start_line: body_node.map(|n| n.start_position().row as u32 + 1).unwrap_or(0),
@@ -222,12 +293,41 @@ impl GenericTreeSitterParser {
     }
 
     fn extract_type_definition(&self, node: Node, source: &str) -> Option<GenericTypeDef> {
-        let name_node = node.child_by_field_name(&self.config.field_mappings.name_field)?;
-        let name = name_node.utf8_text(source.as_bytes()).ok()?;
+        // Special handling for Go's type_declaration
+        let (name, actual_type_node) = if node.kind() == "type_declaration" && self.config.language == "go" {
+            // In Go, type_declaration -> type_spec -> actual type
+            let type_spec = node.child_by_field_name("spec")
+                .or_else(|| node.children(&mut node.walk()).find(|n| n.kind() == "type_spec"))?;
+            
+            let name_node = type_spec.child_by_field_name("name")
+                .or_else(|| type_spec.children(&mut type_spec.walk()).find(|n| n.kind() == "type_identifier"))?;
+            let name = name_node.utf8_text(source.as_bytes()).ok()?;
+            
+            // Get the actual type (struct_type, interface_type, etc.)
+            let actual_type = type_spec.child_by_field_name("type")
+                .or_else(|| type_spec.children(&mut type_spec.walk()).skip(1).next())?;
+            
+            (name, actual_type)
+        } else if node.kind() == "type_definition" && self.config.language == "c" {
+            // In C, type_definition has a declarator field
+            let declarator = node.child_by_field_name("declarator")?;
+            let name = declarator.utf8_text(source.as_bytes()).ok()?;
+            
+            // Get the actual type from the type field
+            let actual_type = node.child_by_field_name("type")
+                .unwrap_or(node);
+            
+            (name, actual_type)
+        } else {
+            // For other languages, use the standard field mapping
+            let name_node = node.child_by_field_name(&self.config.field_mappings.name_field)?;
+            let name = name_node.utf8_text(source.as_bytes()).ok()?;
+            (name, node)
+        };
 
         Some(GenericTypeDef {
             name: name.to_string(),
-            kind: node.kind().to_string(),
+            kind: actual_type_node.kind().to_string(),
             start_line: node.start_position().row as u32 + 1,
             end_line: node.end_position().row as u32 + 1,
             fields: Vec::new(), // TODO: Extract fields based on language
