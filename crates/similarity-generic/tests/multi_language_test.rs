@@ -9,78 +9,6 @@ fn create_test_file(dir: &TempDir, filename: &str, content: &str) -> std::path::
     file_path
 }
 
-#[test]
-fn test_python_similarity() {
-    let dir = TempDir::new().unwrap();
-    let file = create_test_file(&dir, "test.py", r#"
-def add(a, b):
-    # Add two numbers
-    result = a + b
-    # Return the result
-    return result
-
-def sum(x, y):
-    # Sum two values
-    total = x + y
-    # Return the total
-    return total
-"#);
-
-    let mut cmd = Command::cargo_bin("similarity-generic").unwrap();
-    cmd.arg(file)
-        .arg("--language").arg("python")
-        .arg("--threshold").arg("0.8");
-    
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("add <-> sum:"));
-}
-
-#[test]
-fn test_rust_similarity() {
-    let dir = TempDir::new().unwrap();
-    let file = create_test_file(&dir, "test.rs", r#"
-fn calculate_sum(numbers: &[i32]) -> i32 {
-    numbers.iter().sum()
-}
-
-fn compute_total(values: &[i32]) -> i32 {
-    values.iter().sum()
-}
-"#);
-
-    let mut cmd = Command::cargo_bin("similarity-generic").unwrap();
-    cmd.arg(file)
-        .arg("--language").arg("rust")
-        .arg("--threshold").arg("0.8");
-    
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("calculate_sum <-> compute_total:"));
-}
-
-#[test]
-fn test_javascript_similarity() {
-    let dir = TempDir::new().unwrap();
-    let file = create_test_file(&dir, "test.js", r#"
-function multiply(a, b) {
-    return a * b;
-}
-
-function product(x, y) {
-    return x * y;
-}
-"#);
-
-    let mut cmd = Command::cargo_bin("similarity-generic").unwrap();
-    cmd.arg(file)
-        .arg("--language").arg("javascript")
-        .arg("--threshold").arg("0.8");
-    
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("multiply <-> product:"));
-}
 
 #[test]
 fn test_go_similarity() {
@@ -237,27 +165,11 @@ end
 fn test_language_aliases() {
     let dir = TempDir::new().unwrap();
     
-    // Test Python alias
-    let py_file = create_test_file(&dir, "test.py", "def test(): pass");
+    // Test C++ alias
+    let cpp_file = create_test_file(&dir, "test.cpp", "int main() {}");
     Command::cargo_bin("similarity-generic").unwrap()
-        .arg(&py_file)
-        .arg("--language").arg("py")
-        .assert()
-        .success();
-    
-    // Test Rust alias
-    let rs_file = create_test_file(&dir, "test.rs", "fn test() {}");
-    Command::cargo_bin("similarity-generic").unwrap()
-        .arg(&rs_file)
-        .arg("--language").arg("rs")
-        .assert()
-        .success();
-    
-    // Test JavaScript alias
-    let js_file = create_test_file(&dir, "test.js", "function test() {}");
-    Command::cargo_bin("similarity-generic").unwrap()
-        .arg(&js_file)
-        .arg("--language").arg("js")
+        .arg(&cpp_file)
+        .arg("--language").arg("c++")
         .assert()
         .success();
     
@@ -306,31 +218,32 @@ func third() {}
 fn test_custom_config_file() {
     let dir = TempDir::new().unwrap();
     let config_file = create_test_file(&dir, "custom.json", r#"{
-  "language": "python",
-  "function_nodes": ["function_definition"],
-  "type_nodes": ["class_definition"],
+  "language": "go",
+  "function_nodes": ["function_declaration"],
+  "type_nodes": ["type_declaration"],
   "field_mappings": {
     "name_field": "name",
     "params_field": "parameters",
-    "body_field": "body",
-    "decorator_field": "decorator",
-    "class_field": "class"
+    "body_field": "body"
   },
-  "value_nodes": ["identifier", "string"],
+  "value_nodes": ["identifier", "interpreted_string_literal"],
   "test_patterns": {
     "attribute_patterns": [],
-    "name_prefixes": ["test_"],
+    "name_prefixes": ["Test"],
     "name_suffixes": []
   }
 }"#);
     
-    let py_file = create_test_file(&dir, "test.py", r#"
-def add(a, b):
+    let go_file = create_test_file(&dir, "test.go", r#"
+package main
+
+func add(a, b int) int {
     return a + b
+}
 "#);
 
     let mut cmd = Command::cargo_bin("similarity-generic").unwrap();
-    cmd.arg(&py_file)
+    cmd.arg(&go_file)
         .arg("--config").arg(&config_file)
         .arg("--show-functions");
     
@@ -381,5 +294,49 @@ fn test_unsupported_language_error() {
     
     cmd.assert()
         .failure()
-        .stderr(predicate::str::contains("Unknown language: xyz"));
+        .stderr(predicate::str::contains("Language 'xyz' is not supported"));
+}
+
+#[test]
+fn test_supported_option() {
+    let mut cmd = Command::cargo_bin("similarity-generic").unwrap();
+    cmd.arg("--supported");
+    
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("Supported languages"))
+        .stdout(predicate::str::contains("go"))
+        .stdout(predicate::str::contains("java"))
+        .stdout(predicate::str::contains("c"))
+        .stdout(predicate::str::contains("cpp"))
+        .stdout(predicate::str::contains("csharp"))
+        .stdout(predicate::str::contains("ruby"))
+        .stdout(predicate::str::contains("similarity-py"))
+        .stdout(predicate::str::contains("similarity-ts"));
+}
+
+#[test]
+fn test_show_config_option() {
+    let mut cmd = Command::cargo_bin("similarity-generic").unwrap();
+    cmd.arg("--show-config").arg("go");
+    
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("\"language\": \"go\""))
+        .stdout(predicate::str::contains("function_declaration"))
+        .stdout(predicate::str::contains("method_declaration"));
+}
+
+#[test]
+fn test_python_language_redirect() {
+    let dir = TempDir::new().unwrap();
+    let file = create_test_file(&dir, "test.py", "def test(): pass");
+
+    let mut cmd = Command::cargo_bin("similarity-generic").unwrap();
+    cmd.arg(file)
+        .arg("--language").arg("python");
+    
+    cmd.assert()
+        .failure()
+        .stderr(predicate::str::contains("similarity-py"));
 }

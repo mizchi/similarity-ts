@@ -16,17 +16,12 @@ similarity-core = { version = "0.2.4", path = "../core" }
 clap = { version = "4.0", features = ["derive"] }
 anyhow = "1.0"
 tree-sitter = { workspace = true }
-tree-sitter-python = { workspace = true }
-tree-sitter-rust = { workspace = true }
-tree-sitter-javascript = { workspace = true }
-tree-sitter-typescript = { workspace = true }
 tree-sitter-go = { workspace = true }
 tree-sitter-java = { workspace = true }
 tree-sitter-c = { workspace = true }
 tree-sitter-cpp = { workspace = true }
 tree-sitter-c-sharp = { workspace = true }
 tree-sitter-ruby = { workspace = true }
-tree-sitter-php = { workspace = true }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 

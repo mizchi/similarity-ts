@@ -29,14 +29,6 @@ impl GenericTreeSitterParser {
     /// Create from a pre-configured language
     pub fn from_language_name(language_name: &str) -> Result<Self, Box<dyn Error + Send + Sync>> {
         let (language, config) = match language_name {
-            "python" => (
-                tree_sitter_python::LANGUAGE.into(),
-                GenericParserConfig::python(),
-            ),
-            "rust" => (
-                tree_sitter_rust::LANGUAGE.into(),
-                GenericParserConfig::rust(),
-            ),
             "go" => (
                 tree_sitter_go::LANGUAGE.into(),
                 GenericParserConfig::go(),
@@ -61,12 +53,6 @@ impl GenericTreeSitterParser {
                 tree_sitter_ruby::LANGUAGE.into(),
                 GenericParserConfig::ruby(),
             ),
-            // PHP support temporarily disabled due to API differences
-            // "php" => (
-            //     tree_sitter_php::language().into(),
-            //     GenericParserConfig::php(),
-            // ),
-            // Add more languages as needed
             _ => return Err(Box::new(std::io::Error::new(
                 std::io::ErrorKind::InvalidInput,
                 format!("Unsupported language: {}", language_name)
