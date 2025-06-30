@@ -224,6 +224,33 @@ This tool can be integrated into:
 4. **Similarity Score**: Normalized score between 0 and 1
 5. **Impact Calculation**: Considers code size for prioritization
 
+### Overlap Detection (Experimental)
+
+The `--experimental-overlap` flag enables detection of partial code overlaps within and across functions:
+
+```bash
+# Basic overlap detection
+similarity-ts ./src --experimental-overlap
+
+# With custom parameters
+similarity-ts ./src --experimental-overlap \
+  --threshold 0.75 \
+  --overlap-min-window 8 \
+  --overlap-max-window 25 \
+  --overlap-size-tolerance 0.25
+```
+
+**Parameters:**
+- `--experimental-overlap`: Enable overlap detection mode
+- `--overlap-min-window`: Minimum AST nodes to consider (default: 8)
+- `--overlap-max-window`: Maximum AST nodes to consider (default: 25)
+- `--overlap-size-tolerance`: Size variation tolerance (default: 0.25)
+
+**Use Cases:**
+- Finding copy-pasted code fragments within larger functions
+- Detecting similar algorithmic patterns across different contexts
+- Identifying refactoring opportunities for common code blocks
+
 ### Language-Specific Features
 
 - **TypeScript**: Type similarity detection (interfaces, type aliases)
@@ -247,6 +274,9 @@ similarity-ts ./src \
   --min-lines 10 \
   --cross-file \
   --extensions ts,tsx
+
+# Detect partial code overlaps (Experimental)
+similarity-ts ./src --experimental-overlap --threshold 0.75 --print
 ```
 
 ### Python

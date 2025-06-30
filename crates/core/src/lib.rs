@@ -9,7 +9,9 @@ pub mod function_extractor;
 pub mod generic_parser_config;
 pub mod generic_tree_sitter_parser;
 pub mod language_parser;
+pub mod overlap_detector;
 pub mod parser;
+pub mod subtree_fingerprint;
 pub mod tree;
 pub mod tsed;
 pub mod type_comparator;
@@ -54,4 +56,16 @@ pub use type_normalizer::{
 pub use ast_fingerprint::AstFingerprint;
 pub use fast_similarity::{
     find_similar_functions_across_files_fast, find_similar_functions_fast, FastSimilarityOptions,
+};
+
+// Subtree fingerprint exports
+pub use subtree_fingerprint::{
+    create_sliding_windows, detect_partial_overlaps, generate_subtree_fingerprints,
+    IndexedFunction, OverlapOptions, PartialOverlap, SubtreeFingerprint,
+};
+
+// Overlap detector exports
+pub use overlap_detector::{
+    find_function_overlaps, find_overlaps_across_files, find_overlaps_with_similarity,
+    DetailedOverlap, PartialOverlapWithFiles,
 };
