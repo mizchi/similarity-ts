@@ -274,6 +274,85 @@ similarity-rs . \
   --skip-test
 ```
 
+## Experimental: Generic Language Support
+
+> ⚠️ **EXPERIMENTAL**: The generic language support is in early development and may have limitations or bugs.
+
+### similarity-generic
+
+The `similarity-generic` tool provides experimental support for additional languages using tree-sitter parsers:
+
+- Go
+- Java  
+- C
+- C++
+- C#
+- Ruby
+
+#### Installation
+
+```bash
+# From crates.io (when available)
+cargo install similarity-generic
+
+# From source
+cargo install --path crates/similarity-generic
+```
+
+#### Usage
+
+```bash
+# Detect Go duplicates
+similarity-generic --language go ./src
+
+# Detect Java duplicates
+similarity-generic --language java ./src
+
+# Detect C/C++ duplicates
+similarity-generic --language c ./src
+similarity-generic --language cpp ./src
+
+# Detect C# duplicates  
+similarity-generic --language csharp ./src
+
+# Detect Ruby duplicates
+similarity-generic --language ruby ./src
+
+# Common options work the same way
+similarity-generic --language go ./src --threshold 0.8 --print
+```
+
+#### Supported Languages
+
+| Language | File Extensions | Status |
+|----------|----------------|---------|
+| Go | .go | Experimental |
+| Java | .java | Experimental |
+| C | .c, .h | Experimental |
+| C++ | .cpp, .cc, .cxx, .hpp, .h | Experimental |
+| C# | .cs | Experimental |
+| Ruby | .rb | Experimental |
+
+#### Custom Language Configuration
+
+You can also provide custom language configurations:
+
+```bash
+# Use custom config file
+similarity-generic --config ./my-language.json ./src
+```
+
+See [examples/configs/custom-language-template.json](crates/similarity-generic/examples/configs/custom-language-template.json) for configuration format.
+
+#### Limitations
+
+- Performance is slower than specialized tools (similarity-ts, similarity-py, similarity-rs)
+- Detection accuracy may vary by language
+- Some language-specific features may not be fully supported
+- Custom configurations require understanding of tree-sitter node types
+
+For production use, prefer the specialized tools when available.
+
 ## Performance
 
 - Written in Rust for maximum performance
