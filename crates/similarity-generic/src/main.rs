@@ -100,9 +100,9 @@ fn main() -> Result<()> {
                     insert_cost: 1.0,
                     compare_values: false,
                 },
-                min_lines: 3,
+                min_lines: 1, // Lower threshold for AST import mode
                 min_tokens: None,
-                size_penalty: true,
+                size_penalty: false, // Disable size penalty for imported ASTs
                 skip_test: false,
             };
             
@@ -114,6 +114,7 @@ fn main() -> Result<()> {
                     let tree1: TreeNode = func1.ast.clone().into();
                     let tree2: TreeNode = func2.ast.clone().into();
                     
+                    // For AST import mode, skip line-based filtering
                     let similarity = calculate_tsed(&Rc::new(tree1), &Rc::new(tree2), &tsed_options);
                     
                     if similarity >= cli.threshold {
@@ -245,9 +246,9 @@ fn main() -> Result<()> {
                 insert_cost: 1.0,
                 compare_values: false,
             },
-            min_lines: 3,
+            min_lines: 1,
             min_tokens: None,
-            size_penalty: true,
+            size_penalty: false,
             skip_test: false,
         };
         
