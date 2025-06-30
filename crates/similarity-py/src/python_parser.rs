@@ -1,3 +1,5 @@
+#![allow(clippy::io_other_error)]
+
 use similarity_core::language_parser::{
     GenericFunctionDef, GenericTypeDef, Language, LanguageParser,
 };
@@ -16,7 +18,7 @@ impl PythonParser {
         parser.set_language(&tree_sitter_python::LANGUAGE.into()).map_err(|e| {
             Box::new(std::io::Error::new(
                 std::io::ErrorKind::Other,
-                format!("Failed to set Python language: {:?}", e),
+                format!("Failed to set Python language: {e:?}"),
             )) as Box<dyn Error + Send + Sync>
         })?;
 
