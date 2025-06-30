@@ -35,8 +35,7 @@ fn main() {
                     .replace('\n', "\\n");
                 
                 output.push_str(&format!(
-                    "    map.insert(\"{}\", \"{}\");\n",
-                    file_name, escaped_content
+                    "    map.insert(\"{file_name}\", \"{escaped_content}\");\n"
                 ));
             }
         }

@@ -51,7 +51,7 @@ def compute_total(values):
     let similarity = calculate_tsed(&tree1, &tree2, &tsed_options);
 
     // These functions are very similar and should be detected
-    assert!(similarity > 0.8, "Similar functions were not detected: {}", similarity);
+    assert!(similarity > 0.8, "Similar functions were not detected: {similarity}");
 }
 
 #[test]
@@ -86,7 +86,7 @@ def multiply(x, y):
     let similarity = calculate_enhanced_similarity(&tree1, &tree2, &options);
 
     // Different functions should have similarity below 0.7
-    assert!(similarity < 0.7, "Similarity was too high: {}", similarity);
+    assert!(similarity < 0.7, "Similarity was too high: {similarity}");
 }
 
 #[test]
@@ -125,10 +125,10 @@ def filter_positive(numbers):
     let similarity = calculate_tsed(&tree1, &tree2, &tsed_options);
 
     // List comprehension and loop have moderate similarity due to similar purpose
-    println!("List comprehension vs loop similarity: {}", similarity);
+    println!("List comprehension vs loop similarity: {similarity}");
     // They have the same function name and similar purpose, so similarity around 0.57 is reasonable
-    assert!(similarity < 0.6, "List comprehension and loop were too similar: {}", similarity);
-    assert!(similarity > 0.5, "List comprehension and loop were too different: {}", similarity);
+    assert!(similarity < 0.6, "List comprehension and loop were too similar: {similarity}");
+    assert!(similarity > 0.5, "List comprehension and loop were too different: {similarity}");
 }
 
 #[test]
@@ -171,7 +171,7 @@ class MathOperations:
     let similarity = calculate_tsed(&tree1, &tree2, &tsed_options);
 
     // These classes have similar structure
-    assert!(similarity > 0.7, "Similar class structures were not detected: {}", similarity);
+    assert!(similarity > 0.7, "Similar class structures were not detected: {similarity}");
 }
 
 #[test]
@@ -208,7 +208,7 @@ def title(self):
     let similarity = calculate_tsed(&tree1, &tree2, &tsed_options);
 
     // Decorated functions with similar structure should be detected as similar
-    assert!(similarity > 0.7, "Similar decorated functions were not detected: {}", similarity);
+    assert!(similarity > 0.7, "Similar decorated functions were not detected: {similarity}");
 }
 
 #[test]
@@ -241,10 +241,10 @@ def bar():
     };
 
     let similarity = calculate_enhanced_similarity(&tree1, &tree2, &options);
-    println!("Empty functions similarity: {}", similarity);
+    println!("Empty functions similarity: {similarity}");
 
     // Empty functions with different names should not be identical
-    assert!(similarity < 1.0, "Empty functions were identical: {}", similarity);
+    assert!(similarity < 1.0, "Empty functions were identical: {similarity}");
 }
 
 #[test]
@@ -281,10 +281,10 @@ def get_numbers(n):
     };
 
     let similarity = calculate_tsed(&tree1, &tree2, &tsed_options);
-    println!("Generator vs regular function similarity: {}", similarity);
+    println!("Generator vs regular function similarity: {similarity}");
 
     // Generator and regular function have different structure
-    assert!(similarity < 0.7, "Generator and regular function were too similar: {}", similarity);
+    assert!(similarity < 0.7, "Generator and regular function were too similar: {similarity}");
 }
 
 #[test]
@@ -319,8 +319,8 @@ async def get_data(endpoint):
     };
 
     let similarity = calculate_tsed(&tree1, &tree2, &tsed_options);
-    println!("Async functions similarity: {}", similarity);
+    println!("Async functions similarity: {similarity}");
 
     // Similar async functions should be detected
-    assert!(similarity > 0.8, "Similar async functions were not detected: {}", similarity);
+    assert!(similarity > 0.8, "Similar async functions were not detected: {similarity}");
 }
