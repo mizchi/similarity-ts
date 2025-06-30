@@ -1,5 +1,8 @@
 use similarity_core::language_parser::LanguageParser;
-use similarity_core::{calculate_enhanced_similarity, tsed::calculate_tsed, APTEDOptions, EnhancedSimilarityOptions, TSEDOptions};
+use similarity_core::{
+    calculate_enhanced_similarity, tsed::calculate_tsed, APTEDOptions, EnhancedSimilarityOptions,
+    TSEDOptions,
+};
 use similarity_py::python_parser::PythonParser;
 
 #[test]
@@ -46,7 +49,7 @@ def compute_total(values):
     };
 
     let similarity = calculate_tsed(&tree1, &tree2, &tsed_options);
-    
+
     // These functions are very similar and should be detected
     assert!(similarity > 0.8, "Similar functions were not detected: {}", similarity);
 }

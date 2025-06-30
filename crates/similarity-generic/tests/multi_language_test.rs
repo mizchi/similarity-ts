@@ -9,11 +9,13 @@ fn create_test_file(dir: &TempDir, filename: &str, content: &str) -> std::path::
     file_path
 }
 
-
 #[test]
 fn test_go_similarity() {
     let dir = TempDir::new().unwrap();
-    let file = create_test_file(&dir, "test.go", r#"
+    let file = create_test_file(
+        &dir,
+        "test.go",
+        r#"
 package main
 
 func add(a, b int) int {
@@ -23,22 +25,22 @@ func add(a, b int) int {
 func sum(x, y int) int {
     return x + y
 }
-"#);
+"#,
+    );
 
     let mut cmd = Command::cargo_bin("similarity-generic").unwrap();
-    cmd.arg(file)
-        .arg("--language").arg("go")
-        .arg("--threshold").arg("0.8");
-    
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("add <-> sum:"));
+    cmd.arg(file).arg("--language").arg("go").arg("--threshold").arg("0.8");
+
+    cmd.assert().success().stdout(predicate::str::contains("add <-> sum:"));
 }
 
 #[test]
 fn test_java_similarity() {
     let dir = TempDir::new().unwrap();
-    let file = create_test_file(&dir, "Test.java", r#"
+    let file = create_test_file(
+        &dir,
+        "Test.java",
+        r#"
 public class Test {
     public int add(int a, int b) {
         return a + b;
@@ -48,22 +50,22 @@ public class Test {
         return x + y;
     }
 }
-"#);
+"#,
+    );
 
     let mut cmd = Command::cargo_bin("similarity-generic").unwrap();
-    cmd.arg(file)
-        .arg("--language").arg("java")
-        .arg("--threshold").arg("0.8");
-    
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("add <-> sum:"));
+    cmd.arg(file).arg("--language").arg("java").arg("--threshold").arg("0.8");
+
+    cmd.assert().success().stdout(predicate::str::contains("add <-> sum:"));
 }
 
 #[test]
 fn test_c_similarity() {
     let dir = TempDir::new().unwrap();
-    let file = create_test_file(&dir, "test.c", r#"
+    let file = create_test_file(
+        &dir,
+        "test.c",
+        r#"
 int multiply(int a, int b) {
     return a * b;
 }
@@ -71,22 +73,22 @@ int multiply(int a, int b) {
 int product(int x, int y) {
     return x * y;
 }
-"#);
+"#,
+    );
 
     let mut cmd = Command::cargo_bin("similarity-generic").unwrap();
-    cmd.arg(file)
-        .arg("--language").arg("c")
-        .arg("--threshold").arg("0.8");
-    
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("multiply"));
+    cmd.arg(file).arg("--language").arg("c").arg("--threshold").arg("0.8");
+
+    cmd.assert().success().stdout(predicate::str::contains("multiply"));
 }
 
 #[test]
 fn test_cpp_similarity() {
     let dir = TempDir::new().unwrap();
-    let file = create_test_file(&dir, "test.cpp", r#"
+    let file = create_test_file(
+        &dir,
+        "test.cpp",
+        r#"
 class Calculator {
 public:
     int add(int a, int b) {
@@ -97,22 +99,22 @@ public:
         return x + y;
     }
 };
-"#);
+"#,
+    );
 
     let mut cmd = Command::cargo_bin("similarity-generic").unwrap();
-    cmd.arg(file)
-        .arg("--language").arg("cpp")
-        .arg("--threshold").arg("0.8");
-    
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("add"));
+    cmd.arg(file).arg("--language").arg("cpp").arg("--threshold").arg("0.8");
+
+    cmd.assert().success().stdout(predicate::str::contains("add"));
 }
 
 #[test]
 fn test_csharp_similarity() {
     let dir = TempDir::new().unwrap();
-    let file = create_test_file(&dir, "Test.cs", r#"
+    let file = create_test_file(
+        &dir,
+        "Test.cs",
+        r#"
 public class Calculator {
     public int Add(int a, int b) {
         return a + b;
@@ -122,22 +124,22 @@ public class Calculator {
         return x + y;
     }
 }
-"#);
+"#,
+    );
 
     let mut cmd = Command::cargo_bin("similarity-generic").unwrap();
-    cmd.arg(file)
-        .arg("--language").arg("csharp")
-        .arg("--threshold").arg("0.8");
-    
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("Add <-> Sum:"));
+    cmd.arg(file).arg("--language").arg("csharp").arg("--threshold").arg("0.8");
+
+    cmd.assert().success().stdout(predicate::str::contains("Add <-> Sum:"));
 }
 
 #[test]
 fn test_ruby_similarity() {
     let dir = TempDir::new().unwrap();
-    let file = create_test_file(&dir, "test.rb", r#"
+    let file = create_test_file(
+        &dir,
+        "test.rb",
+        r#"
 def calculate_sum(numbers)
   total = 0
   numbers.each { |n| total += n }
@@ -149,43 +151,46 @@ def compute_total(values)
   values.each { |v| sum += v }
   sum
 end
-"#);
+"#,
+    );
 
     let mut cmd = Command::cargo_bin("similarity-generic").unwrap();
-    cmd.arg(file)
-        .arg("--language").arg("ruby")
-        .arg("--threshold").arg("0.8");
-    
-    cmd.assert()
-        .success()
-        .stdout(predicate::str::contains("calculate_sum <-> compute_total:"));
+    cmd.arg(file).arg("--language").arg("ruby").arg("--threshold").arg("0.8");
+
+    cmd.assert().success().stdout(predicate::str::contains("calculate_sum <-> compute_total:"));
 }
 
 #[test]
 fn test_language_aliases() {
     let dir = TempDir::new().unwrap();
-    
+
     // Test C++ alias
     let cpp_file = create_test_file(&dir, "test.cpp", "int main() {}");
-    Command::cargo_bin("similarity-generic").unwrap()
+    Command::cargo_bin("similarity-generic")
+        .unwrap()
         .arg(&cpp_file)
-        .arg("--language").arg("c++")
+        .arg("--language")
+        .arg("c++")
         .assert()
         .success();
-    
+
     // Test C# alias
     let cs_file = create_test_file(&dir, "test.cs", "class Test {}");
-    Command::cargo_bin("similarity-generic").unwrap()
+    Command::cargo_bin("similarity-generic")
+        .unwrap()
         .arg(&cs_file)
-        .arg("--language").arg("cs")
+        .arg("--language")
+        .arg("cs")
         .assert()
         .success();
-    
+
     // Test Ruby alias
     let rb_file = create_test_file(&dir, "test.rb", "def test; end");
-    Command::cargo_bin("similarity-generic").unwrap()
+    Command::cargo_bin("similarity-generic")
+        .unwrap()
         .arg(&rb_file)
-        .arg("--language").arg("rb")
+        .arg("--language")
+        .arg("rb")
         .assert()
         .success();
 }
@@ -193,19 +198,21 @@ fn test_language_aliases() {
 #[test]
 fn test_show_functions_option() {
     let dir = TempDir::new().unwrap();
-    let file = create_test_file(&dir, "test.go", r#"
+    let file = create_test_file(
+        &dir,
+        "test.go",
+        r#"
 package main
 
 func first() {}
 func second() {}
 func third() {}
-"#);
+"#,
+    );
 
     let mut cmd = Command::cargo_bin("similarity-generic").unwrap();
-    cmd.arg(file)
-        .arg("--language").arg("go")
-        .arg("--show-functions");
-    
+    cmd.arg(file).arg("--language").arg("go").arg("--show-functions");
+
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("Found 3 functions:"))
@@ -217,7 +224,10 @@ func third() {}
 #[test]
 fn test_custom_config_file() {
     let dir = TempDir::new().unwrap();
-    let config_file = create_test_file(&dir, "custom.json", r#"{
+    let config_file = create_test_file(
+        &dir,
+        "custom.json",
+        r#"{
   "language": "go",
   "function_nodes": ["function_declaration"],
   "type_nodes": ["type_declaration"],
@@ -232,21 +242,24 @@ fn test_custom_config_file() {
     "name_prefixes": ["Test"],
     "name_suffixes": []
   }
-}"#);
-    
-    let go_file = create_test_file(&dir, "test.go", r#"
+}"#,
+    );
+
+    let go_file = create_test_file(
+        &dir,
+        "test.go",
+        r#"
 package main
 
 func add(a, b int) int {
     return a + b
 }
-"#);
+"#,
+    );
 
     let mut cmd = Command::cargo_bin("similarity-generic").unwrap();
-    cmd.arg(&go_file)
-        .arg("--config").arg(&config_file)
-        .arg("--show-functions");
-    
+    cmd.arg(&go_file).arg("--config").arg(&config_file).arg("--show-functions");
+
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("Found 1 functions:"))
@@ -256,7 +269,10 @@ func add(a, b int) int {
 #[test]
 fn test_threshold_filtering() {
     let dir = TempDir::new().unwrap();
-    let file = create_test_file(&dir, "test.java", r#"
+    let file = create_test_file(
+        &dir,
+        "test.java",
+        r#"
 public class Test {
     public int add(int a, int b) {
         return a + b;
@@ -269,14 +285,13 @@ public class Test {
         }
     }
 }
-"#);
+"#,
+    );
 
     // With high threshold, should not show low similarity
     let mut cmd = Command::cargo_bin("similarity-generic").unwrap();
-    cmd.arg(&file)
-        .arg("--language").arg("java")
-        .arg("--threshold").arg("0.9");
-    
+    cmd.arg(&file).arg("--language").arg("java").arg("--threshold").arg("0.9");
+
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("Comparing functions for similarity..."))
@@ -289,19 +304,16 @@ fn test_unsupported_language_error() {
     let file = create_test_file(&dir, "test.xyz", "some content");
 
     let mut cmd = Command::cargo_bin("similarity-generic").unwrap();
-    cmd.arg(file)
-        .arg("--language").arg("xyz");
-    
-    cmd.assert()
-        .failure()
-        .stderr(predicate::str::contains("Language 'xyz' is not supported"));
+    cmd.arg(file).arg("--language").arg("xyz");
+
+    cmd.assert().failure().stderr(predicate::str::contains("Language 'xyz' is not supported"));
 }
 
 #[test]
 fn test_supported_option() {
     let mut cmd = Command::cargo_bin("similarity-generic").unwrap();
     cmd.arg("--supported");
-    
+
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("Supported languages"))
@@ -319,7 +331,7 @@ fn test_supported_option() {
 fn test_show_config_option() {
     let mut cmd = Command::cargo_bin("similarity-generic").unwrap();
     cmd.arg("--show-config").arg("go");
-    
+
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("\"language\": \"go\""))
@@ -333,10 +345,7 @@ fn test_python_language_redirect() {
     let file = create_test_file(&dir, "test.py", "def test(): pass");
 
     let mut cmd = Command::cargo_bin("similarity-generic").unwrap();
-    cmd.arg(file)
-        .arg("--language").arg("python");
-    
-    cmd.assert()
-        .failure()
-        .stderr(predicate::str::contains("similarity-py"));
+    cmd.arg(file).arg("--language").arg("python");
+
+    cmd.assert().failure().stderr(predicate::str::contains("similarity-py"));
 }

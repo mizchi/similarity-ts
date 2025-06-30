@@ -13,11 +13,12 @@ pub struct RustParser {
 impl RustParser {
     pub fn new() -> Result<Self, Box<dyn Error + Send + Sync>> {
         let mut parser = Parser::new();
-        parser.set_language(&tree_sitter_rust::LANGUAGE.into())
-            .map_err(|e| Box::new(std::io::Error::new(
+        parser.set_language(&tree_sitter_rust::LANGUAGE.into()).map_err(|e| {
+            Box::new(std::io::Error::new(
                 std::io::ErrorKind::Other,
-                format!("Failed to set Rust language: {:?}", e)
-            )) as Box<dyn Error + Send + Sync>)?;
+                format!("Failed to set Rust language: {:?}", e),
+            )) as Box<dyn Error + Send + Sync>
+        })?;
         Ok(RustParser { parser })
     }
 
@@ -106,11 +107,10 @@ impl RustParser {
         _filename: &str,
         skip_test: bool,
     ) -> Result<Vec<GenericFunctionDef>, Box<dyn Error + Send + Sync>> {
-        let tree = self.parser.parse(source, None)
-            .ok_or_else(|| Box::new(std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
-                "Failed to parse source"
-            )) as Box<dyn Error + Send + Sync>)?;
+        let tree = self.parser.parse(source, None).ok_or_else(|| {
+            Box::new(std::io::Error::new(std::io::ErrorKind::InvalidData, "Failed to parse source"))
+                as Box<dyn Error + Send + Sync>
+        })?;
 
         let root_node = tree.root_node();
         let mut functions = Vec::new();
@@ -414,7 +414,11 @@ fn find_first_function(node: Node) -> Option<Node> {
 }
 
 impl LanguageParser for RustParser {
-    fn parse(&mut self, source: &str, filename: &str) -> Result<Rc<TreeNode>, Box<dyn Error + Send + Sync>> {
+    fn parse(
+        &mut self,
+        source: &str,
+        filename: &str,
+    ) -> Result<Rc<TreeNode>, Box<dyn Error + Send + Sync>> {
         // If the source looks like a function body (starts with whitespace or directly with code),
         // wrap it in a minimal function context for parsing
         let wrapped_source = if source.trim_start() != source || !source.starts_with("fn ") {
@@ -423,13 +427,12 @@ impl LanguageParser for RustParser {
             source.to_string()
         };
 
-        let tree = self
-            .parser
-            .parse(&wrapped_source, None)
-            .ok_or_else(|| Box::new(std::io::Error::new(
+        let tree = self.parser.parse(&wrapped_source, None).ok_or_else(|| {
+            Box::new(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
-                format!("Failed to parse {filename}")
-            )) as Box<dyn Error + Send + Sync>)?;
+                format!("Failed to parse {filename}"),
+            )) as Box<dyn Error + Send + Sync>
+        })?;
 
         let root_node = tree.root_node();
 
@@ -468,11 +471,10 @@ impl LanguageParser for RustParser {
         source: &str,
         _filename: &str,
     ) -> Result<Vec<GenericFunctionDef>, Box<dyn Error + Send + Sync>> {
-        let tree = self.parser.parse(source, None)
-            .ok_or_else(|| Box::new(std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
-                "Failed to parse source"
-            )) as Box<dyn Error + Send + Sync>)?;
+        let tree = self.parser.parse(source, None).ok_or_else(|| {
+            Box::new(std::io::Error::new(std::io::ErrorKind::InvalidData, "Failed to parse source"))
+                as Box<dyn Error + Send + Sync>
+        })?;
 
         let root_node = tree.root_node();
         let mut functions = Vec::new();
@@ -485,11 +487,10 @@ impl LanguageParser for RustParser {
         source: &str,
         _filename: &str,
     ) -> Result<Vec<GenericTypeDef>, Box<dyn Error + Send + Sync>> {
-        let tree = self.parser.parse(source, None)
-            .ok_or_else(|| Box::new(std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
-                "Failed to parse source"
-            )) as Box<dyn Error + Send + Sync>)?;
+        let tree = self.parser.parse(source, None).ok_or_else(|| {
+            Box::new(std::io::Error::new(std::io::ErrorKind::InvalidData, "Failed to parse source"))
+                as Box<dyn Error + Send + Sync>
+        })?;
 
         let root_node = tree.root_node();
         let mut types = Vec::new();

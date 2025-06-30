@@ -8,22 +8,22 @@ use std::path::Path;
 pub struct GenericParserConfig {
     /// Language name (e.g., "python", "rust", "javascript")
     pub language: String,
-    
+
     /// Node types that represent functions
     pub function_nodes: Vec<String>,
-    
+
     /// Node types that represent types/classes
     pub type_nodes: Vec<String>,
-    
+
     /// Field mappings for extracting information from nodes
     pub field_mappings: FieldMappings,
-    
+
     /// Node types that should have their text value extracted
     pub value_nodes: Vec<String>,
-    
+
     /// Optional: Patterns to identify test functions
     pub test_patterns: Option<TestPatterns>,
-    
+
     /// Optional: Custom node type mappings
     pub custom_mappings: Option<HashMap<String, String>>,
 }
@@ -32,16 +32,16 @@ pub struct GenericParserConfig {
 pub struct FieldMappings {
     /// Field name for function/method name
     pub name_field: String,
-    
+
     /// Field name for parameters
     pub params_field: String,
-    
+
     /// Field name for function body
     pub body_field: String,
-    
+
     /// Optional: Field name for decorators/attributes
     pub decorator_field: Option<String>,
-    
+
     /// Optional: Field name for parent class
     pub class_field: Option<String>,
 }
@@ -50,10 +50,10 @@ pub struct FieldMappings {
 pub struct TestPatterns {
     /// Attribute patterns that indicate test functions
     pub attribute_patterns: Vec<String>,
-    
+
     /// Name prefixes that indicate test functions
     pub name_prefixes: Vec<String>,
-    
+
     /// Name suffixes that indicate test functions
     pub name_suffixes: Vec<String>,
 }
@@ -66,7 +66,7 @@ impl GenericParserConfig {
             .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
         Ok(config)
     }
-    
+
     /// Save configuration to a JSON file
     pub fn to_file<P: AsRef<Path>>(&self, path: P) -> std::io::Result<()> {
         let content = serde_json::to_string_pretty(self)
@@ -127,7 +127,7 @@ impl GenericParserConfig {
             custom_mappings: None,
         }
     }
-    
+
     pub fn rust() -> Self {
         Self {
             language: "rust".to_string(),
@@ -155,7 +155,7 @@ impl GenericParserConfig {
             custom_mappings: None,
         }
     }
-    
+
     pub fn javascript() -> Self {
         Self {
             language: "javascript".to_string(),
@@ -190,7 +190,7 @@ impl GenericParserConfig {
             custom_mappings: None,
         }
     }
-    
+
     pub fn go() -> Self {
         Self {
             language: "go".to_string(),
@@ -228,7 +228,7 @@ impl GenericParserConfig {
             custom_mappings: None,
         }
     }
-    
+
     pub fn java() -> Self {
         Self {
             language: "java".to_string(),
@@ -265,7 +265,7 @@ impl GenericParserConfig {
             custom_mappings: None,
         }
     }
-    
+
     pub fn c() -> Self {
         Self {
             language: "c".to_string(),
@@ -298,7 +298,7 @@ impl GenericParserConfig {
             custom_mappings: None,
         }
     }
-    
+
     pub fn cpp() -> Self {
         Self {
             language: "cpp".to_string(),
@@ -334,7 +334,7 @@ impl GenericParserConfig {
             custom_mappings: None,
         }
     }
-    
+
     pub fn csharp() -> Self {
         Self {
             language: "csharp".to_string(),
@@ -366,25 +366,23 @@ impl GenericParserConfig {
                 "null_literal".to_string(),
             ],
             test_patterns: Some(TestPatterns {
-                attribute_patterns: vec!["[Test]".to_string(), "[TestMethod]".to_string(), "[Fact]".to_string()],
+                attribute_patterns: vec![
+                    "[Test]".to_string(),
+                    "[TestMethod]".to_string(),
+                    "[Fact]".to_string(),
+                ],
                 name_prefixes: vec!["Test".to_string()],
                 name_suffixes: vec!["Test".to_string(), "Tests".to_string()],
             }),
             custom_mappings: None,
         }
     }
-    
+
     pub fn ruby() -> Self {
         Self {
             language: "ruby".to_string(),
-            function_nodes: vec![
-                "method".to_string(),
-                "singleton_method".to_string(),
-            ],
-            type_nodes: vec![
-                "class".to_string(),
-                "module".to_string(),
-            ],
+            function_nodes: vec!["method".to_string(), "singleton_method".to_string()],
+            type_nodes: vec!["class".to_string(), "module".to_string()],
             field_mappings: FieldMappings {
                 name_field: "name".to_string(),
                 params_field: "parameters".to_string(),
@@ -409,7 +407,7 @@ impl GenericParserConfig {
             custom_mappings: None,
         }
     }
-    
+
     pub fn php() -> Self {
         Self {
             language: "php".to_string(),
@@ -451,27 +449,27 @@ impl GenericParserConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_config_serialization() {
-        let config = GenericParserConfig::python();
+        let config = GenericParserConfig::go();
         let json = serde_json::to_string_pretty(&config).unwrap();
         let deserialized: GenericParserConfig = serde_json::from_str(&json).unwrap();
         assert_eq!(config.language, deserialized.language);
     }
-    
+
     #[test]
     fn test_config_examples() {
-        let python_config = GenericParserConfig::python();
-        assert_eq!(python_config.language, "python");
-        assert!(python_config.function_nodes.contains(&"function_definition".to_string()));
-        
-        let rust_config = GenericParserConfig::rust();
-        assert_eq!(rust_config.language, "rust");
-        assert!(rust_config.function_nodes.contains(&"function_item".to_string()));
-        
-        let js_config = GenericParserConfig::javascript();
-        assert_eq!(js_config.language, "javascript");
-        assert!(js_config.function_nodes.contains(&"arrow_function".to_string()));
+        let go_config = GenericParserConfig::go();
+        assert_eq!(go_config.language, "go");
+        assert!(go_config.function_nodes.contains(&"function_declaration".to_string()));
+
+        let java_config = GenericParserConfig::java();
+        assert_eq!(java_config.language, "java");
+        assert!(java_config.function_nodes.contains(&"method_declaration".to_string()));
+
+        let c_config = GenericParserConfig::c();
+        assert_eq!(c_config.language, "c");
+        assert!(c_config.function_nodes.contains(&"function_definition".to_string()));
     }
 }

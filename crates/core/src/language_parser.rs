@@ -80,7 +80,11 @@ pub enum TypeDefKind {
 /// Trait for language-specific parsers
 pub trait LanguageParser: Send + Sync {
     /// Parse source code into a TreeNode structure
-    fn parse(&mut self, source: &str, filename: &str) -> Result<Rc<TreeNode>, Box<dyn Error + Send + Sync>>;
+    fn parse(
+        &mut self,
+        source: &str,
+        filename: &str,
+    ) -> Result<Rc<TreeNode>, Box<dyn Error + Send + Sync>>;
 
     /// Extract function definitions from source code
     fn extract_functions(

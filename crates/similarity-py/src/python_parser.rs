@@ -13,11 +13,12 @@ pub struct PythonParser {
 impl PythonParser {
     pub fn new() -> Result<Self, Box<dyn Error + Send + Sync>> {
         let mut parser = Parser::new();
-        parser.set_language(&tree_sitter_python::LANGUAGE.into())
-            .map_err(|e| Box::new(std::io::Error::new(
+        parser.set_language(&tree_sitter_python::LANGUAGE.into()).map_err(|e| {
+            Box::new(std::io::Error::new(
                 std::io::ErrorKind::Other,
-                format!("Failed to set Python language: {:?}", e)
-            )) as Box<dyn Error + Send + Sync>)?;
+                format!("Failed to set Python language: {:?}", e),
+            )) as Box<dyn Error + Send + Sync>
+        })?;
 
         Ok(Self { parser })
     }
@@ -220,12 +221,17 @@ impl PythonParser {
 }
 
 impl LanguageParser for PythonParser {
-    fn parse(&mut self, source: &str, _filename: &str) -> Result<Rc<TreeNode>, Box<dyn Error + Send + Sync>> {
-        let tree = self.parser.parse(source, None)
-            .ok_or_else(|| Box::new(std::io::Error::new(
+    fn parse(
+        &mut self,
+        source: &str,
+        _filename: &str,
+    ) -> Result<Rc<TreeNode>, Box<dyn Error + Send + Sync>> {
+        let tree = self.parser.parse(source, None).ok_or_else(|| {
+            Box::new(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
-                "Failed to parse Python source"
-            )) as Box<dyn Error + Send + Sync>)?;
+                "Failed to parse Python source",
+            )) as Box<dyn Error + Send + Sync>
+        })?;
 
         let root_node = tree.root_node();
         let mut id_counter = 0;
@@ -237,11 +243,12 @@ impl LanguageParser for PythonParser {
         source: &str,
         _filename: &str,
     ) -> Result<Vec<GenericFunctionDef>, Box<dyn Error + Send + Sync>> {
-        let tree = self.parser.parse(source, None)
-            .ok_or_else(|| Box::new(std::io::Error::new(
+        let tree = self.parser.parse(source, None).ok_or_else(|| {
+            Box::new(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
-                "Failed to parse Python source"
-            )) as Box<dyn Error + Send + Sync>)?;
+                "Failed to parse Python source",
+            )) as Box<dyn Error + Send + Sync>
+        })?;
 
         let root_node = tree.root_node();
         Ok(self.extract_functions_from_node(root_node, source, None))
@@ -252,11 +259,12 @@ impl LanguageParser for PythonParser {
         source: &str,
         _filename: &str,
     ) -> Result<Vec<GenericTypeDef>, Box<dyn Error + Send + Sync>> {
-        let tree = self.parser.parse(source, None)
-            .ok_or_else(|| Box::new(std::io::Error::new(
+        let tree = self.parser.parse(source, None).ok_or_else(|| {
+            Box::new(std::io::Error::new(
                 std::io::ErrorKind::InvalidData,
-                "Failed to parse Python source"
-            )) as Box<dyn Error + Send + Sync>)?;
+                "Failed to parse Python source",
+            )) as Box<dyn Error + Send + Sync>
+        })?;
 
         let root_node = tree.root_node();
         let mut types = Vec::new();

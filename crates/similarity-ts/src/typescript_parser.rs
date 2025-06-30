@@ -23,12 +23,15 @@ impl Default for TypeScriptParser {
 }
 
 impl LanguageParser for TypeScriptParser {
-    fn parse(&mut self, source: &str, filename: &str) -> Result<Rc<TreeNode>, Box<dyn Error + Send + Sync>> {
-        parse_and_convert_to_tree(filename, source)
-            .map_err(|e| Box::new(std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
-                e
-            )) as Box<dyn Error + Send + Sync>)
+    fn parse(
+        &mut self,
+        source: &str,
+        filename: &str,
+    ) -> Result<Rc<TreeNode>, Box<dyn Error + Send + Sync>> {
+        parse_and_convert_to_tree(filename, source).map_err(|e| {
+            Box::new(std::io::Error::new(std::io::ErrorKind::InvalidData, e))
+                as Box<dyn Error + Send + Sync>
+        })
     }
 
     fn extract_functions(
@@ -36,11 +39,10 @@ impl LanguageParser for TypeScriptParser {
         source: &str,
         filename: &str,
     ) -> Result<Vec<GenericFunctionDef>, Box<dyn Error + Send + Sync>> {
-        let functions =
-            extract_functions(filename, source).map_err(|e| Box::new(std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
-                e
-            )) as Box<dyn Error + Send + Sync>)?;
+        let functions = extract_functions(filename, source).map_err(|e| {
+            Box::new(std::io::Error::new(std::io::ErrorKind::InvalidData, e))
+                as Box<dyn Error + Send + Sync>
+        })?;
 
         Ok(functions
             .into_iter()
@@ -68,11 +70,10 @@ impl LanguageParser for TypeScriptParser {
         source: &str,
         filename: &str,
     ) -> Result<Vec<GenericTypeDef>, Box<dyn Error + Send + Sync>> {
-        let types = extract_types_from_code(source, filename)
-            .map_err(|e| Box::new(std::io::Error::new(
-                std::io::ErrorKind::InvalidData,
-                e
-            )) as Box<dyn Error + Send + Sync>)?;
+        let types = extract_types_from_code(source, filename).map_err(|e| {
+            Box::new(std::io::Error::new(std::io::ErrorKind::InvalidData, e))
+                as Box<dyn Error + Send + Sync>
+        })?;
 
         Ok(types
             .into_iter()

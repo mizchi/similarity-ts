@@ -15,36 +15,35 @@ struct Cli {
     /// Path to analyze
     #[arg(required_unless_present_any = ["supported", "show_config"])]
     path: Option<PathBuf>,
-    
+
     /// Language configuration file (JSON)
     #[arg(short, long, conflicts_with_all = ["language", "supported", "show_config"])]
     config: Option<PathBuf>,
-    
+
     /// Language name (if using built-in config)
     #[arg(short, long, conflicts_with_all = ["config", "supported", "show_config"])]
     language: Option<String>,
-    
+
     /// Similarity threshold (0.0-1.0)
     #[arg(short, long, default_value = "0.85")]
     threshold: f64,
-    
+
     /// Show extracted functions
     #[arg(long)]
     show_functions: bool,
-    
+
     /// Show supported languages
     #[arg(long, conflicts_with_all = ["path", "config", "language", "show_functions", "show_config"])]
     supported: bool,
-    
+
     /// Show example configuration for a language
     #[arg(long, value_name = "LANGUAGE", conflicts_with_all = ["path", "config", "language", "show_functions", "supported"])]
     show_config: Option<String>,
 }
 
-
 fn main() -> Result<()> {
     let cli = Cli::parse();
-    
+
     // Handle --supported option
     if cli.supported {
         println!("Supported languages for generic tree-sitter parser:");
@@ -61,7 +60,7 @@ fn main() -> Result<()> {
         println!("  similarity-rs  - (future) Optimized Rust analyzer");
         return Ok(());
     }
-    
+
     // Handle --show-config option
     if let Some(lang) = &cli.show_config {
         let config = match lang.as_str() {
@@ -72,18 +71,21 @@ fn main() -> Result<()> {
             "csharp" | "cs" => GenericParserConfig::csharp(),
             "ruby" | "rb" => GenericParserConfig::ruby(),
             _ => {
-                return Err(anyhow::anyhow!("Unknown language: {}. Use --supported to see available languages.", lang));
+                return Err(anyhow::anyhow!(
+                    "Unknown language: {}. Use --supported to see available languages.",
+                    lang
+                ));
             }
         };
-        
+
         let json = serde_json::to_string_pretty(&config)?;
-        println!("{}", json);
+        println!("{json}");
         return Ok(());
     }
-    
+
     // Normal parsing mode
     let path = cli.path.ok_or_else(|| anyhow::anyhow!("Path is required"))?;
-    
+
     let config = if let Some(config_path) = &cli.config {
         GenericParserConfig::from_file(config_path)
             .map_err(|e| anyhow::anyhow!("Failed to load config: {}", e))?
@@ -96,11 +98,14 @@ fn main() -> Result<()> {
             "csharp" | "cs" => GenericParserConfig::csharp(),
             "ruby" | "rb" => GenericParserConfig::ruby(),
             _ => {
-                eprintln!("Error: Language '{}' is not supported by similarity-generic.", lang);
+                eprintln!("Error: Language '{lang}' is not supported by similarity-generic.");
                 eprintln!("Use --supported to see available languages.");
-                if matches!(lang.as_str(), "python" | "py" | "rust" | "rs" | "javascript" | "js" | "typescript" | "ts") {
+                if matches!(
+                    lang.as_str(),
+                    "python" | "py" | "rust" | "rs" | "javascript" | "js" | "typescript" | "ts"
+                ) {
                     eprintln!();
-                    eprintln!("Note: For {}, use the dedicated implementation:", lang);
+                    eprintln!("Note: For {lang}, use the dedicated implementation:");
                     match lang.as_str() {
                         "python" | "py" => eprintln!("  similarity-py"),
                         "rust" | "rs" => eprintln!("  similarity-rs (planned)"),
@@ -114,7 +119,7 @@ fn main() -> Result<()> {
     } else {
         return Err(anyhow::anyhow!("Either --config or --language must be provided"));
     };
-    
+
     // Create parser based on language
     let language = match config.language.as_str() {
         "go" => tree_sitter_go::LANGUAGE.into(),
@@ -125,33 +130,31 @@ fn main() -> Result<()> {
         "ruby" => tree_sitter_ruby::LANGUAGE.into(),
         _ => return Err(anyhow::anyhow!("Unsupported language: {}", config.language)),
     };
-    
+
     let mut parser = GenericTreeSitterParser::new(language, config.clone())
         .map_err(|e| anyhow::anyhow!("Failed to create parser: {}", e))?;
-    
+
     // Read file
     let content = fs::read_to_string(&path)?;
     let filename = path.to_string_lossy();
-    
+
     // Extract functions
-    let functions = parser.extract_functions(&content, &filename)
+    let functions = parser
+        .extract_functions(&content, &filename)
         .map_err(|e| anyhow::anyhow!("Failed to extract functions: {}", e))?;
-    
+
     if cli.show_functions {
         println!("Found {} functions:", functions.len());
         for func in &functions {
-            println!(
-                "  {} {}:{}-{}",
-                func.name, filename, func.start_line, func.end_line
-            );
+            println!("  {} {}:{}-{}", func.name, filename, func.start_line, func.end_line);
         }
         println!();
     }
-    
+
     // Compare functions
     if functions.len() >= 2 {
         println!("Comparing functions for similarity...");
-        
+
         let tsed_options = TSEDOptions {
             apted_options: APTEDOptions {
                 rename_cost: 0.3,
@@ -164,47 +167,48 @@ fn main() -> Result<()> {
             size_penalty: false,
             skip_test: false,
         };
-        
+
         for i in 0..functions.len() {
             for j in (i + 1)..functions.len() {
                 let func1 = &functions[i];
                 let func2 = &functions[j];
-                
+
                 // Extract function bodies
                 let lines: Vec<&str> = content.lines().collect();
-                let body1 = extract_function_body(&lines, func1.body_start_line, func1.body_end_line);
-                let body2 = extract_function_body(&lines, func2.body_start_line, func2.body_end_line);
-                
+                let body1 =
+                    extract_function_body(&lines, func1.body_start_line, func1.body_end_line);
+                let body2 =
+                    extract_function_body(&lines, func2.body_start_line, func2.body_end_line);
+
                 // Parse and compare
-                let tree1 = parser.parse(&body1, &format!("{}:{}", filename, func1.name))
-                    .map_err(|e| anyhow::anyhow!("Failed to parse function {}: {}", func1.name, e))?;
-                let tree2 = parser.parse(&body2, &format!("{}:{}", filename, func2.name))
-                    .map_err(|e| anyhow::anyhow!("Failed to parse function {}: {}", func2.name, e))?;
-                
+                let tree1 =
+                    parser.parse(&body1, &format!("{}:{}", filename, func1.name)).map_err(|e| {
+                        anyhow::anyhow!("Failed to parse function {}: {}", func1.name, e)
+                    })?;
+                let tree2 =
+                    parser.parse(&body2, &format!("{}:{}", filename, func2.name)).map_err(|e| {
+                        anyhow::anyhow!("Failed to parse function {}: {}", func2.name, e)
+                    })?;
+
                 let similarity = calculate_tsed(&tree1, &tree2, &tsed_options);
-                
+
                 if similarity >= cli.threshold {
-                    println!(
-                        "  {} <-> {}: {:.2}%",
-                        func1.name,
-                        func2.name,
-                        similarity * 100.0
-                    );
+                    println!("  {} <-> {}: {:.2}%", func1.name, func2.name, similarity * 100.0);
                 }
             }
         }
     }
-    
+
     Ok(())
 }
 
 fn extract_function_body(lines: &[&str], start_line: u32, end_line: u32) -> String {
     let start_idx = (start_line.saturating_sub(1)) as usize;
     let end_idx = std::cmp::min(end_line as usize, lines.len());
-    
+
     if start_idx >= lines.len() {
         return String::new();
     }
-    
+
     lines[start_idx..end_idx].join("\n")
 }
