@@ -2,6 +2,15 @@
 
 A generic code similarity analyzer using tree-sitter parsers. This tool provides configurable similarity detection for languages without dedicated implementations.
 
+## Important Limitations
+
+⚠️ **This tool only supports languages with pre-installed tree-sitter parsers.** It cannot analyze arbitrary file extensions (e.g., `.xyz`) without corresponding tree-sitter grammar support in the binary.
+
+To add support for a new language:
+1. The tree-sitter parser for that language must be added as a dependency
+2. Submit a PR to add the parser to the codebase
+3. Then create a configuration file for the language
+
 ## Supported Languages
 
 Out of the box, `similarity-generic` supports:
@@ -23,6 +32,18 @@ For Python, TypeScript/JavaScript, and Rust, please use the dedicated implementa
 ```bash
 cargo install similarity-generic
 ```
+
+### Prerequisites
+
+The binary includes the following tree-sitter parsers:
+- `tree-sitter-go`
+- `tree-sitter-java`
+- `tree-sitter-c`
+- `tree-sitter-cpp`
+- `tree-sitter-c-sharp`
+- `tree-sitter-ruby`
+
+These are compiled into the binary, so no additional runtime dependencies are required.
 
 ## Usage
 
@@ -172,13 +193,30 @@ For a hypothetical language:
 
 ## Creating Custom Language Support
 
-To add support for a new language:
+### For Existing Tree-Sitter Languages
+
+If the language's tree-sitter parser is already included in the binary, you can create a custom configuration:
 
 1. Create a JSON configuration file with the language's AST structure
 2. Identify the tree-sitter node types for functions and types
 3. Map the appropriate fields for extracting names, parameters, and bodies
 4. Define value nodes that should have their text extracted
 5. Optionally define test patterns for test function detection
+
+### For New Languages
+
+To add support for a language not currently included:
+
+1. **Submit a PR** to add the tree-sitter parser as a dependency:
+   ```toml
+   # In Cargo.toml
+   tree-sitter-yourlang = "0.x"
+   ```
+2. Update the language matching in `src/main.rs` and `generic_tree_sitter_parser.rs`
+3. Add tests for the new language
+4. Once merged, create a configuration file as described above
+
+**Note**: You cannot simply create a configuration file for an arbitrary language. The tree-sitter parser must be compiled into the binary first.
 
 ### Finding Node Types
 
@@ -221,27 +259,20 @@ Comparing functions for similarity...
   calculateSum <-> computeTotal: 91.30%
 ```
 
-### Using Custom Configuration
+### Customizing Existing Language Configuration
 
 ```bash
-# Create a configuration for a new language
-cat > kotlin.json << EOF
-{
-  "language": "kotlin",
-  "function_nodes": ["function_declaration"],
-  "type_nodes": ["class_declaration"],
-  "field_mappings": {
-    "name_field": "simple_identifier",
-    "params_field": "value_parameters",
-    "body_field": "function_body"
-  },
-  "value_nodes": ["simple_identifier", "string_literal"]
-}
-EOF
+# Get the current Go configuration
+similarity-generic --show-config go > my-go-config.json
+
+# Edit my-go-config.json to customize behavior
+# For example, add more test patterns or change node types
 
 # Use the custom configuration
-similarity-generic app.kt --config kotlin.json
+similarity-generic main.go --config my-go-config.json
 ```
+
+**Note**: Custom configurations only work for languages already supported by the binary. You cannot analyze `.kt` (Kotlin) files unless `tree-sitter-kotlin` is added to the project.
 
 ## Performance Considerations
 
@@ -255,9 +286,22 @@ The generic parser uses tree-sitter, which is generally slower than specialized 
 
 To contribute support for a new language:
 
-1. Create a well-tested configuration file
-2. Include sample code that demonstrates the parser working correctly
-3. Submit a pull request with the configuration and examples
+1. Fork the repository
+2. Add the tree-sitter parser dependency in `Cargo.toml`
+3. Update the code to support the new language:
+   - Add language matching in `main.rs`
+   - Add parser support in `generic_tree_sitter_parser.rs`
+   - Create a default configuration
+4. Add comprehensive tests
+5. Submit a pull request
+
+Example PR checklist for adding a language:
+- [ ] Added `tree-sitter-xyz` to dependencies
+- [ ] Updated language matching code
+- [ ] Created default configuration
+- [ ] Added integration tests
+- [ ] Updated documentation
+- [ ] Verified CI passes
 
 ## License
 
