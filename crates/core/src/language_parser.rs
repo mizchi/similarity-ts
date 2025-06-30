@@ -10,6 +10,7 @@ pub enum Language {
     Python,
     Rust,
     Go,
+    Unknown,
 }
 
 impl Language {
@@ -67,21 +68,21 @@ pub enum TypeDefKind {
 /// Trait for language-specific parsers
 pub trait LanguageParser: Send + Sync {
     /// Parse source code into a TreeNode structure
-    fn parse(&mut self, source: &str, filename: &str) -> Result<Rc<TreeNode>, Box<dyn Error>>;
+    fn parse(&mut self, source: &str, filename: &str) -> Result<Rc<TreeNode>, Box<dyn Error + Send + Sync>>;
 
     /// Extract function definitions from source code
     fn extract_functions(
         &mut self,
         source: &str,
         filename: &str,
-    ) -> Result<Vec<GenericFunctionDef>, Box<dyn Error>>;
+    ) -> Result<Vec<GenericFunctionDef>, Box<dyn Error + Send + Sync>>;
 
     /// Extract type definitions from source code
     fn extract_types(
         &mut self,
         source: &str,
         filename: &str,
-    ) -> Result<Vec<GenericTypeDef>, Box<dyn Error>>;
+    ) -> Result<Vec<GenericTypeDef>, Box<dyn Error + Send + Sync>>;
 
     /// Get the language this parser handles
     fn language(&self) -> Language;

@@ -1,0 +1,36 @@
+{
+  "language": "javascript",
+  "function_nodes": [
+    "function_declaration",
+    "arrow_function",
+    "function_expression",
+    "method_definition"
+  ],
+  "type_nodes": [
+    "class_declaration"
+  ],
+  "field_mappings": {
+    "name_field": "name",
+    "params_field": "parameters",
+    "body_field": "body"
+  },
+  "value_nodes": [
+    "identifier",
+    "string",
+    "number",
+    "true",
+    "false",
+    "null",
+    "undefined"
+  ],
+  "test_patterns": {
+    "attribute_patterns": [],
+    "name_prefixes": [
+      "test"
+    ],
+    "name_suffixes": [
+      ".test",
+      ".spec"
+    ]
+  }
+}

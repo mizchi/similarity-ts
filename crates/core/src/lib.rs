@@ -12,6 +12,8 @@ pub mod tsed;
 pub mod type_comparator;
 pub mod type_extractor;
 pub mod type_normalizer;
+pub mod generic_parser_config;
+pub mod generic_tree_sitter_parser;
 
 // CLI utilities
 pub mod cli_file_utils;
