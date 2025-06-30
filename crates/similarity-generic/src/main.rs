@@ -8,6 +8,9 @@ use similarity_core::APTEDOptions;
 use std::fs;
 use std::path::PathBuf;
 
+// Include auto-generated language configs
+include!(concat!(env!("OUT_DIR"), "/language_configs.rs"));
+
 #[derive(Parser)]
 #[command(name = "similarity-generic")]
 #[command(about = "Generic code similarity analyzer using tree-sitter")]
@@ -90,14 +93,30 @@ fn main() -> Result<()> {
         GenericParserConfig::from_file(config_path)
             .map_err(|e| anyhow::anyhow!("Failed to load config: {}", e))?
     } else if let Some(lang) = &cli.language {
-        match lang.as_str() {
-            "go" => GenericParserConfig::go(),
-            "java" => GenericParserConfig::java(),
-            "c" => GenericParserConfig::c(),
-            "cpp" | "c++" => GenericParserConfig::cpp(),
-            "csharp" | "cs" => GenericParserConfig::csharp(),
-            "ruby" | "rb" => GenericParserConfig::ruby(),
-            _ => {
+        // First try to load from embedded configs
+        if let Some(config_json) = LANGUAGE_CONFIGS.get(lang.as_str())
+            .or_else(|| match lang.as_str() {
+                "cpp" => LANGUAGE_CONFIGS.get("cpp"),
+                "c++" => LANGUAGE_CONFIGS.get("cpp"),
+                "csharp" => LANGUAGE_CONFIGS.get("csharp"),
+                "cs" => LANGUAGE_CONFIGS.get("csharp"),
+                "ruby" => LANGUAGE_CONFIGS.get("ruby"),
+                "rb" => LANGUAGE_CONFIGS.get("ruby"),
+                _ => None
+            })
+        {
+            serde_json::from_str(config_json)
+                .map_err(|e| anyhow::anyhow!("Failed to parse embedded config: {}", e))?
+        } else {
+            // Fall back to hardcoded configs
+            match lang.as_str() {
+                "go" => GenericParserConfig::go(),
+                "java" => GenericParserConfig::java(),
+                "c" => GenericParserConfig::c(),
+                "cpp" | "c++" => GenericParserConfig::cpp(),
+                "csharp" | "cs" => GenericParserConfig::csharp(),
+                "ruby" | "rb" => GenericParserConfig::ruby(),
+                _ => {
                 eprintln!("Error: Language '{lang}' is not supported by similarity-generic.");
                 eprintln!("Use --supported to see available languages.");
                 if matches!(
@@ -114,6 +133,7 @@ fn main() -> Result<()> {
                     }
                 }
                 return Err(anyhow::anyhow!("Unsupported language"));
+                }
             }
         }
     } else {

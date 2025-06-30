@@ -2,6 +2,22 @@
 
 A generic code similarity analyzer using tree-sitter parsers. This tool provides configurable similarity detection for languages without dedicated implementations.
 
+## Why similarity-generic?
+
+Tree-sitter grammars vary significantly between languages - each defines its own node types, field names, and AST structure. Creating dedicated parsers for every language requires:
+
+1. **Deep understanding of each grammar**: Node types like `function_declaration` in Go vs `method_declaration` in Java
+2. **Language-specific logic**: Handling decorators in Python, generics in Rust, or JSX in TypeScript
+3. **Maintenance burden**: Keeping up with grammar updates for dozens of languages
+
+This tool solves these challenges by:
+- **Configuration-driven parsing**: JSON files map language-specific node types to common concepts
+- **Reusable infrastructure**: One codebase handles all tree-sitter languages
+- **Easy language addition**: Contributors just need to add a parser dependency and config file
+- **Built-in configurations**: Pre-defined configs for common languages ship with the binary
+
+For languages where performance is critical (Python, TypeScript, Rust), we provide optimized dedicated implementations. For everything else, `similarity-generic` offers a practical solution.
+
 ## Important Limitations
 
 ⚠️ **This tool only supports languages with pre-installed tree-sitter parsers.** It cannot analyze arbitrary file extensions (e.g., `.xyz`) without corresponding tree-sitter grammar support in the binary.
@@ -287,21 +303,61 @@ The generic parser uses tree-sitter, which is generally slower than specialized 
 To contribute support for a new language:
 
 1. Fork the repository
-2. Add the tree-sitter parser dependency in `Cargo.toml`
-3. Update the code to support the new language:
-   - Add language matching in `main.rs`
-   - Add parser support in `generic_tree_sitter_parser.rs`
-   - Create a default configuration
-4. Add comprehensive tests
-5. Submit a pull request
+2. Add the tree-sitter parser dependency in `Cargo.toml`:
+   ```toml
+   tree-sitter-yourlang = { workspace = true }
+   ```
+3. Create a language configuration file in `language_configs/yourlang.json`:
+   ```json
+   {
+     "language": "yourlang",
+     "function_nodes": ["function_declaration"],
+     "type_nodes": ["class_declaration"],
+     "field_mappings": {
+       "name_field": "name",
+       "params_field": "parameters",
+       "body_field": "body"
+     },
+     "value_nodes": ["identifier", "string_literal"]
+   }
+   ```
+4. Update the language matching in `main.rs` and `generic_tree_sitter_parser.rs`
+5. Add tests for the new language
+6. Submit a pull request
 
-Example PR checklist for adding a language:
-- [ ] Added `tree-sitter-xyz` to dependencies
-- [ ] Updated language matching code
-- [ ] Created default configuration
-- [ ] Added integration tests
-- [ ] Updated documentation
-- [ ] Verified CI passes
+### Example: Adding Kotlin Support
+
+1. **Add dependency** in `Cargo.toml`:
+   ```toml
+   tree-sitter-kotlin = "0.3"
+   ```
+
+2. **Create config** in `language_configs/kotlin.json`:
+   ```json
+   {
+     "language": "kotlin",
+     "function_nodes": ["function_declaration"],
+     "type_nodes": ["class_declaration", "object_declaration"],
+     "field_mappings": {
+       "name_field": "simple_identifier",
+       "params_field": "value_parameters",
+       "body_field": "function_body"
+     },
+     "value_nodes": ["simple_identifier", "string_literal"],
+     "test_patterns": {
+       "attribute_patterns": ["@Test"],
+       "name_prefixes": ["test"],
+       "name_suffixes": []
+     }
+   }
+   ```
+
+3. **Update parser** in `src/main.rs`:
+   ```rust
+   "kotlin" => tree_sitter_kotlin::LANGUAGE.into(),
+   ```
+
+The build process automatically embeds all JSON files from `language_configs/` into the binary, making them available at runtime without external file dependencies.
 
 ## License
 
