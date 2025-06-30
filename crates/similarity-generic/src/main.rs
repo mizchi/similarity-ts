@@ -94,15 +94,15 @@ fn main() -> Result<()> {
             .map_err(|e| anyhow::anyhow!("Failed to load config: {}", e))?
     } else if let Some(lang) = &cli.language {
         // First try to load from embedded configs
-        if let Some(config_json) = LANGUAGE_CONFIGS.get(lang.as_str())
-            .or_else(|| match lang.as_str() {
+        if let Some(config_json) =
+            LANGUAGE_CONFIGS.get(lang.as_str()).or_else(|| match lang.as_str() {
                 "cpp" => LANGUAGE_CONFIGS.get("cpp"),
                 "c++" => LANGUAGE_CONFIGS.get("cpp"),
                 "csharp" => LANGUAGE_CONFIGS.get("csharp"),
                 "cs" => LANGUAGE_CONFIGS.get("csharp"),
                 "ruby" => LANGUAGE_CONFIGS.get("ruby"),
                 "rb" => LANGUAGE_CONFIGS.get("ruby"),
-                _ => None
+                _ => None,
             })
         {
             serde_json::from_str(config_json)
@@ -117,22 +117,24 @@ fn main() -> Result<()> {
                 "csharp" | "cs" => GenericParserConfig::csharp(),
                 "ruby" | "rb" => GenericParserConfig::ruby(),
                 _ => {
-                eprintln!("Error: Language '{lang}' is not supported by similarity-generic.");
-                eprintln!("Use --supported to see available languages.");
-                if matches!(
-                    lang.as_str(),
-                    "python" | "py" | "rust" | "rs" | "javascript" | "js" | "typescript" | "ts"
-                ) {
-                    eprintln!();
-                    eprintln!("Note: For {lang}, use the dedicated implementation:");
-                    match lang.as_str() {
-                        "python" | "py" => eprintln!("  similarity-py"),
-                        "rust" | "rs" => eprintln!("  similarity-rs (planned)"),
-                        "javascript" | "js" | "typescript" | "ts" => eprintln!("  similarity-ts"),
-                        _ => {}
+                    eprintln!("Error: Language '{lang}' is not supported by similarity-generic.");
+                    eprintln!("Use --supported to see available languages.");
+                    if matches!(
+                        lang.as_str(),
+                        "python" | "py" | "rust" | "rs" | "javascript" | "js" | "typescript" | "ts"
+                    ) {
+                        eprintln!();
+                        eprintln!("Note: For {lang}, use the dedicated implementation:");
+                        match lang.as_str() {
+                            "python" | "py" => eprintln!("  similarity-py"),
+                            "rust" | "rs" => eprintln!("  similarity-rs (planned)"),
+                            "javascript" | "js" | "typescript" | "ts" => {
+                                eprintln!("  similarity-ts")
+                            }
+                            _ => {}
+                        }
                     }
-                }
-                return Err(anyhow::anyhow!("Unsupported language"));
+                    return Err(anyhow::anyhow!("Unsupported language"));
                 }
             }
         }

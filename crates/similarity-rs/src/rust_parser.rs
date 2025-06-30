@@ -14,9 +14,8 @@ impl RustParser {
     pub fn new() -> Result<Self, Box<dyn Error + Send + Sync>> {
         let mut parser = Parser::new();
         parser.set_language(&tree_sitter_rust::LANGUAGE.into()).map_err(|e| {
-            Box::new(std::io::Error::other(
-                format!("Failed to set Rust language: {e:?}"),
-            )) as Box<dyn Error + Send + Sync>
+            Box::new(std::io::Error::other(format!("Failed to set Rust language: {e:?}")))
+                as Box<dyn Error + Send + Sync>
         })?;
         Ok(RustParser { parser })
     }

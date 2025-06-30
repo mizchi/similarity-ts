@@ -96,7 +96,6 @@ impl Default for GenericParserConfig {
     }
 }
 
-
 /// Example configurations for common languages
 impl GenericParserConfig {
     pub fn python() -> Self {
