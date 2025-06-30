@@ -575,9 +575,7 @@ fn check_overlaps(
     exclude_patterns: &[String],
 ) -> anyhow::Result<()> {
     use ignore::WalkBuilder;
-    use similarity_core::{
-        find_overlaps_across_files, OverlapOptions,
-    };
+    use similarity_core::{find_overlaps_across_files, OverlapOptions};
     use std::collections::{HashMap, HashSet};
     use std::fs;
     use std::path::Path;
@@ -668,12 +666,7 @@ fn check_overlaps(
     }
 
     // Set up overlap options
-    let options = OverlapOptions {
-        min_window_size,
-        max_window_size,
-        threshold,
-        size_tolerance,
-    };
+    let options = OverlapOptions { min_window_size, max_window_size, threshold, size_tolerance };
 
     // Find overlaps
     let overlaps = find_overlaps_across_files(&file_contents, &options)?;
@@ -715,7 +708,8 @@ fn check_overlaps(
             if print {
                 // Extract and display the overlapping code
                 if let Some(source_content) = file_contents.get(&overlap_with_files.source_file) {
-                    if let Some(target_content) = file_contents.get(&overlap_with_files.target_file) {
+                    if let Some(target_content) = file_contents.get(&overlap_with_files.target_file)
+                    {
                         println!("\n\x1b[36m--- Source Code ---\x1b[0m");
                         if let Ok(source_segment) = extract_code_lines(
                             source_content,
@@ -746,14 +740,14 @@ fn check_overlaps(
 
 fn extract_code_lines(code: &str, start_line: u32, end_line: u32) -> Result<String, String> {
     let lines: Vec<_> = code.lines().collect();
-    
+
     if start_line as usize > lines.len() || end_line as usize > lines.len() {
         return Err("Line numbers out of bounds".to_string());
     }
-    
+
     let start = (start_line as usize).saturating_sub(1);
     let end = (end_line as usize).min(lines.len());
-    
+
     Ok(lines[start..end].join("\n"))
 }
 
