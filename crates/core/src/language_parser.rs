@@ -10,6 +10,13 @@ pub enum Language {
     Python,
     Rust,
     Go,
+    Java,
+    C,
+    Cpp,
+    CSharp,
+    Ruby,
+    Php,
+    Unknown,
 }
 
 impl Language {
@@ -20,6 +27,12 @@ impl Language {
             "py" => Some(Language::Python),
             "rs" => Some(Language::Rust),
             "go" => Some(Language::Go),
+            "java" => Some(Language::Java),
+            "c" | "h" => Some(Language::C),
+            "cpp" | "cc" | "cxx" | "hpp" | "hxx" | "c++" => Some(Language::Cpp),
+            "cs" => Some(Language::CSharp),
+            "rb" => Some(Language::Ruby),
+            "php" => Some(Language::Php),
             _ => None,
         }
     }
@@ -67,21 +80,25 @@ pub enum TypeDefKind {
 /// Trait for language-specific parsers
 pub trait LanguageParser: Send + Sync {
     /// Parse source code into a TreeNode structure
-    fn parse(&mut self, source: &str, filename: &str) -> Result<Rc<TreeNode>, Box<dyn Error>>;
+    fn parse(
+        &mut self,
+        source: &str,
+        filename: &str,
+    ) -> Result<Rc<TreeNode>, Box<dyn Error + Send + Sync>>;
 
     /// Extract function definitions from source code
     fn extract_functions(
         &mut self,
         source: &str,
         filename: &str,
-    ) -> Result<Vec<GenericFunctionDef>, Box<dyn Error>>;
+    ) -> Result<Vec<GenericFunctionDef>, Box<dyn Error + Send + Sync>>;
 
     /// Extract type definitions from source code
     fn extract_types(
         &mut self,
         source: &str,
         filename: &str,
-    ) -> Result<Vec<GenericTypeDef>, Box<dyn Error>>;
+    ) -> Result<Vec<GenericTypeDef>, Box<dyn Error + Send + Sync>>;
 
     /// Get the language this parser handles
     fn language(&self) -> Language;

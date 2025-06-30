@@ -1,0 +1,18 @@
+{
+  "language": "csharp",
+  "function_nodes": ["method_declaration", "constructor_declaration", "lambda_expression"],
+  "type_nodes": ["class_declaration", "interface_declaration", "struct_declaration", "enum_declaration"],
+  "field_mappings": {
+    "name_field": "name",
+    "params_field": "parameters",
+    "body_field": "body",
+    "decorator_field": "attribute",
+    "class_field": null
+  },
+  "value_nodes": ["identifier", "string_literal", "integer_literal", "real_literal", "true", "false", "null_literal"],
+  "test_patterns": {
+    "attribute_patterns": ["[Test]", "[TestMethod]", "[Fact]"],
+    "name_prefixes": ["Test"],
+    "name_suffixes": ["Test", "Tests"]
+  }
+}

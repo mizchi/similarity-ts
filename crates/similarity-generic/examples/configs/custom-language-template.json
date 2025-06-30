@@ -1,0 +1,45 @@
+{
+  "language": "your-language-name",
+  "function_nodes": [
+    "function_definition",
+    "method_definition",
+    "lambda_expression"
+  ],
+  "type_nodes": [
+    "class_declaration",
+    "interface_declaration",
+    "struct_declaration"
+  ],
+  "field_mappings": {
+    "name_field": "name",
+    "params_field": "parameters",
+    "body_field": "body",
+    "decorator_field": "decorators",
+    "class_field": "class"
+  },
+  "value_nodes": [
+    "identifier",
+    "string_literal",
+    "number_literal",
+    "boolean_literal"
+  ],
+  "test_patterns": {
+    "attribute_patterns": [
+      "@test",
+      "@Test",
+      "#[test]"
+    ],
+    "name_prefixes": [
+      "test_",
+      "Test"
+    ],
+    "name_suffixes": [
+      "_test",
+      "Test",
+      "_spec"
+    ]
+  },
+  "custom_mappings": {
+    "comment": "Optional custom mappings for special cases"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "language": "cpp",
+  "function_nodes": ["function_definition", "lambda_expression"],
+  "type_nodes": ["class_specifier", "struct_specifier", "enum_specifier"],
+  "field_mappings": {
+    "name_field": "declarator",
+    "params_field": "declarator",
+    "body_field": "body",
+    "decorator_field": null,
+    "class_field": null
+  },
+  "value_nodes": ["identifier", "string_literal", "number_literal", "true", "false", "nullptr"],
+  "test_patterns": {
+    "attribute_patterns": [],
+    "name_prefixes": ["test_", "Test"],
+    "name_suffixes": ["_test", "Test"]
+  }
+}

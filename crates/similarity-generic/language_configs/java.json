@@ -1,0 +1,18 @@
+{
+  "language": "java",
+  "function_nodes": ["method_declaration", "constructor_declaration"],
+  "type_nodes": ["class_declaration", "interface_declaration", "enum_declaration"],
+  "field_mappings": {
+    "name_field": "name",
+    "params_field": "parameters",
+    "body_field": "body",
+    "decorator_field": "annotation",
+    "class_field": null
+  },
+  "value_nodes": ["identifier", "string_literal", "integer_literal", "floating_point_literal", "true", "false", "null_literal"],
+  "test_patterns": {
+    "attribute_patterns": ["@Test", "@ParameterizedTest"],
+    "name_prefixes": ["test"],
+    "name_suffixes": ["Test"]
+  }
+}
