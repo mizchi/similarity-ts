@@ -71,7 +71,14 @@ pub fn check_within_file_duplicates_parallel(
                             Ok(mut functions) => {
                                 // Filter out test functions if skip_test is enabled
                                 if options.skip_test {
-                                    functions.retain(|f| !f.name.starts_with("test_"));
+                                    functions.retain(|f| {
+                                        // Skip if function name starts with "test_"
+                                        if f.name.starts_with("test_") {
+                                            return false;
+                                        }
+                                        // Skip if function has #[test] attribute
+                                        !f.decorators.iter().any(|d| d.contains("test"))
+                                    });
                                 }
                                 let mut similar_pairs = Vec::new();
 
