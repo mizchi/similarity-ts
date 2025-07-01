@@ -1,4 +1,5 @@
 use crate::levenshtein::{levenshtein_similarity, word_levenshtein_similarity};
+use crate::morphological_similarity::MorphologicalSimilarityCalculator;
 use crate::section_extractor::ExtractedSection;
 use serde::{Deserialize, Serialize};
 
@@ -9,6 +10,8 @@ pub struct SimilarityOptions {
     pub char_levenshtein_weight: f64,
     /// Weight for word-level Levenshtein similarity (0.0-1.0)
     pub word_levenshtein_weight: f64,
+    /// Weight for morphological similarity (0.0-1.0)
+    pub morphological_weight: f64,
     /// Weight for title similarity (0.0-1.0)
     pub title_weight: f64,
     /// Weight for content length similarity (0.0-1.0)
@@ -21,19 +24,26 @@ pub struct SimilarityOptions {
     pub consider_hierarchy: bool,
     /// Maximum level difference for hierarchy comparison
     pub max_level_diff: u32,
+    /// Whether to use morphological analysis for Japanese text
+    pub use_morphological_analysis: bool,
+    /// Path to morphological analysis dictionary
+    pub morphological_dict_path: Option<String>,
 }
 
 impl Default for SimilarityOptions {
     fn default() -> Self {
         Self {
-            char_levenshtein_weight: 0.4,
-            word_levenshtein_weight: 0.3,
-            title_weight: 0.2,
+            char_levenshtein_weight: 0.3,
+            word_levenshtein_weight: 0.2,
+            morphological_weight: 0.3,
+            title_weight: 0.1,
             length_weight: 0.1,
             min_length_ratio: 0.3,
             normalize_text: true,
             consider_hierarchy: true,
             max_level_diff: 2,
+            use_morphological_analysis: false,
+            morphological_dict_path: None,
         }
     }
 }
@@ -43,6 +53,7 @@ impl SimilarityOptions {
     pub fn validate(&self) -> Result<(), String> {
         let total_weight = self.char_levenshtein_weight
             + self.word_levenshtein_weight
+            + self.morphological_weight
             + self.title_weight
             + self.length_weight;
 
@@ -63,6 +74,8 @@ pub struct SimilarityResult {
     pub char_levenshtein_similarity: f64,
     /// Word-level Levenshtein similarity
     pub word_levenshtein_similarity: f64,
+    /// Morphological similarity (Japanese text analysis)
+    pub morphological_similarity: f64,
     /// Title similarity
     pub title_similarity: f64,
     /// Content length similarity
@@ -84,18 +97,34 @@ pub struct SimilarSectionPair {
 /// Main similarity calculator for markdown sections
 pub struct SimilarityCalculator {
     options: SimilarityOptions,
+    morphological_calculator: Option<MorphologicalSimilarityCalculator>,
 }
 
 impl SimilarityCalculator {
     /// Create a new similarity calculator with default options
     pub fn new() -> Self {
-        Self { options: SimilarityOptions::default() }
+        Self { options: SimilarityOptions::default(), morphological_calculator: None }
     }
 
     /// Create a new similarity calculator with custom options
     pub fn with_options(options: SimilarityOptions) -> Result<Self, anyhow::Error> {
         options.validate().map_err(anyhow::Error::msg)?;
-        Ok(Self { options })
+
+        let morphological_calculator = if options.use_morphological_analysis {
+            match MorphologicalSimilarityCalculator::new(options.morphological_dict_path.as_deref())
+            {
+                Ok(calc) => Some(calc),
+                Err(e) => {
+                    eprintln!("Warning: Failed to initialize morphological analyzer: {}", e);
+                    eprintln!("Falling back to non-morphological analysis");
+                    None
+                }
+            }
+        } else {
+            None
+        };
+
+        Ok(Self { options, morphological_calculator })
     }
 
     /// Calculate similarity between two sections
@@ -110,6 +139,7 @@ impl SimilarityCalculator {
                 similarity: 0.0,
                 char_levenshtein_similarity: 0.0,
                 word_levenshtein_similarity: 0.0,
+                morphological_similarity: 0.0,
                 title_similarity: 0.0,
                 length_similarity: 0.0,
                 same_level: false,
@@ -148,6 +178,13 @@ impl SimilarityCalculator {
         let title_similarity = levenshtein_similarity(&title1, &title2);
         let length_similarity = self.calculate_length_similarity(section1, section2);
 
+        // Calculate morphological similarity if available
+        let morphological_similarity = if let Some(ref morph_calc) = self.morphological_calculator {
+            morph_calc.calculate_morpheme_similarity(&content1, &content2).unwrap_or(0.0)
+        } else {
+            0.0
+        };
+
         // Calculate hierarchy information
         let level_diff = (section1.level as i32 - section2.level as i32).unsigned_abs();
         let same_level = level_diff == 0;
@@ -163,6 +200,7 @@ impl SimilarityCalculator {
         // Calculate weighted similarity
         let similarity = (char_levenshtein_similarity * self.options.char_levenshtein_weight
             + word_levenshtein_similarity * self.options.word_levenshtein_weight
+            + morphological_similarity * self.options.morphological_weight
             + title_similarity * self.options.title_weight
             + length_similarity * self.options.length_weight)
             * hierarchy_penalty;
@@ -171,6 +209,7 @@ impl SimilarityCalculator {
             similarity,
             char_levenshtein_similarity,
             word_levenshtein_similarity,
+            morphological_similarity,
             title_similarity,
             length_similarity,
             same_level,

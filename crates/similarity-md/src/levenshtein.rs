@@ -57,7 +57,26 @@ pub fn levenshtein_similarity(s1: &str, s2: &str) -> f64 {
 
 /// Calculate word-level Levenshtein distance
 /// This treats words as units instead of characters
+/// For Japanese text, uses character-based comparison instead of whitespace splitting
 pub fn word_levenshtein_distance(s1: &str, s2: &str) -> usize {
+    // Check if text contains Japanese characters
+    let has_japanese = |text: &str| {
+        text.chars().any(|c| {
+            // ひらがな (U+3040-U+309F)
+            (c >= '\u{3040}' && c <= '\u{309F}') ||
+            // カタカナ (U+30A0-U+30FF)
+            (c >= '\u{30A0}' && c <= '\u{30FF}') ||
+            // 漢字 (U+4E00-U+9FAF)
+            (c >= '\u{4E00}' && c <= '\u{9FAF}')
+        })
+    };
+
+    // For Japanese text, use character-based comparison
+    if has_japanese(s1) || has_japanese(s2) {
+        return levenshtein_distance(s1, s2);
+    }
+
+    // For non-Japanese text, use traditional word-based comparison
     let words1: Vec<&str> = s1.split_whitespace().collect();
     let words2: Vec<&str> = s2.split_whitespace().collect();
 
@@ -95,11 +114,31 @@ pub fn word_levenshtein_distance(s1: &str, s2: &str) -> usize {
 }
 
 /// Calculate normalized word-level Levenshtein similarity
+/// For Japanese text, uses character-based comparison instead of whitespace splitting
 pub fn word_levenshtein_similarity(s1: &str, s2: &str) -> f64 {
     let distance = word_levenshtein_distance(s1, s2);
-    let words1_count = s1.split_whitespace().count();
-    let words2_count = s2.split_whitespace().count();
-    let max_len = words1_count.max(words2_count);
+
+    // Check if text contains Japanese characters
+    let has_japanese = |text: &str| {
+        text.chars().any(|c| {
+            // ひらがな (U+3040-U+309F)
+            (c >= '\u{3040}' && c <= '\u{309F}') ||
+            // カタカナ (U+30A0-U+30FF)
+            (c >= '\u{30A0}' && c <= '\u{30FF}') ||
+            // 漢字 (U+4E00-U+9FAF)
+            (c >= '\u{4E00}' && c <= '\u{9FAF}')
+        })
+    };
+
+    let max_len = if has_japanese(s1) || has_japanese(s2) {
+        // For Japanese text, use character count
+        s1.chars().count().max(s2.chars().count())
+    } else {
+        // For non-Japanese text, use word count
+        let words1_count = s1.split_whitespace().count();
+        let words2_count = s2.split_whitespace().count();
+        words1_count.max(words2_count)
+    };
 
     if max_len == 0 {
         return 1.0;
