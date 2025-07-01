@@ -7,6 +7,80 @@ pub struct MarkdownParser;
 impl MarkdownParser {
     /// Parse markdown content and extract sections
     pub fn parse(content: &str) -> Vec<MarkdownSection> {
+        // First, split content by lines to track line numbers accurately
+        let lines: Vec<&str> = content.lines().collect();
+        let mut sections = Vec::new();
+        let mut current_section: Option<MarkdownSection> = None;
+        let mut heading_stack: Vec<(u32, String)> = Vec::new();
+
+        let mut i = 0;
+        while i < lines.len() {
+            let line = lines[i].trim();
+
+            // Check if this line is a heading
+            if line.starts_with('#') {
+                // Save previous section if exists
+                if let Some(mut section) = current_section.take() {
+                    section.line_end = i; // Previous line was the end of the section
+                    sections.push(section);
+                }
+
+                // Parse heading level and title
+                let level = line.chars().take_while(|&c| c == '#').count() as u32;
+                let title = line.trim_start_matches('#').trim().to_string();
+
+                if level <= 6 && !title.is_empty() {
+                    // Update heading stack
+                    heading_stack.retain(|(l, _)| *l < level);
+                    heading_stack.push((level, title.clone()));
+
+                    // Collect content for this section
+                    let mut content = String::new();
+                    let mut j = i + 1;
+
+                    // Read content until next heading or end of file
+                    while j < lines.len() {
+                        let next_line = lines[j].trim();
+                        if next_line.starts_with('#') {
+                            // Check if this is a heading at the same or higher level
+                            let next_level =
+                                next_line.chars().take_while(|&c| c == '#').count() as u32;
+                            if next_level <= level {
+                                break;
+                            }
+                        }
+
+                        if !content.is_empty() {
+                            content.push('\n');
+                        }
+                        content.push_str(lines[j]);
+                        j += 1;
+                    }
+
+                    current_section = Some(MarkdownSection {
+                        title,
+                        level,
+                        content,
+                        line_start: i + 1, // 1-based line numbering
+                        line_end: j,       // Will be updated when section ends
+                        path: heading_stack.iter().map(|(_, title)| title.clone()).collect(),
+                    });
+                }
+            }
+            i += 1;
+        }
+
+        // Add the last section
+        if let Some(mut section) = current_section {
+            section.line_end = lines.len();
+            sections.push(section);
+        }
+
+        sections
+    }
+
+    /// Parse markdown content and extract sections (legacy method for compatibility)
+    pub fn parse_with_pulldown(content: &str) -> Vec<MarkdownSection> {
         let parser = Parser::new(content);
         let mut sections = Vec::new();
         let mut current_section: Option<MarkdownSection> = None;
@@ -111,9 +185,44 @@ impl MarkdownParser {
         plain_text
     }
 
-    /// Count words in markdown content
+    /// Count words in markdown content (supports Japanese)
     pub fn count_words(content: &str) -> usize {
-        Self::extract_plain_text(content).split_whitespace().count()
+        let plain_text = Self::extract_plain_text(content);
+        Self::count_words_in_text(&plain_text)
+    }
+
+    /// Count words in plain text (supports Japanese)
+    pub fn count_words_in_text(text: &str) -> usize {
+        let text = text.trim();
+        if text.is_empty() {
+            return 0;
+        }
+
+        // 英語などのスペース区切りの単語をカウント
+        let whitespace_words = text.split_whitespace().count();
+
+        // 日本語文字（ひらがな、カタカナ、漢字）をカウント
+        let japanese_chars = text
+            .chars()
+            .filter(|c| {
+                // ひらがな (U+3040-U+309F)
+                (*c >= '\u{3040}' && *c <= '\u{309F}') ||
+                // カタカナ (U+30A0-U+30FF)
+                (*c >= '\u{30A0}' && *c <= '\u{30FF}') ||
+                // 漢字 (U+4E00-U+9FAF)
+                (*c >= '\u{4E00}' && *c <= '\u{9FAF}')
+            })
+            .count();
+
+        // 日本語文字が多い場合は文字数ベース、そうでなければ単語数ベース
+        if japanese_chars > whitespace_words * 2 {
+            // 日本語テキストの場合、文字数を単語数の近似として使用
+            // ただし、あまりに大きくならないよう調整
+            std::cmp::max(japanese_chars / 2, whitespace_words)
+        } else {
+            // 英語などのテキストの場合
+            whitespace_words
+        }
     }
 
     /// Extract metadata from markdown (if present)

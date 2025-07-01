@@ -48,9 +48,21 @@ struct Cli {
     #[arg(long, default_value = "0.2")]
     title_weight: f64,
 
+    /// Weight for morphological similarity (0.0-1.0)
+    #[arg(long, default_value = "0.0")]
+    morphological_weight: f64,
+
     /// Weight for content length similarity (0.0-1.0)
     #[arg(long, default_value = "0.1")]
     length_weight: f64,
+
+    /// Enable morphological analysis for Japanese text
+    #[arg(long)]
+    use_morphological: bool,
+
+    /// Path to morphological analysis dictionary
+    #[arg(long)]
+    morphological_dict: Option<String>,
 
     /// Disable text normalization
     #[arg(long)]
@@ -102,12 +114,15 @@ fn main() -> Result<()> {
     let similarity_options = SimilarityOptions {
         char_levenshtein_weight: cli.char_weight,
         word_levenshtein_weight: cli.word_weight,
+        morphological_weight: cli.morphological_weight,
         title_weight: cli.title_weight,
         length_weight: cli.length_weight,
         min_length_ratio: 0.3,
         normalize_text: !cli.no_normalize,
         consider_hierarchy: !cli.no_hierarchy,
         max_level_diff: cli.max_level_diff,
+        use_morphological_analysis: cli.use_morphological,
+        morphological_dict_path: cli.morphological_dict,
     };
 
     // Validate similarity options
@@ -264,9 +279,10 @@ fn output_text(similar_pairs: &[similarity_md::SimilarSectionPair], print_conten
 
         // Show detailed similarity breakdown
         println!(
-            "   Character-level: {:.2}%, Word-level: {:.2}%, Title: {:.2}%, Length: {:.2}%",
+            "   Character-level: {:.2}%, Word-level: {:.2}%, Morphological: {:.2}%, Title: {:.2}%, Length: {:.2}%",
             pair.result.char_levenshtein_similarity * 100.0,
             pair.result.word_levenshtein_similarity * 100.0,
+            pair.result.morphological_similarity * 100.0,
             pair.result.title_similarity * 100.0,
             pair.result.length_similarity * 100.0
         );
