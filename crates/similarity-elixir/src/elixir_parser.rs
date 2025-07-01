@@ -147,7 +147,7 @@ impl ElixirParser {
         params
     }
 
-    fn build_tree_from_node(&self, node: Node, source: &str, id: &mut usize) -> TreeNode {
+    fn build_tree_from_node(node: Node, source: &str, id: &mut usize) -> TreeNode {
         let label = node.kind().to_string();
         let value = if node.child_count() == 0 {
             node.utf8_text(source.as_bytes()).ok().unwrap_or_default().to_string()
@@ -161,7 +161,7 @@ impl ElixirParser {
         let mut tree_node = TreeNode::new(label, value, current_id);
 
         for child in node.children(&mut node.walk()) {
-            let child_node = self.build_tree_from_node(child, source, id);
+            let child_node = Self::build_tree_from_node(child, source, id);
             tree_node.add_child(Rc::new(child_node));
         }
 
@@ -181,7 +181,7 @@ impl LanguageParser for ElixirParser {
     ) -> Result<Rc<TreeNode>, Box<dyn Error + Send + Sync>> {
         let tree = self.parser.parse(source, None).ok_or("Failed to parse Elixir code")?;
         let mut id = 0;
-        Ok(Rc::new(self.build_tree_from_node(tree.root_node(), source, &mut id)))
+        Ok(Rc::new(Self::build_tree_from_node(tree.root_node(), source, &mut id)))
     }
 
     fn extract_functions(
@@ -204,13 +204,13 @@ impl LanguageParser for ElixirParser {
         let tree = self.parser.parse(source, None).ok_or("Failed to parse Elixir code")?;
 
         let mut types = Vec::new();
-        self.extract_types_from_node(tree.root_node(), source, &mut types);
+        Self::extract_types_from_node(tree.root_node(), source, &mut types);
         Ok(types)
     }
 }
 
 impl ElixirParser {
-    fn extract_types_from_node(&self, node: Node, source: &str, types: &mut Vec<GenericTypeDef>) {
+    fn extract_types_from_node(node: Node, source: &str, types: &mut Vec<GenericTypeDef>) {
         if node.kind() == "call" {
             if let Some(target_node) = node.child_by_field_name("target") {
                 if let Ok(target_text) = target_node.utf8_text(source.as_bytes()) {
@@ -242,7 +242,7 @@ impl ElixirParser {
 
         // Continue searching in children
         for child in node.children(&mut node.walk()) {
-            self.extract_types_from_node(child, source, types);
+            Self::extract_types_from_node(child, source, types);
         }
     }
 }
