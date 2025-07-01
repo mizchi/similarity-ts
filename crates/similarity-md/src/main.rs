@@ -179,7 +179,8 @@ fn main() -> Result<()> {
     // Output results
     match cli.format.as_str() {
         "json" => output_json(&similar_pairs)?,
-        "text" | _ => output_text(&similar_pairs, cli.print),
+        "text" => output_text(&similar_pairs, cli.print),
+        _ => output_text(&similar_pairs, cli.print),
     }
 
     Ok(())

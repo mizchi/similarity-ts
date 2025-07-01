@@ -1,5 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use similarity_md::{SectionExtractor, SimilarityCalculator, SimilarityOptions};
+use similarity_md::{SectionExtractor, SimilarityCalculator};
 
 fn create_test_content() -> String {
     r#"# Introduction

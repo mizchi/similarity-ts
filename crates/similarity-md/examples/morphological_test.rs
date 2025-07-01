@@ -7,9 +7,7 @@
 //! cargo run --example morphological_test
 //! ```
 
-use similarity_md::{
-    MorphologicalSimilarityCalculator, SectionExtractor, SimilarityCalculator, SimilarityOptions,
-};
+use similarity_md::{MorphologicalSimilarityCalculator, SectionExtractor, SimilarityCalculator};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("=== 形態素解析による日本語類似性検出のテスト ===\n");
