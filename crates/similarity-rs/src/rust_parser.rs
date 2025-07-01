@@ -94,7 +94,6 @@ impl RustParser {
         false
     }
 
-
     fn extract_function_definition(&self, node: Node, source: &str) -> Option<GenericFunctionDef> {
         let mut name = String::new();
         let mut is_async = false;

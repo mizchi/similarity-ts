@@ -67,12 +67,12 @@ pub fn check_within_file_duplicates_parallel(
                 match similarity_rs::rust_parser::RustParser::new() {
                     Ok(mut parser) => {
                         // Extract functions
-                        match parser.extract_functions_with_skip_test(
-                            &code,
-                            &file_str,
-                            options.skip_test,
-                        ) {
-                            Ok(functions) => {
+                        match parser.extract_functions(&code, &file_str) {
+                            Ok(mut functions) => {
+                                // Filter out test functions if skip_test is enabled
+                                if options.skip_test {
+                                    functions.retain(|f| !f.name.starts_with("test_"));
+                                }
                                 let mut similar_pairs = Vec::new();
 
                                 // Compare all pairs within the file
