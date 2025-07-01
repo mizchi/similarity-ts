@@ -52,6 +52,10 @@ jobs:
 
       - name: Run tests
         run: cargo test --workspace --verbose
+      
+      - name: Run integration tests
+        run: |
+          cargo test --test '*' --workspace --verbose
 
       - name: Build release
         run: cargo build --workspace --release --verbose
