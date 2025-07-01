@@ -11,7 +11,7 @@ pub struct PhpParser {
 }
 
 impl PhpParser {
-    pub fn new() -> Result<Self, Box<dyn Error>> {
+    pub fn new() -> Result<Self, Box<dyn Error + Send + Sync>> {
         let mut parser = Parser::new();
         parser.set_language(&tree_sitter_php::LANGUAGE_PHP.into())?;
 
@@ -264,8 +264,10 @@ impl PhpParser {
 }
 
 impl LanguageParser for PhpParser {
-    fn parse(&mut self, source: &str, _filename: &str) -> Result<Rc<TreeNode>, Box<dyn Error>> {
-        let tree = self.parser.parse(source, None).ok_or("Failed to parse PHP source")?;
+    fn parse(&mut self, source: &str, _filename: &str) -> Result<Rc<TreeNode>, Box<dyn Error + Send + Sync>> {
+        let tree = self.parser.parse(source, None).ok_or_else(|| -> Box<dyn Error + Send + Sync> {
+            "Failed to parse PHP source".into()
+        })?;
 
         let root_node = tree.root_node();
         let mut id_counter = 0;
@@ -276,8 +278,10 @@ impl LanguageParser for PhpParser {
         &mut self,
         source: &str,
         _filename: &str,
-    ) -> Result<Vec<GenericFunctionDef>, Box<dyn Error>> {
-        let tree = self.parser.parse(source, None).ok_or("Failed to parse PHP source")?;
+    ) -> Result<Vec<GenericFunctionDef>, Box<dyn Error + Send + Sync>> {
+        let tree = self.parser.parse(source, None).ok_or_else(|| -> Box<dyn Error + Send + Sync> {
+            "Failed to parse PHP source".into()
+        })?;
 
         let root_node = tree.root_node();
         Ok(self.extract_functions_from_node(root_node, source, None, None))
@@ -287,8 +291,10 @@ impl LanguageParser for PhpParser {
         &mut self,
         source: &str,
         _filename: &str,
-    ) -> Result<Vec<GenericTypeDef>, Box<dyn Error>> {
-        let tree = self.parser.parse(source, None).ok_or("Failed to parse PHP source")?;
+    ) -> Result<Vec<GenericTypeDef>, Box<dyn Error + Send + Sync>> {
+        let tree = self.parser.parse(source, None).ok_or_else(|| -> Box<dyn Error + Send + Sync> {
+            "Failed to parse PHP source".into()
+        })?;
 
         let root_node = tree.root_node();
         let mut types = Vec::new();

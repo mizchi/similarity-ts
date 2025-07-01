@@ -42,7 +42,6 @@ pub fn check_paths(
     _fast_mode: bool, // PHP doesn't support fast mode yet
     filter_function: Option<&String>,
     filter_function_body: Option<&String>,
-    exclude_same_class: bool,
 ) -> anyhow::Result<()> {
     let default_extensions = vec!["php"];
     let exts: Vec<&str> =
@@ -66,7 +65,7 @@ pub fn check_paths(
     let mut all_results = Vec::new();
 
     // Check within each file
-    let within_file_results = check_within_file_duplicates_parallel(&files, threshold, &options, exclude_same_class);
+    let within_file_results = check_within_file_duplicates_parallel(&files, threshold, &options);
 
     // Collect within-file duplicates
     for (file, similar_pairs) in within_file_results {
@@ -176,4 +175,18 @@ fn display_all_results(
     }
 
     println!("\nTotal duplicate pairs found: {}", total_count);
+}
+
+/// Check for overlap detection (experimental)
+pub fn check_overlap(
+    _paths: Vec<String>,
+    _threshold: f64,
+    _min_window: u32,
+    _max_window: u32,
+    _size_tolerance: f64,
+    _print: bool,
+) -> anyhow::Result<()> {
+    println!("Overlap detection for PHP is not yet implemented.");
+    println!("This feature will be available in a future release.");
+    Ok(())
 }

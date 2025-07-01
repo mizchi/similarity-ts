@@ -2,10 +2,9 @@
 
 use rayon::prelude::*;
 use similarity_core::{
-    apted::compute_edit_distance,
     cli_parallel::{FileData, SimilarityResult},
     language_parser::{GenericFunctionDef, LanguageParser},
-    tsed::TSEDOptions,
+    tsed::{calculate_tsed, TSEDOptions},
 };
 use std::fs;
 use std::path::PathBuf;
@@ -57,7 +56,6 @@ pub fn check_within_file_duplicates_parallel(
     files: &[PathBuf],
     threshold: f64,
     options: &TSEDOptions,
-    exclude_same_class: bool,
 ) -> Vec<(PathBuf, Vec<SimilarityResult<GenericFunctionDef>>)> {
     files
         .par_iter()
@@ -87,39 +85,21 @@ pub fn check_within_file_duplicates_parallel(
                                             continue;
                                         }
 
-                                        // Skip if both functions are in the same class and exclude_same_class is enabled
-                                        if exclude_same_class 
-                                            && func1.class_name.is_some() 
-                                            && func2.class_name.is_some()
-                                            && func1.class_name == func2.class_name 
-                                        {
-                                            continue;
-                                        }
+                                        // Skip if both functions are in the same class (optional behavior)
+                                        // This can be controlled by a parameter if needed
 
                                         // Extract function bodies
                                         let lines: Vec<&str> = code.lines().collect();
                                         let body1 = extract_function_body(&lines, func1);
                                         let body2 = extract_function_body(&lines, func2);
 
-                                        // Calculate similarity using PHP parser
+                                        // Calculate similarity using calculate_tsed
                                         let similarity = match (
                                             parser.parse(&body1, &format!("{}:func1", file_str)),
                                             parser.parse(&body2, &format!("{}:func2", file_str)),
                                         ) {
                                             (Ok(tree1), Ok(tree2)) => {
-                                                let dist = compute_edit_distance(
-                                                    &tree1,
-                                                    &tree2,
-                                                    &options.apted_options,
-                                                );
-                                                let size1 = tree1.get_subtree_size();
-                                                let size2 = tree2.get_subtree_size();
-                                                let max_size = size1.max(size2) as f64;
-                                                if max_size > 0.0 {
-                                                    1.0 - (dist / max_size)
-                                                } else {
-                                                    1.0
-                                                }
+                                                calculate_tsed(&tree1, &tree2, options)
                                             }
                                             _ => 0.0,
                                         };

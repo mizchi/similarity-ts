@@ -3,6 +3,7 @@ use clap::Parser;
 
 mod check;
 mod parallel;
+mod php_parser;
 
 #[derive(Parser)]
 #[command(name = "similarity-php")]
@@ -53,30 +54,66 @@ struct Cli {
     #[arg(long)]
     no_fast: bool,
 
-    /// Exclude duplicates within the same class
-    #[arg(long)]
-    exclude_same_class: bool,
+    /// Enable experimental overlap detection mode
+    #[arg(long = "experimental-overlap")]
+    overlap: bool,
+
+    /// Minimum window size for overlap detection (number of nodes)
+    #[arg(long, default_value = "8")]
+    overlap_min_window: u32,
+
+    /// Maximum window size for overlap detection (number of nodes)
+    #[arg(long, default_value = "25")]
+    overlap_max_window: u32,
+
+    /// Size tolerance for overlap detection (0.0-1.0)
+    #[arg(long, default_value = "0.25")]
+    overlap_size_tolerance: f64,
 }
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
-    println!("Analyzing PHP code similarity...");
+    let functions_enabled = true; // PHP always has functions enabled
+    let overlap_enabled = cli.overlap;
 
-    check::check_paths(
-        cli.paths,
-        cli.threshold,
-        cli.rename_cost,
-        cli.extensions.as_ref(),
-        cli.min_lines.unwrap_or(3),
-        cli.min_tokens,
-        cli.no_size_penalty,
-        cli.print,
-        !cli.no_fast,
-        cli.filter_function.as_ref(),
-        cli.filter_function_body.as_ref(),
-        cli.exclude_same_class,
-    )?;
+    println!("Analyzing PHP code similarity...\n");
+
+    let separator = "-".repeat(60);
+
+    // Run functions analysis
+    if !overlap_enabled || functions_enabled {
+        println!("=== Function Similarity ===");
+        check::check_paths(
+            cli.paths.clone(),
+            cli.threshold,
+            cli.rename_cost,
+            cli.extensions.as_ref(),
+            cli.min_lines.unwrap_or(3),
+            cli.min_tokens,
+            cli.no_size_penalty,
+            cli.print,
+            !cli.no_fast,
+            cli.filter_function.as_ref(),
+            cli.filter_function_body.as_ref(),
+        )?;
+    }
+
+    // Run overlap detection if enabled
+    if overlap_enabled {
+        if functions_enabled {
+            println!("\n{}", separator);
+        }
+        println!("=== Overlap Detection (Experimental) ===");
+        check::check_overlap(
+            cli.paths,
+            cli.threshold,
+            cli.overlap_min_window,
+            cli.overlap_max_window,
+            cli.overlap_size_tolerance,
+            cli.print,
+        )?;
+    }
 
     Ok(())
 }

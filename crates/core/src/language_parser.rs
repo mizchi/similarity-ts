@@ -16,7 +16,6 @@ pub enum Language {
     Cpp,
     CSharp,
     Ruby,
-    Php,
     Unknown,
 }
 
@@ -34,7 +33,6 @@ impl Language {
             "cpp" | "cc" | "cxx" | "hpp" | "hxx" | "c++" => Some(Language::Cpp),
             "cs" => Some(Language::CSharp),
             "rb" => Some(Language::Ruby),
-            "php" => Some(Language::Php),
             _ => None,
         }
     }

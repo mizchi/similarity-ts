@@ -19,7 +19,7 @@ path = "src/main.rs"
 name = "similarity_php"
 
 [dependencies]
-similarity-core = { version = "0.2.3", path = "../core" }
+similarity-core = { version = "0.3.1", path = "../core" }
 clap = { version = "4.0", features = ["derive"] }
 anyhow = "1.0"
 walkdir = "2.5"
