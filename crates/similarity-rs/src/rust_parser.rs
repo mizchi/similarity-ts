@@ -94,27 +94,6 @@ impl RustParser {
         false
     }
 
-    pub fn is_test_function_by_name(&self, name: &str, _source: &str) -> bool {
-        // Check if function name starts with "test_"
-        name.starts_with("test_")
-    }
-
-    pub fn extract_functions_with_skip_test(
-        &mut self,
-        source: &str,
-        _filename: &str,
-        skip_test: bool,
-    ) -> Result<Vec<GenericFunctionDef>, Box<dyn Error + Send + Sync>> {
-        let tree = self.parser.parse(source, None).ok_or_else(|| {
-            Box::new(std::io::Error::new(std::io::ErrorKind::InvalidData, "Failed to parse source"))
-                as Box<dyn Error + Send + Sync>
-        })?;
-
-        let root_node = tree.root_node();
-        let mut functions = Vec::new();
-        self.extract_functions_from_node(root_node, source, &mut functions, skip_test);
-        Ok(functions)
-    }
 
     fn extract_function_definition(&self, node: Node, source: &str) -> Option<GenericFunctionDef> {
         let mut name = String::new();
