@@ -9,7 +9,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let sample_path = "../../examples/japanese_similarity_test.md";
 
     if !std::path::Path::new(sample_path).exists() {
-        println!("サンプルファイルが見つかりません: {}", sample_path);
+        println!("サンプルファイルが見つかりません: {sample_path}");
         return Ok(());
     }
 

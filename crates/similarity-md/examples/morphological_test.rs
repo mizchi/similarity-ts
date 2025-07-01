@@ -19,7 +19,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             test_morphological_analysis(&morph_calc)?;
         }
         Err(e) => {
-            println!("⚠ 形態素解析器の初期化に失敗しました: {}", e);
+            println!("⚠ 形態素解析器の初期化に失敗しました: {e}");
             println!("辞書ファイルが見つからない可能性があります。");
             println!("以下のいずれかの方法で辞書を準備してください:");
             println!("1. MeCab辞書をインストール: sudo apt-get install mecab-ipadic-utf8");
@@ -43,9 +43,9 @@ fn test_morphological_analysis(
     let text2 = "マシンラーニングとは、計算機がデータから自動的にパターンを習得する手法です。";
     let text3 = "今日の天気は晴れです。公園で散歩をしました。";
 
-    println!("テキスト1: {}", text1);
-    println!("テキスト2: {}", text2);
-    println!("テキスト3: {}", text3);
+    println!("テキスト1: {text1}");
+    println!("テキスト2: {text2}");
+    println!("テキスト3: {text3}");
 
     // 形態素解析
     println!("\n形態素解析結果:");
@@ -60,8 +60,8 @@ fn test_morphological_analysis(
     let sim_1_2 = morph_calc.calculate_morpheme_similarity(text1, text2)?;
     let sim_1_3 = morph_calc.calculate_morpheme_similarity(text1, text3)?;
 
-    println!("テキスト1 vs テキスト2: {:.3}", sim_1_2);
-    println!("テキスト1 vs テキスト3: {:.3}", sim_1_3);
+    println!("テキスト1 vs テキスト2: {sim_1_2:.3}");
+    println!("テキスト1 vs テキスト3: {sim_1_3:.3}");
 
     // 品詞別類似性
     println!("\n品詞別類似性:");
@@ -80,7 +80,7 @@ fn test_traditional_similarity() -> Result<(), Box<dyn std::error::Error>> {
     let sample_path = "../../examples/japanese_similarity_test.md";
 
     if std::path::Path::new(sample_path).exists() {
-        println!("サンプルファイルを解析中: {}", sample_path);
+        println!("サンプルファイルを解析中: {sample_path}");
 
         let extractor = SectionExtractor::new(5, 6, false);
         let sections = extractor.extract_from_file(sample_path)?;
@@ -102,7 +102,7 @@ fn test_traditional_similarity() -> Result<(), Box<dyn std::error::Error>> {
             );
         }
     } else {
-        println!("サンプルファイルが見つかりません: {}", sample_path);
+        println!("サンプルファイルが見つかりません: {sample_path}");
         println!("以下のコマンドでサンプルファイルを作成してください:");
         println!("cargo run --bin similarity-md -- --help");
     }
