@@ -1,28 +1,30 @@
 [workspace]
 members = [
-    "crates/core",
-    "crates/similarity-ts",
-    "crates/similarity-py", 
-    "crates/similarity-rs",
-    "crates/similarity-generic", "crates/similarity-elixir",
+  "crates/core",
+  "crates/similarity-ts",
+  "crates/similarity-py",
+  "crates/similarity-rs",
+  "crates/similarity-generic",
+  "crates/similarity-elixir",
+  "crates/similarity-md",
 ]
 resolver = "2"
 
 [workspace.dependencies]
-oxc_parser = "0.73.0"
-oxc_ast = "0.73.0"
-oxc_span = "0.73.0"
 oxc_allocator = "0.73.0"
+oxc_ast = "0.73.0"
+oxc_parser = "0.73.0"
+oxc_span = "0.73.0"
 tree-sitter = "0.24"
-tree-sitter-javascript = "0.23"
-tree-sitter-typescript = "0.23"
-tree-sitter-python = "0.23"
-tree-sitter-rust = "0.23"
+tree-sitter-c = "0.23"
+tree-sitter-c-sharp = "0.23"
+tree-sitter-cpp = "0.23"
+tree-sitter-elixir = "0.3"
 tree-sitter-go = "0.23"
 tree-sitter-java = "0.23"
-tree-sitter-c = "0.23"
-tree-sitter-cpp = "0.23"
-tree-sitter-c-sharp = "0.23"
-tree-sitter-ruby = "0.23"
+tree-sitter-javascript = "0.23"
 tree-sitter-php = "0.23"
-tree-sitter-elixir = "0.3"
+tree-sitter-python = "0.23"
+tree-sitter-ruby = "0.23"
+tree-sitter-rust = "0.23"
+tree-sitter-typescript = "0.23"
