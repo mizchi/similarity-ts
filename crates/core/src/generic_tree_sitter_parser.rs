@@ -106,11 +106,12 @@ impl GenericTreeSitterParser {
             for child in node.children(&mut node.walk()) {
                 self.extract_functions_from_node(child, source, functions, Some(new_class_name));
             }
-        } else {
-            // Continue searching in children
-            for child in node.children(&mut node.walk()) {
-                self.extract_functions_from_node(child, source, functions, class_name);
-            }
+            return; // Don't continue normal traversal for type nodes
+        }
+
+        // Continue searching in children
+        for child in node.children(&mut node.walk()) {
+            self.extract_functions_from_node(child, source, functions, class_name);
         }
     }
 
@@ -171,6 +172,25 @@ impl GenericTreeSitterParser {
                     name_node.utf8_text(source.as_bytes()).ok().map(String::from)?
                 }
             }
+        } else if self.config.language == "elixir" && node.kind() == "call" {
+            // Special handling for Elixir functions
+            // The function name is in the arguments field (first call node)
+            // For Elixir def/defp, arguments is the second child (index 1)
+            let name_result = node
+                .child(1)
+                .filter(|n| n.kind() == "arguments")
+                .and_then(|args| args.child(0))
+                .and_then(|call_node| {
+                    if call_node.kind() == "call" {
+                        // Get the target of the inner call (the function name)
+                        call_node.child_by_field_name("target")
+                    } else {
+                        None
+                    }
+                })
+                .and_then(|n| n.utf8_text(source.as_bytes()).ok())
+                .map(String::from);
+            name_result?
         } else {
             // For other languages, use the standard field mapping
             let name_node = node.child_by_field_name(&self.config.field_mappings.name_field)?;

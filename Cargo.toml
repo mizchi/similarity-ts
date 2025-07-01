@@ -4,7 +4,7 @@ members = [
     "crates/similarity-ts",
     "crates/similarity-py", 
     "crates/similarity-rs",
-    "crates/similarity-generic",
+    "crates/similarity-generic", "crates/similarity-elixir",
 ]
 resolver = "2"
 
@@ -25,3 +25,4 @@ tree-sitter-cpp = "0.23"
 tree-sitter-c-sharp = "0.23"
 tree-sitter-ruby = "0.23"
 tree-sitter-php = "0.23"
+tree-sitter-elixir = "0.3"
