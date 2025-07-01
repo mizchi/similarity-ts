@@ -102,6 +102,16 @@ impl RustParser {
         let mut parameters = Vec::new();
         let mut body_start_line = 0;
         let mut body_end_line = 0;
+        let mut decorators = Vec::new();
+
+        // Check for attributes (like #[test])
+        if let Some(prev_sibling) = node.prev_sibling() {
+            if prev_sibling.kind() == "attribute_item" {
+                let attr_text =
+                    &source[prev_sibling.byte_range().start..prev_sibling.byte_range().end];
+                decorators.push(attr_text.to_string());
+            }
+        }
 
         // Check for async
         for child in node.children(&mut node.walk()) {
@@ -197,7 +207,7 @@ impl RustParser {
                 is_generator: false, // Rust doesn't have generator functions like JS/Python
                 is_method,
                 class_name,
-                decorators: Vec::new(), // Rust uses attributes, not decorators
+                decorators,
                 parameters,
             })
         } else {
