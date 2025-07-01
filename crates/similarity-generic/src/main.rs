@@ -42,6 +42,22 @@ struct Cli {
     /// Show example configuration for a language
     #[arg(long, value_name = "LANGUAGE", conflicts_with_all = ["path", "config", "language", "show_functions", "supported"])]
     show_config: Option<String>,
+
+    /// Enable experimental overlap detection mode
+    #[arg(long = "experimental-overlap")]
+    overlap: bool,
+
+    /// Minimum window size for overlap detection (number of nodes)
+    #[arg(long, default_value = "8")]
+    overlap_min_window: u32,
+
+    /// Maximum window size for overlap detection (number of nodes)
+    #[arg(long, default_value = "25")]
+    overlap_max_window: u32,
+
+    /// Size tolerance for overlap detection (0.0-1.0)
+    #[arg(long, default_value = "0.25")]
+    overlap_size_tolerance: f64,
 }
 
 fn main() -> Result<()> {
@@ -160,62 +176,76 @@ fn main() -> Result<()> {
     let content = fs::read_to_string(&path)?;
     let filename = path.to_string_lossy();
 
-    // Extract functions
-    let functions = parser
-        .extract_functions(&content, &filename)
-        .map_err(|e| anyhow::anyhow!("Failed to extract functions: {}", e))?;
+    // Run appropriate analysis based on mode
+    if cli.overlap {
+        // Overlap detection mode
+        check_overlaps(
+            path,
+            parser,
+            cli.threshold,
+            cli.overlap_min_window,
+            cli.overlap_max_window,
+            cli.overlap_size_tolerance,
+        )?;
+    } else {
+        // Normal similarity detection mode
+        // Extract functions
+        let functions = parser
+            .extract_functions(&content, &filename)
+            .map_err(|e| anyhow::anyhow!("Failed to extract functions: {}", e))?;
 
-    if cli.show_functions {
-        println!("Found {} functions:", functions.len());
-        for func in &functions {
-            println!("  {} {}:{}-{}", func.name, filename, func.start_line, func.end_line);
+        if cli.show_functions {
+            println!("Found {} functions:", functions.len());
+            for func in &functions {
+                println!("  {} {}:{}-{}", func.name, filename, func.start_line, func.end_line);
+            }
+            println!();
         }
-        println!();
-    }
 
-    // Compare functions
-    if functions.len() >= 2 {
-        println!("Comparing functions for similarity...");
+        // Compare functions
+        if functions.len() >= 2 {
+            println!("Comparing functions for similarity...");
 
-        let tsed_options = TSEDOptions {
-            apted_options: APTEDOptions {
-                rename_cost: 0.3,
-                delete_cost: 1.0,
-                insert_cost: 1.0,
-                compare_values: false,
-            },
-            min_lines: 1,
-            min_tokens: None,
-            size_penalty: false,
-            skip_test: false,
-        };
+            let tsed_options = TSEDOptions {
+                apted_options: APTEDOptions {
+                    rename_cost: 0.3,
+                    delete_cost: 1.0,
+                    insert_cost: 1.0,
+                    compare_values: false,
+                },
+                min_lines: 1,
+                min_tokens: None,
+                size_penalty: false,
+                skip_test: false,
+            };
 
-        for i in 0..functions.len() {
-            for j in (i + 1)..functions.len() {
-                let func1 = &functions[i];
-                let func2 = &functions[j];
+            for i in 0..functions.len() {
+                for j in (i + 1)..functions.len() {
+                    let func1 = &functions[i];
+                    let func2 = &functions[j];
 
-                // Extract function bodies
-                let lines: Vec<&str> = content.lines().collect();
-                let body1 =
-                    extract_function_body(&lines, func1.body_start_line, func1.body_end_line);
-                let body2 =
-                    extract_function_body(&lines, func2.body_start_line, func2.body_end_line);
+                    // Extract function bodies
+                    let lines: Vec<&str> = content.lines().collect();
+                    let body1 =
+                        extract_function_body(&lines, func1.body_start_line, func1.body_end_line);
+                    let body2 =
+                        extract_function_body(&lines, func2.body_start_line, func2.body_end_line);
 
-                // Parse and compare
-                let tree1 =
-                    parser.parse(&body1, &format!("{}:{}", filename, func1.name)).map_err(|e| {
-                        anyhow::anyhow!("Failed to parse function {}: {}", func1.name, e)
-                    })?;
-                let tree2 =
-                    parser.parse(&body2, &format!("{}:{}", filename, func2.name)).map_err(|e| {
-                        anyhow::anyhow!("Failed to parse function {}: {}", func2.name, e)
-                    })?;
+                    // Parse and compare
+                    let tree1 =
+                        parser.parse(&body1, &format!("{}:{}", filename, func1.name)).map_err(
+                            |e| anyhow::anyhow!("Failed to parse function {}: {}", func1.name, e),
+                        )?;
+                    let tree2 =
+                        parser.parse(&body2, &format!("{}:{}", filename, func2.name)).map_err(
+                            |e| anyhow::anyhow!("Failed to parse function {}: {}", func2.name, e),
+                        )?;
 
-                let similarity = calculate_tsed(&tree1, &tree2, &tsed_options);
+                    let similarity = calculate_tsed(&tree1, &tree2, &tsed_options);
 
-                if similarity >= cli.threshold {
-                    println!("  {} <-> {}: {:.2}%", func1.name, func2.name, similarity * 100.0);
+                    if similarity >= cli.threshold {
+                        println!("  {} <-> {}: {:.2}%", func1.name, func2.name, similarity * 100.0);
+                    }
                 }
             }
         }
@@ -233,4 +263,91 @@ fn extract_function_body(lines: &[&str], start_line: u32, end_line: u32) -> Stri
     }
 
     lines[start_idx..end_idx].join("\n")
+}
+
+fn check_overlaps(
+    path: PathBuf,
+    mut parser: GenericTreeSitterParser,
+    threshold: f64,
+    min_window_size: u32,
+    max_window_size: u32,
+    size_tolerance: f64,
+) -> anyhow::Result<()> {
+    use similarity_core::{find_overlaps_across_files_generic, OverlapOptions};
+    use std::collections::HashMap;
+
+    println!("Checking for overlapping code...\n");
+
+    // Read file content
+    let content = fs::read_to_string(&path)?;
+    let filename = path.to_string_lossy().to_string();
+
+    // Create file contents map
+    let mut file_contents = HashMap::new();
+    file_contents.insert(filename.clone(), content.clone());
+
+    // Set up overlap options
+    let options = OverlapOptions { min_window_size, max_window_size, threshold, size_tolerance };
+
+    // Find overlaps
+    let overlaps = find_overlaps_across_files_generic(&mut parser, &file_contents, &options)
+        .map_err(|e| anyhow::anyhow!("Failed to find overlaps: {}", e))?;
+
+    if overlaps.is_empty() {
+        println!("\nNo code overlaps found!");
+    } else {
+        println!("\nCode overlaps found:");
+        println!("{}", "-".repeat(60));
+
+        for overlap_with_files in &overlaps {
+            let overlap = &overlap_with_files.overlap;
+
+            println!(
+                "\nSimilarity: {:.2}% | {} nodes | {}",
+                overlap.similarity * 100.0,
+                overlap.node_count,
+                overlap.node_type
+            );
+            println!(
+                "  L{}-{} in function: {}",
+                overlap.source_lines.0, overlap.source_lines.1, overlap.source_function
+            );
+            println!(
+                "  L{}-{} in function: {}",
+                overlap.target_lines.0, overlap.target_lines.1, overlap.target_function
+            );
+
+            // Extract and display the overlapping code
+            println!("\n\x1b[36m--- Source Code ---\x1b[0m");
+            if let Ok(source_segment) =
+                extract_code_lines(&content, overlap.source_lines.0, overlap.source_lines.1)
+            {
+                println!("{}", source_segment);
+            }
+
+            println!("\n\x1b[36m--- Target Code ---\x1b[0m");
+            if let Ok(target_segment) =
+                extract_code_lines(&content, overlap.target_lines.0, overlap.target_lines.1)
+            {
+                println!("{}", target_segment);
+            }
+        }
+
+        println!("\nTotal overlaps found: {}", overlaps.len());
+    }
+
+    Ok(())
+}
+
+fn extract_code_lines(code: &str, start_line: u32, end_line: u32) -> Result<String, String> {
+    let lines: Vec<_> = code.lines().collect();
+
+    if start_line as usize > lines.len() || end_line as usize > lines.len() {
+        return Err("Line numbers out of bounds".to_string());
+    }
+
+    let start = (start_line as usize).saturating_sub(1);
+    let end = (end_line as usize).min(lines.len());
+
+    Ok(lines[start..end].join("\n"))
 }
