@@ -1,6 +1,10 @@
 # similarity-md
 
+**⚠️ EXPERIMENTAL WARNING**: This tool is experimental and may produce unexpected results. Its API and behavior may change significantly in future versions. Use with caution in production environments.
+
 Vibrato を使った形態素解析による日本語 Markdown ドキュメントの類似性検出ツール
+
+A Markdown content similarity detection tool with Japanese morphological analysis support using Vibrato
 
 ## 概要
 
