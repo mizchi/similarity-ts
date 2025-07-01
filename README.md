@@ -2,6 +2,17 @@
 
 High-performance code similarity detection tools written in Rust. Detects duplicate functions and similar code patterns across your codebase in multiple programming languages.
 
+## Tool Maturity Status
+
+| Tool                   | Language                  | Status                  | Description                       |
+| ---------------------- | ------------------------- | ----------------------- | --------------------------------- |
+| **similarity-ts**      | TypeScript/JavaScript     | ✅ **Production Ready** | Most mature and production-tested |
+| **similarity-py**      | Python                    | ⚠️ **Beta**             | Not production-tested yet         |
+| **similarity-rs**      | Rust                      | ⚠️ **Beta**             | Not production-tested yet         |
+| **similarity-elixir**  | Elixir                    | 🧪 **Experimental**     | Early development stage           |
+| **similarity-generic** | Go, Java, C/C++, C#, Ruby | 🧪 **Experimental**     | Early development stage           |
+| **similarity-md**      | Markdown                  | 🧪 **Experimental**     | Early development stage           |
+
 ## Features
 
 - **Zero configuration** - works out of the box
@@ -55,11 +66,20 @@ The AI will analyze patterns and suggest refactoring strategies.
 
 ## Available Tools
 
-- **similarity-ts** - TypeScript/JavaScript similarity detection
-- **similarity-py** - Python similarity detection
-- **similarity-rs** - Rust similarity detection
-- **similarity-elixir** - Elixir similarity detection
-- **similarity-generic** - Generic similarity detection for Go, Java, C/C++, C#, Ruby
+### Production Ready
+
+- **similarity-ts** - TypeScript/JavaScript similarity detection ✅ **Most mature and production-tested**
+
+### Beta (Not production-tested yet)
+
+- **similarity-py** - Python similarity detection ⚠️ _Not production-tested_
+- **similarity-rs** - Rust similarity detection ⚠️ _Not production-tested_
+
+### Experimental
+
+- **similarity-elixir** - Elixir similarity detection 🧪 _Experimental_
+- **similarity-generic** - Generic similarity detection for Go, Java, C/C++, C#, Ruby 🧪 _Experimental_
+- **similarity-md** - Markdown similarity detection 🧪 _Experimental_
 
 ## Installation
 
@@ -264,12 +284,14 @@ similarity-ts ./src --experimental-overlap \
 ```
 
 **Parameters:**
+
 - `--experimental-overlap`: Enable overlap detection mode
 - `--overlap-min-window`: Minimum AST nodes to consider (default: 8)
 - `--overlap-max-window`: Maximum AST nodes to consider (default: 25)
 - `--overlap-size-tolerance`: Size variation tolerance (default: 0.25)
 
 **Use Cases:**
+
 - Finding copy-pasted code fragments within larger functions
 - Detecting similar algorithmic patterns across different contexts
 - Identifying refactoring opportunities for common code blocks
@@ -336,7 +358,7 @@ similarity-rs . \
 The `similarity-generic` tool provides experimental support for additional languages using tree-sitter parsers:
 
 - Go
-- Java  
+- Java
 - C
 - C++
 - C#
@@ -366,7 +388,7 @@ similarity-generic --language java ./src
 similarity-generic --language c ./src
 similarity-generic --language cpp ./src
 
-# Detect C# duplicates  
+# Detect C# duplicates
 similarity-generic --language csharp ./src
 
 # Detect Ruby duplicates
@@ -381,14 +403,14 @@ similarity-generic --language go ./src --threshold 0.8 --print
 
 #### Supported Languages
 
-| Language | File Extensions | Status |
-|----------|----------------|---------|
-| Go | .go | Experimental |
-| Java | .java | Experimental |
-| C | .c, .h | Experimental |
-| C++ | .cpp, .cc, .cxx, .hpp, .h | Experimental |
-| C# | .cs | Experimental |
-| Ruby | .rb | Experimental |
+| Language | File Extensions           | Status       |
+| -------- | ------------------------- | ------------ |
+| Go       | .go                       | Experimental |
+| Java     | .java                     | Experimental |
+| C        | .c, .h                    | Experimental |
+| C++      | .cpp, .cc, .cxx, .hpp, .h | Experimental |
+| C#       | .cs                       | Experimental |
+| Ruby     | .rb                       | Experimental |
 
 #### Custom Language Configuration
 
