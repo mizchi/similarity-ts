@@ -6,6 +6,7 @@ pub mod ast_fingerprint;
 pub mod enhanced_similarity;
 pub mod fast_similarity;
 pub mod function_extractor;
+pub mod generic_overlap_detector;
 pub mod generic_parser_config;
 pub mod generic_tree_sitter_parser;
 pub mod language_parser;
@@ -68,4 +69,11 @@ pub use subtree_fingerprint::{
 pub use overlap_detector::{
     find_function_overlaps, find_overlaps_across_files, find_overlaps_with_similarity,
     DetailedOverlap, PartialOverlapWithFiles,
+};
+
+// Generic overlap detector exports
+pub use generic_overlap_detector::{
+    find_function_overlaps_generic, find_overlaps_across_files_generic,
+    find_overlaps_with_similarity_generic, DetailedOverlap as GenericDetailedOverlap,
+    PartialOverlapWithFiles as GenericPartialOverlapWithFiles,
 };
