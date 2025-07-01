@@ -100,4 +100,33 @@ __deprecated/        # Deprecated TypeScript prototype
 3. 言語固有の機能を実装
 4. 統合テストを追加
 
+## Important Implementation Notes
+
+### 類似度計算には必ず calculate_tsed を使用する
+
+**重要**: AST の類似度を計算する際は、必ず `similarity_core::tsed::calculate_tsed` 関数を使用すること。
+
+**間違った実装例**:
+```rust
+// ❌ 直接計算してはいけない
+let dist = compute_edit_distance(&tree1, &tree2, &options.apted_options);
+let size1 = tree1.get_subtree_size();
+let size2 = tree2.get_subtree_size();
+let max_size = size1.max(size2) as f64;
+let similarity = if max_size > 0.0 { 1.0 - (dist / max_size) } else { 1.0 };
+```
+
+**正しい実装例**:
+```rust
+// ✅ calculate_tsed を使用する
+let similarity = similarity_core::tsed::calculate_tsed(&tree1, &tree2, options);
+```
+
+**理由**:
+- `calculate_tsed` は `size_penalty` などの重要なオプションを適用する
+- サイズが大きく異なる関数間の false positive を防ぐ
+- 小さい関数に対する適切なペナルティを適用する
+
+この間違いは特に新しい言語サポートを追加する際に発生しやすいため、必ず確認すること。
+
 ```

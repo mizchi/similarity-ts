@@ -1,0 +1,8 @@
+[advisories]
+# List of advisory IDs to ignore
+ignore = [
+    # instant is unmaintained - used by vibrato->rucrf->argmin
+    "RUSTSEC-2024-0384",
+    # paste is unmaintained - used by vibrato->rucrf->argmin  
+    "RUSTSEC-2024-0436",
+]

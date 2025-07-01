@@ -2,6 +2,17 @@
 
 High-performance code similarity detection tools written in Rust. Detects duplicate functions and similar code patterns across your codebase in multiple programming languages.
 
+## Tool Maturity Status
+
+| Tool                   | Language                  | Status                  | Description                       |
+| ---------------------- | ------------------------- | ----------------------- | --------------------------------- |
+| **similarity-ts**      | TypeScript/JavaScript     | ✅ **Production Ready** | Most mature and production-tested |
+| **similarity-py**      | Python                    | ⚠️ **Beta**             | Not production-tested yet         |
+| **similarity-rs**      | Rust                      | ⚠️ **Beta**             | Not production-tested yet         |
+| **similarity-elixir**  | Elixir                    | 🧪 **Experimental**     | Early development stage           |
+| **similarity-generic** | Go, Java, C/C++, C#, Ruby | 🧪 **Experimental**     | Early development stage           |
+| **similarity-md**      | Markdown                  | 🧪 **Experimental**     | Early development stage           |
+
 ## Features
 
 - **Zero configuration** - works out of the box
@@ -55,9 +66,20 @@ The AI will analyze patterns and suggest refactoring strategies.
 
 ## Available Tools
 
-- **similarity-ts** - TypeScript/JavaScript similarity detection
-- **similarity-py** - Python similarity detection
-- **similarity-rs** - Rust similarity detection
+### Production Ready
+
+- **similarity-ts** - TypeScript/JavaScript similarity detection ✅ **Most mature and production-tested**
+
+### Beta (Not production-tested yet)
+
+- **similarity-py** - Python similarity detection ⚠️ _Not production-tested_
+- **similarity-rs** - Rust similarity detection ⚠️ _Not production-tested_
+
+### Experimental
+
+- **similarity-elixir** - Elixir similarity detection 🧪 _Experimental_
+- **similarity-generic** - Generic similarity detection for Go, Java, C/C++, C#, Ruby 🧪 _Experimental_
+- **similarity-md** - Markdown similarity detection 🧪 _Experimental_
 
 ## Installation
 
@@ -89,6 +111,27 @@ cargo install similarity-rs
 
 # Use the installed binary
 similarity-rs --help
+```
+
+### Elixir
+
+```bash
+# Install from crates.io
+cargo install similarity-elixir
+
+# Use the installed binary
+similarity-elixir --help
+```
+
+### Other Languages (Go, Java, C/C++, C#, Ruby)
+
+```bash
+# Install from crates.io
+cargo install similarity-generic
+
+# Use the installed binary
+similarity-generic --language go main.go
+similarity-generic --language java Main.java
 ```
 
 ### From source
@@ -224,6 +267,35 @@ This tool can be integrated into:
 4. **Similarity Score**: Normalized score between 0 and 1
 5. **Impact Calculation**: Considers code size for prioritization
 
+### Overlap Detection (Experimental)
+
+The `--experimental-overlap` flag enables detection of partial code overlaps within and across functions:
+
+```bash
+# Basic overlap detection
+similarity-ts ./src --experimental-overlap
+
+# With custom parameters
+similarity-ts ./src --experimental-overlap \
+  --threshold 0.75 \
+  --overlap-min-window 8 \
+  --overlap-max-window 25 \
+  --overlap-size-tolerance 0.25
+```
+
+**Parameters:**
+
+- `--experimental-overlap`: Enable overlap detection mode
+- `--overlap-min-window`: Minimum AST nodes to consider (default: 8)
+- `--overlap-max-window`: Maximum AST nodes to consider (default: 25)
+- `--overlap-size-tolerance`: Size variation tolerance (default: 0.25)
+
+**Use Cases:**
+
+- Finding copy-pasted code fragments within larger functions
+- Detecting similar algorithmic patterns across different contexts
+- Identifying refactoring opportunities for common code blocks
+
 ### Language-Specific Features
 
 - **TypeScript**: Type similarity detection (interfaces, type aliases)
@@ -247,6 +319,9 @@ similarity-ts ./src \
   --min-lines 10 \
   --cross-file \
   --extensions ts,tsx
+
+# Detect partial code overlaps (Experimental)
+similarity-ts ./src --experimental-overlap --threshold 0.75 --print
 ```
 
 ### Python
@@ -273,6 +348,89 @@ similarity-rs . \
   --threshold 0.9 \
   --skip-test
 ```
+
+## Experimental: Generic Language Support
+
+> ⚠️ **EXPERIMENTAL**: The generic language support is in early development and may have limitations or bugs.
+
+### similarity-generic
+
+The `similarity-generic` tool provides experimental support for additional languages using tree-sitter parsers:
+
+- Go
+- Java
+- C
+- C++
+- C#
+- Ruby
+- Elixir
+
+#### Installation
+
+```bash
+# From crates.io (when available)
+cargo install similarity-generic
+
+# From source
+cargo install --path crates/similarity-generic
+```
+
+#### Usage
+
+```bash
+# Detect Go duplicates
+similarity-generic --language go ./src
+
+# Detect Java duplicates
+similarity-generic --language java ./src
+
+# Detect C/C++ duplicates
+similarity-generic --language c ./src
+similarity-generic --language cpp ./src
+
+# Detect C# duplicates
+similarity-generic --language csharp ./src
+
+# Detect Ruby duplicates
+similarity-generic --language ruby ./src
+
+# Detect Elixir duplicates
+similarity-generic --language elixir ./src
+
+# Common options work the same way
+similarity-generic --language go ./src --threshold 0.8 --print
+```
+
+#### Supported Languages
+
+| Language | File Extensions           | Status       |
+| -------- | ------------------------- | ------------ |
+| Go       | .go                       | Experimental |
+| Java     | .java                     | Experimental |
+| C        | .c, .h                    | Experimental |
+| C++      | .cpp, .cc, .cxx, .hpp, .h | Experimental |
+| C#       | .cs                       | Experimental |
+| Ruby     | .rb                       | Experimental |
+
+#### Custom Language Configuration
+
+You can also provide custom language configurations:
+
+```bash
+# Use custom config file
+similarity-generic --config ./my-language.json ./src
+```
+
+See [examples/configs/custom-language-template.json](crates/similarity-generic/examples/configs/custom-language-template.json) for configuration format.
+
+#### Limitations
+
+- Performance is slower than specialized tools (similarity-ts, similarity-py, similarity-rs)
+- Detection accuracy may vary by language
+- Some language-specific features may not be fully supported
+- Custom configurations require understanding of tree-sitter node types
+
+For production use, prefer the specialized tools when available.
 
 ## Performance
 

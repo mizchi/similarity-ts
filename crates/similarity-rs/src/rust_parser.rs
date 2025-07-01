@@ -11,9 +11,12 @@ pub struct RustParser {
 }
 
 impl RustParser {
-    pub fn new() -> Result<Self, Box<dyn Error>> {
+    pub fn new() -> Result<Self, Box<dyn Error + Send + Sync>> {
         let mut parser = Parser::new();
-        parser.set_language(&tree_sitter_rust::LANGUAGE.into())?;
+        parser.set_language(&tree_sitter_rust::LANGUAGE.into()).map_err(|e| {
+            Box::new(std::io::Error::other(format!("Failed to set Rust language: {e:?}")))
+                as Box<dyn Error + Send + Sync>
+        })?;
         Ok(RustParser { parser })
     }
 
@@ -91,25 +94,6 @@ impl RustParser {
         false
     }
 
-    pub fn is_test_function_by_name(&self, name: &str, _source: &str) -> bool {
-        // Check if function name starts with "test_"
-        name.starts_with("test_")
-    }
-
-    pub fn extract_functions_with_skip_test(
-        &mut self,
-        source: &str,
-        _filename: &str,
-        skip_test: bool,
-    ) -> Result<Vec<GenericFunctionDef>, Box<dyn Error>> {
-        let tree = self.parser.parse(source, None).ok_or("Failed to parse source")?;
-
-        let root_node = tree.root_node();
-        let mut functions = Vec::new();
-        self.extract_functions_from_node(root_node, source, &mut functions, skip_test);
-        Ok(functions)
-    }
-
     fn extract_function_definition(&self, node: Node, source: &str) -> Option<GenericFunctionDef> {
         let mut name = String::new();
         let mut is_async = false;
@@ -118,6 +102,16 @@ impl RustParser {
         let mut parameters = Vec::new();
         let mut body_start_line = 0;
         let mut body_end_line = 0;
+        let mut decorators = Vec::new();
+
+        // Check for attributes (like #[test])
+        if let Some(prev_sibling) = node.prev_sibling() {
+            if prev_sibling.kind() == "attribute_item" {
+                let attr_text =
+                    &source[prev_sibling.byte_range().start..prev_sibling.byte_range().end];
+                decorators.push(attr_text.to_string());
+            }
+        }
 
         // Check for async
         for child in node.children(&mut node.walk()) {
@@ -213,7 +207,7 @@ impl RustParser {
                 is_generator: false, // Rust doesn't have generator functions like JS/Python
                 is_method,
                 class_name,
-                decorators: Vec::new(), // Rust uses attributes, not decorators
+                decorators,
                 parameters,
             })
         } else {
@@ -406,7 +400,11 @@ fn find_first_function(node: Node) -> Option<Node> {
 }
 
 impl LanguageParser for RustParser {
-    fn parse(&mut self, source: &str, filename: &str) -> Result<Rc<TreeNode>, Box<dyn Error>> {
+    fn parse(
+        &mut self,
+        source: &str,
+        filename: &str,
+    ) -> Result<Rc<TreeNode>, Box<dyn Error + Send + Sync>> {
         // If the source looks like a function body (starts with whitespace or directly with code),
         // wrap it in a minimal function context for parsing
         let wrapped_source = if source.trim_start() != source || !source.starts_with("fn ") {
@@ -415,10 +413,12 @@ impl LanguageParser for RustParser {
             source.to_string()
         };
 
-        let tree = self
-            .parser
-            .parse(&wrapped_source, None)
-            .ok_or_else(|| format!("Failed to parse {filename}"))?;
+        let tree = self.parser.parse(&wrapped_source, None).ok_or_else(|| {
+            Box::new(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                format!("Failed to parse {filename}"),
+            )) as Box<dyn Error + Send + Sync>
+        })?;
 
         let root_node = tree.root_node();
 
@@ -456,8 +456,11 @@ impl LanguageParser for RustParser {
         &mut self,
         source: &str,
         _filename: &str,
-    ) -> Result<Vec<GenericFunctionDef>, Box<dyn Error>> {
-        let tree = self.parser.parse(source, None).ok_or("Failed to parse source")?;
+    ) -> Result<Vec<GenericFunctionDef>, Box<dyn Error + Send + Sync>> {
+        let tree = self.parser.parse(source, None).ok_or_else(|| {
+            Box::new(std::io::Error::new(std::io::ErrorKind::InvalidData, "Failed to parse source"))
+                as Box<dyn Error + Send + Sync>
+        })?;
 
         let root_node = tree.root_node();
         let mut functions = Vec::new();
@@ -469,8 +472,11 @@ impl LanguageParser for RustParser {
         &mut self,
         source: &str,
         _filename: &str,
-    ) -> Result<Vec<GenericTypeDef>, Box<dyn Error>> {
-        let tree = self.parser.parse(source, None).ok_or("Failed to parse source")?;
+    ) -> Result<Vec<GenericTypeDef>, Box<dyn Error + Send + Sync>> {
+        let tree = self.parser.parse(source, None).ok_or_else(|| {
+            Box::new(std::io::Error::new(std::io::ErrorKind::InvalidData, "Failed to parse source"))
+                as Box<dyn Error + Send + Sync>
+        })?;
 
         let root_node = tree.root_node();
         let mut types = Vec::new();

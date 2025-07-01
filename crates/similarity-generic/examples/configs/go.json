@@ -1,0 +1,40 @@
+{
+  "language": "go",
+  "function_nodes": [
+    "function_declaration",
+    "method_declaration"
+  ],
+  "type_nodes": [
+    "type_declaration",
+    "struct_type",
+    "interface_type"
+  ],
+  "field_mappings": {
+    "name_field": "name",
+    "params_field": "parameters",
+    "body_field": "body",
+    "decorator_field": null,
+    "class_field": null
+  },
+  "value_nodes": [
+    "identifier",
+    "interpreted_string_literal",
+    "raw_string_literal",
+    "int_literal",
+    "float_literal",
+    "true",
+    "false",
+    "nil"
+  ],
+  "test_patterns": {
+    "attribute_patterns": [],
+    "name_prefixes": [
+      "Test",
+      "Benchmark"
+    ],
+    "name_suffixes": [
+      "_test"
+    ]
+  },
+  "custom_mappings": null
+}

@@ -93,6 +93,22 @@ struct Cli {
     /// Exclude directories matching the given patterns (can be specified multiple times)
     #[arg(long)]
     exclude: Vec<String>,
+
+    /// Enable experimental overlap detection mode
+    #[arg(long = "experimental-overlap")]
+    overlap: bool,
+
+    /// Minimum window size for overlap detection (number of nodes)
+    #[arg(long, default_value = "8")]
+    overlap_min_window: u32,
+
+    /// Maximum window size for overlap detection (number of nodes)
+    #[arg(long, default_value = "25")]
+    overlap_max_window: u32,
+
+    /// Size tolerance for overlap detection (0.0-1.0)
+    #[arg(long, default_value = "0.25")]
+    overlap_size_tolerance: f64,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -100,10 +116,11 @@ fn main() -> anyhow::Result<()> {
 
     let functions_enabled = !cli.no_functions;
     let types_enabled = cli.types;
+    let overlap_enabled = cli.overlap;
 
     // Validate that at least one analyzer is enabled
-    if !functions_enabled && !types_enabled {
-        eprintln!("Error: At least one analyzer must be enabled. Use --types to enable type checking or remove --no-functions.");
+    if !functions_enabled && !types_enabled && !overlap_enabled {
+        eprintln!("Error: At least one analyzer must be enabled. Use --types to enable type checking, --overlap for overlap detection, or remove --no-functions.");
         return Err(anyhow::anyhow!("No analyzer enabled"));
     }
 
@@ -150,7 +167,7 @@ fn main() -> anyhow::Result<()> {
     if types_enabled {
         println!("=== Type Similarity ===");
         check_types(
-            cli.paths,
+            cli.paths.clone(),
             cli.threshold,
             cli.extensions.as_ref(),
             cli.print,
@@ -161,6 +178,25 @@ fn main() -> anyhow::Result<()> {
             cli.structural_weight,
             cli.naming_weight,
             cli.include_type_literals,
+            &cli.exclude,
+        )?;
+    }
+
+    // Run overlap analysis if enabled
+    if overlap_enabled && (functions_enabled || types_enabled) {
+        println!("\n{}\n", separator);
+    }
+
+    if overlap_enabled {
+        println!("=== Overlap Detection ===");
+        check_overlaps(
+            cli.paths,
+            cli.threshold,
+            cli.extensions.as_ref(),
+            cli.print,
+            cli.overlap_min_window,
+            cli.overlap_max_window,
+            cli.overlap_size_tolerance,
             &cli.exclude,
         )?;
     }
@@ -525,6 +561,194 @@ fn format_type_literal_context(context: &similarity_core::TypeLiteralContext) ->
             format!("Arrow function '{}' return type", name)
         }
     }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn check_overlaps(
+    paths: Vec<String>,
+    threshold: f64,
+    extensions: Option<&Vec<String>>,
+    print: bool,
+    min_window_size: u32,
+    max_window_size: u32,
+    size_tolerance: f64,
+    exclude_patterns: &[String],
+) -> anyhow::Result<()> {
+    use ignore::WalkBuilder;
+    use similarity_core::{find_overlaps_across_files, OverlapOptions};
+    use std::collections::{HashMap, HashSet};
+    use std::fs;
+    use std::path::Path;
+
+    let default_extensions = vec!["js", "ts", "jsx", "tsx", "mjs", "mts", "cjs", "cts"];
+    let exts: Vec<&str> =
+        extensions.map_or(default_extensions, |v| v.iter().map(String::as_str).collect());
+
+    let exclude_matcher = create_exclude_matcher(exclude_patterns);
+    let mut files = Vec::new();
+    let mut visited = HashSet::new();
+
+    // Process each path
+    for path_str in &paths {
+        let path = Path::new(path_str);
+
+        if path.is_file() {
+            // If it's a file, check extension and add it
+            if let Some(ext) = path.extension() {
+                if let Some(ext_str) = ext.to_str() {
+                    if exts.contains(&ext_str) {
+                        if let Ok(canonical) = path.canonicalize() {
+                            if visited.insert(canonical.clone()) {
+                                files.push(path.to_path_buf());
+                            }
+                        }
+                    }
+                }
+            }
+        } else if path.is_dir() {
+            // If it's a directory, walk it respecting .gitignore
+            let walker = WalkBuilder::new(path).follow_links(false).build();
+
+            for entry in walker {
+                let entry = entry?;
+                let entry_path = entry.path();
+
+                // Skip if not a file
+                if !entry_path.is_file() {
+                    continue;
+                }
+
+                // Check if path should be excluded
+                if let Some(ref matcher) = exclude_matcher {
+                    if matcher.is_match(entry_path) {
+                        continue;
+                    }
+                }
+
+                // Check extension
+                if let Some(ext) = entry_path.extension() {
+                    if let Some(ext_str) = ext.to_str() {
+                        if exts.contains(&ext_str) {
+                            // Get canonical path to avoid duplicates
+                            if let Ok(canonical) = entry_path.canonicalize() {
+                                if visited.insert(canonical.clone()) {
+                                    files.push(entry_path.to_path_buf());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            eprintln!("Warning: Path not found: {}", path_str);
+        }
+    }
+
+    if files.is_empty() {
+        println!("No JavaScript/TypeScript files found in specified paths");
+        return Ok(());
+    }
+
+    println!("Checking {} files for overlapping code...\n", files.len());
+
+    // Read all file contents
+    let mut file_contents = HashMap::new();
+    for file in &files {
+        match fs::read_to_string(file) {
+            Ok(content) => {
+                let file_str = file.to_string_lossy().to_string();
+                file_contents.insert(file_str, content);
+            }
+            Err(e) => {
+                eprintln!("Error reading {}: {}", file.display(), e);
+            }
+        }
+    }
+
+    // Set up overlap options
+    let options = OverlapOptions { min_window_size, max_window_size, threshold, size_tolerance };
+
+    // Find overlaps
+    let overlaps = find_overlaps_across_files(&file_contents, &options)?;
+
+    if overlaps.is_empty() {
+        println!("\nNo code overlaps found!");
+    } else {
+        println!("\nCode overlaps found:");
+        println!("{}", "-".repeat(60));
+
+        for overlap_with_files in &overlaps {
+            let overlap = &overlap_with_files.overlap;
+            let source_path = get_relative_path(&overlap_with_files.source_file);
+            let target_path = get_relative_path(&overlap_with_files.target_file);
+
+            println!(
+                "\nSimilarity: {:.2}% | {} nodes | {}",
+                overlap.similarity * 100.0,
+                overlap.node_count,
+                overlap.node_type
+            );
+            println!(
+                "  {}:{} | L{}-{} in function: {}",
+                source_path,
+                overlap.source_lines.0,
+                overlap.source_lines.0,
+                overlap.source_lines.1,
+                overlap.source_function
+            );
+            println!(
+                "  {}:{} | L{}-{} in function: {}",
+                target_path,
+                overlap.target_lines.0,
+                overlap.target_lines.0,
+                overlap.target_lines.1,
+                overlap.target_function
+            );
+
+            if print {
+                // Extract and display the overlapping code
+                if let Some(source_content) = file_contents.get(&overlap_with_files.source_file) {
+                    if let Some(target_content) = file_contents.get(&overlap_with_files.target_file)
+                    {
+                        println!("\n\x1b[36m--- Source Code ---\x1b[0m");
+                        if let Ok(source_segment) = extract_code_lines(
+                            source_content,
+                            overlap.source_lines.0,
+                            overlap.source_lines.1,
+                        ) {
+                            println!("{}", source_segment);
+                        }
+
+                        println!("\n\x1b[36m--- Target Code ---\x1b[0m");
+                        if let Ok(target_segment) = extract_code_lines(
+                            target_content,
+                            overlap.target_lines.0,
+                            overlap.target_lines.1,
+                        ) {
+                            println!("{}", target_segment);
+                        }
+                    }
+                }
+            }
+        }
+
+        println!("\nTotal overlaps found: {}", overlaps.len());
+    }
+
+    Ok(())
+}
+
+fn extract_code_lines(code: &str, start_line: u32, end_line: u32) -> Result<String, String> {
+    let lines: Vec<_> = code.lines().collect();
+
+    if start_line as usize > lines.len() || end_line as usize > lines.len() {
+        return Err("Line numbers out of bounds".to_string());
+    }
+
+    let start = (start_line as usize).saturating_sub(1);
+    let end = (end_line as usize).min(lines.len());
+
+    Ok(lines[start..end].join("\n"))
 }
 
 fn show_comparison_details(result: &similarity_core::TypeComparisonResult) {

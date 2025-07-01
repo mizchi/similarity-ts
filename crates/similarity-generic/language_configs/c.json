@@ -1,0 +1,18 @@
+{
+  "language": "c",
+  "function_nodes": ["function_definition"],
+  "type_nodes": ["struct_specifier", "enum_specifier", "type_definition"],
+  "field_mappings": {
+    "name_field": "declarator",
+    "params_field": "declarator",
+    "body_field": "body",
+    "decorator_field": null,
+    "class_field": null
+  },
+  "value_nodes": ["identifier", "string_literal", "number_literal", "true", "false", "null"],
+  "test_patterns": {
+    "attribute_patterns": [],
+    "name_prefixes": ["test_"],
+    "name_suffixes": ["_test"]
+  }
+}

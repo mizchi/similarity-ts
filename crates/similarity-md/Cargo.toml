@@ -1,0 +1,56 @@
+[package]
+authors = ["mizchi"]
+categories = ["command-line-utilities", "development-tools"]
+description = "Experimental CLI tool for detecting content similarity in Markdown documents"
+documentation = "https://docs.rs/similarity-md"
+edition = "2021"
+homepage = "https://github.com/mizchi/similarity"
+keywords = ["markdown", "similarity", "duplicate", "detection", "cli"]
+license = "MIT"
+name = "similarity-md"
+publish = true
+repository = "https://github.com/mizchi/similarity"
+version = "0.1.0"
+
+[[bin]]
+name = "similarity-md"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0"
+clap = {version = "4.0", features = ["derive"]}
+globset = "0.4"
+ignore = "0.4"
+pulldown-cmark = "0.10"
+rayon = "1.10"
+serde = {version = "1.0", features = ["derive"]}
+serde_json = "1.0"
+vibrato = "0.5"
+walkdir = "2.5"
+zstd = {version = "0.13", optional = true}
+
+[features]
+default = []
+zstd-support = ["zstd"]
+
+[dev-dependencies]
+assert_cmd = "2.0"
+criterion = "0.5"
+predicates = "3.0"
+tempfile = "3.0"
+
+[[bench]]
+harness = false
+name = "markdown_similarity_benchmark"
+
+[[example]]
+name = "morphological_test"
+path = "examples/morphological_test.rs"
+
+[[example]]
+name = "debug_similarity"
+path = "examples/debug_similarity.rs"
+
+[[example]]
+name = "test_levenshtein"
+path = "examples/test_levenshtein.rs"
