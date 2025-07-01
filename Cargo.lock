@@ -1047,6 +1047,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "similarity-elixir"
+version = "0.3.1"
+dependencies = [
+ "anyhow",
+ "assert_cmd",
+ "clap",
+ "ignore",
+ "predicates",
+ "rayon",
+ "similarity-core",
+ "tempfile",
+ "tree-sitter",
+ "tree-sitter-elixir",
+ "walkdir",
+]
+
+[[package]]
 name = "similarity-generic"
 version = "0.3.1"
 dependencies = [
@@ -1263,6 +1280,16 @@ name = "tree-sitter-cpp"
 version = "0.23.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df2196ea9d47b4ab4a31b9297eaa5a5d19a0b121dceb9f118f6790ad0ab94743"
+dependencies = [
+ "cc",
+ "tree-sitter-language",
+]
+
+[[package]]
+name = "tree-sitter-elixir"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e45d444647b4fd53d8fd32474c1b8bedc1baa22669ce3a78d083e365fa9a2d3f"
 dependencies = [
  "cc",
  "tree-sitter-language",

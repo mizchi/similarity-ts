@@ -58,6 +58,8 @@ The AI will analyze patterns and suggest refactoring strategies.
 - **similarity-ts** - TypeScript/JavaScript similarity detection
 - **similarity-py** - Python similarity detection
 - **similarity-rs** - Rust similarity detection
+- **similarity-elixir** - Elixir similarity detection
+- **similarity-generic** - Generic similarity detection for Go, Java, C/C++, C#, Ruby
 
 ## Installation
 
@@ -89,6 +91,27 @@ cargo install similarity-rs
 
 # Use the installed binary
 similarity-rs --help
+```
+
+### Elixir
+
+```bash
+# Install from crates.io
+cargo install similarity-elixir
+
+# Use the installed binary
+similarity-elixir --help
+```
+
+### Other Languages (Go, Java, C/C++, C#, Ruby)
+
+```bash
+# Install from crates.io
+cargo install similarity-generic
+
+# Use the installed binary
+similarity-generic --language go main.go
+similarity-generic --language java Main.java
 ```
 
 ### From source
@@ -318,6 +341,7 @@ The `similarity-generic` tool provides experimental support for additional langu
 - C++
 - C#
 - Ruby
+- Elixir
 
 #### Installation
 
@@ -347,6 +371,9 @@ similarity-generic --language csharp ./src
 
 # Detect Ruby duplicates
 similarity-generic --language ruby ./src
+
+# Detect Elixir duplicates
+similarity-generic --language elixir ./src
 
 # Common options work the same way
 similarity-generic --language go ./src --threshold 0.8 --print
