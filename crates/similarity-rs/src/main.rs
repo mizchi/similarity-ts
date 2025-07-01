@@ -111,7 +111,7 @@ fn main() -> Result<()> {
 
     // Run overlap analysis if enabled
     if overlap_enabled && functions_enabled {
-        println!("\n{}\n", separator);
+        println!("\n{separator}\n");
     }
 
     if overlap_enabled {
@@ -209,7 +209,7 @@ fn check_overlaps(
                 }
             }
         } else {
-            eprintln!("Warning: Path not found: {}", path_str);
+            eprintln!("Warning: Path not found: {path_str}");
         }
     }
 
@@ -290,7 +290,7 @@ fn check_overlaps(
                             overlap.source_lines.0,
                             overlap.source_lines.1,
                         ) {
-                            println!("{}", source_segment);
+                            println!("{source_segment}");
                         }
 
                         println!("\n\x1b[36m--- Target Code ---\x1b[0m");
@@ -299,7 +299,7 @@ fn check_overlaps(
                             overlap.target_lines.0,
                             overlap.target_lines.1,
                         ) {
-                            println!("{}", target_segment);
+                            println!("{target_segment}");
                         }
                     }
                 }
@@ -322,7 +322,7 @@ fn create_exclude_matcher(exclude_patterns: &[String]) -> Option<globset::GlobSe
         if let Ok(glob) = globset::Glob::new(pattern) {
             builder.add(glob);
         } else {
-            eprintln!("Warning: Invalid glob pattern: {}", pattern);
+            eprintln!("Warning: Invalid glob pattern: {pattern}");
         }
     }
 

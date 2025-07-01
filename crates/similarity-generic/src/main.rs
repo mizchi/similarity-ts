@@ -322,14 +322,14 @@ fn check_overlaps(
             if let Ok(source_segment) =
                 extract_code_lines(&content, overlap.source_lines.0, overlap.source_lines.1)
             {
-                println!("{}", source_segment);
+                println!("{source_segment}");
             }
 
             println!("\n\x1b[36m--- Target Code ---\x1b[0m");
             if let Ok(target_segment) =
                 extract_code_lines(&content, overlap.target_lines.0, overlap.target_lines.1)
             {
-                println!("{}", target_segment);
+                println!("{target_segment}");
             }
         }
 
