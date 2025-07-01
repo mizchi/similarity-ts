@@ -1,6 +1,5 @@
 use similarity_md::{SectionExtractor, SimilarityCalculator, SimilarityOptions};
 use std::fs;
-use std::io::Write;
 use tempfile::TempDir;
 
 #[test]

@@ -54,17 +54,17 @@ impl MorphologicalSimilarityCalculator {
 
     /// 辞書ファイルを読み込む（圧縮ファイルにも対応）
     fn load_dictionary(path: &str) -> Result<Dictionary> {
-        let file = File::open(path)
-            .with_context(|| format!("辞書ファイルを開けませんでした: {}", path))?;
+        let file =
+            File::open(path).with_context(|| format!("辞書ファイルを開けませんでした: {path}"))?;
 
         // .zstファイルの場合は解凍して読み込み
         if path.ends_with(".zst") {
             #[cfg(feature = "zstd-support")]
             {
                 let decoder = Decoder::new(file)
-                    .with_context(|| format!("zstdデコーダーの初期化に失敗しました: {}", path))?;
+                    .with_context(|| format!("zstdデコーダーの初期化に失敗しました: {path}"))?;
                 Dictionary::read(decoder)
-                    .with_context(|| format!("圧縮辞書ファイルの読み込みに失敗しました: {}", path))
+                    .with_context(|| format!("圧縮辞書ファイルの読み込みに失敗しました: {path}"))
             }
             #[cfg(not(feature = "zstd-support"))]
             {
@@ -75,7 +75,7 @@ impl MorphologicalSimilarityCalculator {
             }
         } else {
             Dictionary::read(file)
-                .with_context(|| format!("辞書ファイルの読み込みに失敗しました: {}", path))
+                .with_context(|| format!("辞書ファイルの読み込みに失敗しました: {path}"))
         }
     }
 
@@ -94,7 +94,7 @@ impl MorphologicalSimilarityCalculator {
 
             // 品詞情報を解析
             let pos_parts: Vec<&str> = features.split(',').collect();
-            let pos_main = pos_parts.get(0).unwrap_or(&"").to_string();
+            let pos_main = pos_parts.first().unwrap_or(&"").to_string();
             let pos_sub1 = pos_parts.get(1).unwrap_or(&"").to_string();
             let pos_sub2 = pos_parts.get(2).unwrap_or(&"").to_string();
             let base_form = pos_parts.get(6).unwrap_or(&surface).to_string();

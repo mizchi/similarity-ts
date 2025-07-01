@@ -230,9 +230,9 @@ impl MarkdownParser {
         let mut metadata = HashMap::new();
 
         // Simple front matter extraction (YAML-style)
-        if content.starts_with("---\n") {
-            if let Some(end_pos) = content[4..].find("\n---\n") {
-                let front_matter = &content[4..end_pos + 4];
+        if let Some(stripped) = content.strip_prefix("---\n") {
+            if let Some(end_pos) = stripped.find("\n---\n") {
+                let front_matter = &stripped[..end_pos];
                 for line in front_matter.lines() {
                     if let Some(colon_pos) = line.find(':') {
                         let key = line[..colon_pos].trim().to_string();

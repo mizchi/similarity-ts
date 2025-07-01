@@ -18,8 +18,8 @@ pub fn levenshtein_distance(s1: &str, s2: &str) -> usize {
     let mut matrix = vec![vec![0; len2 + 1]; len1 + 1];
 
     // Initialize first row and column
-    for i in 0..=len1 {
-        matrix[i][0] = i;
+    for (i, row) in matrix.iter_mut().enumerate().take(len1 + 1) {
+        row[0] = i;
     }
     for j in 0..=len2 {
         matrix[0][j] = j;
@@ -63,11 +63,11 @@ pub fn word_levenshtein_distance(s1: &str, s2: &str) -> usize {
     let has_japanese = |text: &str| {
         text.chars().any(|c| {
             // ひらがな (U+3040-U+309F)
-            (c >= '\u{3040}' && c <= '\u{309F}') ||
+            ('\u{3040}'..='\u{309F}').contains(&c) ||
             // カタカナ (U+30A0-U+30FF)
-            (c >= '\u{30A0}' && c <= '\u{30FF}') ||
+            ('\u{30A0}'..='\u{30FF}').contains(&c) ||
             // 漢字 (U+4E00-U+9FAF)
-            (c >= '\u{4E00}' && c <= '\u{9FAF}')
+            ('\u{4E00}'..='\u{9FAF}').contains(&c)
         })
     };
 
@@ -92,8 +92,8 @@ pub fn word_levenshtein_distance(s1: &str, s2: &str) -> usize {
 
     let mut matrix = vec![vec![0; len2 + 1]; len1 + 1];
 
-    for i in 0..=len1 {
-        matrix[i][0] = i;
+    for (i, row) in matrix.iter_mut().enumerate().take(len1 + 1) {
+        row[0] = i;
     }
     for j in 0..=len2 {
         matrix[0][j] = j;
@@ -122,11 +122,11 @@ pub fn word_levenshtein_similarity(s1: &str, s2: &str) -> f64 {
     let has_japanese = |text: &str| {
         text.chars().any(|c| {
             // ひらがな (U+3040-U+309F)
-            (c >= '\u{3040}' && c <= '\u{309F}') ||
+            ('\u{3040}'..='\u{309F}').contains(&c) ||
             // カタカナ (U+30A0-U+30FF)
-            (c >= '\u{30A0}' && c <= '\u{30FF}') ||
+            ('\u{30A0}'..='\u{30FF}').contains(&c) ||
             // 漢字 (U+4E00-U+9FAF)
-            (c >= '\u{4E00}' && c <= '\u{9FAF}')
+            ('\u{4E00}'..='\u{9FAF}').contains(&c)
         })
     };
 
