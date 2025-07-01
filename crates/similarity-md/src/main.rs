@@ -100,6 +100,18 @@ struct Cli {
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
+    // Show experimental warning
+    eprintln!("╔════════════════════════════════════════════════════════════════════╗");
+    eprintln!("║                      EXPERIMENTAL WARNING                          ║");
+    eprintln!("║                                                                    ║");
+    eprintln!("║  similarity-md is an experimental tool for analyzing Markdown      ║");
+    eprintln!("║  content similarity. It may produce unexpected results and its     ║");
+    eprintln!("║  API/behavior may change significantly in future versions.         ║");
+    eprintln!("║                                                                    ║");
+    eprintln!("║  Use with caution in production environments.                      ║");
+    eprintln!("╚════════════════════════════════════════════════════════════════════╝");
+    eprintln!();
+
     // Validate threshold
     if cli.threshold < 0.0 || cli.threshold > 1.0 {
         return Err(anyhow::anyhow!("Threshold must be between 0.0 and 1.0"));

@@ -8,7 +8,7 @@ homepage = "https://github.com/mizchi/similarity"
 keywords = ["markdown", "similarity", "duplicate", "detection", "cli"]
 license = "MIT"
 name = "similarity-md"
-publish = false
+publish = true
 repository = "https://github.com/mizchi/similarity"
 version = "0.1.0"
 
