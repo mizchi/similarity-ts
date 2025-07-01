@@ -8,6 +8,7 @@ pub enum Language {
     JavaScript,
     TypeScript,
     Python,
+    Php,
     Rust,
     Go,
 }
@@ -18,6 +19,7 @@ impl Language {
             "js" | "mjs" | "cjs" => Some(Language::JavaScript),
             "ts" | "tsx" => Some(Language::TypeScript),
             "py" => Some(Language::Python),
+            "php" => Some(Language::Php),
             "rs" => Some(Language::Rust),
             "go" => Some(Language::Go),
             _ => None,
@@ -98,6 +100,7 @@ mod tests {
         assert_eq!(Language::from_filename("test.js"), Some(Language::JavaScript));
         assert_eq!(Language::from_filename("test.ts"), Some(Language::TypeScript));
         assert_eq!(Language::from_filename("test.py"), Some(Language::Python));
+        assert_eq!(Language::from_filename("test.php"), Some(Language::Php));
         assert_eq!(Language::from_filename("test.rs"), Some(Language::Rust));
         assert_eq!(Language::from_filename("test.go"), Some(Language::Go));
         assert_eq!(Language::from_filename("test.txt"), None);
